@@ -1,21 +1,101 @@
-const form = document.getElementById("grade-form");
-const gradeButton = document.getElementById("grade-button");
-const buttonLabel = document.getElementById("button-label");
-const submission = document.getElementById("submission");
-const errorBox = document.getElementById("form-error");
-const emptyState = document.getElementById("empty-state");
-const loadingState = document.getElementById("loading-state");
-const report = document.getElementById("report");
 
-let latestReport = null;
+const $ = (selector) => document.querySelector(selector);
+const $$ = (selector) => [...document.querySelectorAll(selector)];
 
-submission.addEventListener("input", () => {
-  document.getElementById("character-count").textContent =
-    `${submission.value.length.toLocaleString()} / 80,000`;
-});
+const themes = {
+  violet: { accent: "#9b7bff", rgb: "155, 123, 255", second: "#51d9ff" },
+  blue: { accent: "#438dff", rgb: "67, 141, 255", second: "#42dcff" },
+  emerald: { accent: "#36d6a0", rgb: "54, 214, 160", second: "#67e7ed" },
+  rose: { accent: "#ff6eaa", rgb: "255, 110, 170", second: "#ffad8c" },
+  amber: { accent: "#ffb547", rgb: "255, 181, 71", second: "#ffe07a" }
+};
 
-function escapeHTML(value = "") {
-  return String(value).replace(/[&<>"']/g, character => ({
+let currentReport = null;
+let backgroundData = "";
+let settingsBeforeOpen = null;
+
+function applyTheme(name) {
+  const theme = themes[name] || themes.violet;
+  document.documentElement.style.setProperty("--accent", theme.accent);
+  document.documentElement.style.setProperty("--accent-rgb", theme.rgb);
+  document.documentElement.style.setProperty("--accent-2", theme.second);
+
+  $$(".theme-swatch").forEach((button) => {
+    button.classList.toggle("selected", button.dataset.theme === name);
+  });
+
+  try { localStorage.setItem("gn-theme", name); } catch {}
+}
+
+function applyStyle(style) {
+  document.body.classList.toggle("solid-mode", style === "solid");
+  $$(".style-choice").forEach((button) => {
+    button.classList.toggle("selected", button.dataset.style === style);
+  });
+  try { localStorage.setItem("gn-style", style); } catch {}
+}
+
+function setBackground(data) {
+  backgroundData = data || "";
+  const photo = $("#backgroundPhoto");
+
+  if (backgroundData) {
+    photo.style.backgroundImage = `url("${backgroundData}")`;
+    document.body.classList.add("has-background");
+  } else {
+    photo.style.backgroundImage = "none";
+    document.body.classList.remove("has-background");
+  }
+}
+
+function applyIntensity(value) {
+  const intensity = Math.max(5, Math.min(45, Number(value) || 18));
+  $("#backgroundIntensity").value = intensity;
+  $("#intensityValue").textContent = `${intensity}%`;
+  $("#ambientOverlay").style.background =
+    `rgba(6, 8, 19, ${1 - intensity / 100})`;
+  try { localStorage.setItem("gn-intensity", String(intensity)); } catch {}
+}
+
+function loadPreferences() {
+  let theme = "violet";
+  let style = "glass";
+  let intensity = 18;
+  let savedBackground = "";
+
+  try {
+    theme = localStorage.getItem("gn-theme") || theme;
+    style = localStorage.getItem("gn-style") || style;
+    intensity = Number(localStorage.getItem("gn-intensity")) || intensity;
+    savedBackground = localStorage.getItem("gn-background") || "";
+  } catch {}
+
+  applyTheme(theme);
+  applyStyle(style);
+  applyIntensity(intensity);
+
+  if (savedBackground) setBackground(savedBackground);
+}
+
+function openSettings() {
+  settingsBeforeOpen = {
+    theme: (() => { try { return localStorage.getItem("gn-theme") || "violet"; } catch { return "violet"; } })(),
+    style: document.body.classList.contains("solid-mode") ? "solid" : "glass",
+    intensity: Number($("#backgroundIntensity").value) || 18,
+    background: backgroundData
+  };
+  $("#settingsBackdrop").hidden = false;
+  document.body.style.overflow = "hidden";
+  $("#closeSettings").focus();
+}
+
+function closeSettings() {
+  $("#settingsBackdrop").hidden = true;
+  document.body.style.overflow = "";
+}
+
+function escapeHTML(value) {
+  return String(value ?? "").replace(/[&<>"']/g, (character) => ({
     "&": "&amp;",
     "<": "&lt;",
     ">": "&gt;",
@@ -24,407 +104,347 @@ function escapeHTML(value = "") {
   })[character]);
 }
 
-function num(value, decimals = 1) {
-  const parsed = Number(value);
-
-  return Number.isFinite(parsed)
-    ? parsed.toFixed(decimals).replace(/\.0$/, "")
-    : "—";
-}
-
-function getLetterGrade(percent) {
+function letterGrade(percent) {
   if (percent >= 97) return "A+";
   if (percent >= 93) return "A";
-  if (percent >= 90) return "A-";
+  if (percent >= 90) return "A−";
   if (percent >= 87) return "B+";
   if (percent >= 83) return "B";
-  if (percent >= 80) return "B-";
+  if (percent >= 80) return "B−";
   if (percent >= 77) return "C+";
   if (percent >= 73) return "C";
-  if (percent >= 70) return "C-";
+  if (percent >= 70) return "C−";
   if (percent >= 67) return "D+";
   if (percent >= 63) return "D";
-  if (percent >= 60) return "D-";
+  if (percent >= 60) return "D−";
   return "F";
 }
 
-function getNumberGrade(percent) {
-  // Default standards-based thresholds.
-  if (percent >= 90) return 4;
-  if (percent >= 70) return 3;
-  if (percent >= 50) return 2;
-  return 1;
+function numberGrade(percent) {
+  if (percent >= 90) return "4";
+  if (percent >= 80) return "3";
+  if (percent >= 70) return "2";
+  if (percent >= 60) return "1";
+  return "0";
 }
 
-function getMode() {
-  return document.querySelector(
-    'input[name="gradeMode"]:checked'
-  ).value;
-}
-
-function getGradeText(letter, numeric, mode) {
+function displayGrade(percent, mode) {
+  const letter = letterGrade(percent);
+  const number = numberGrade(percent);
   if (mode === "letter") return letter;
-  if (mode === "numeric") return String(numeric);
-  return `${letter} · ${numeric}`;
+  if (mode === "numeric") return number;
+  return `${letter} / ${number}`;
 }
 
-function buildReport(data, totalPoints, mode) {
-  if (!Array.isArray(data.questions) || data.questions.length === 0) {
-    throw new Error(
-      "No questions were identified. Make sure the pasted text includes the test questions and the student's answers."
-    );
-  }
-
-  const questions = data.questions;
-
-  let rawEarned = 0;
-  let rawPossible = 0;
-  let correct = 0;
-  let partial = 0;
-  let incorrect = 0;
-  let questionRatingTotal = 0;
-
-  for (const q of questions) {
-    const possible = Math.max(0.01, Number(q.possible) || 1);
-    const earned = Math.max(
-      0,
-      Math.min(possible, Number(q.earned) || 0)
-    );
-
-    q.possible = possible;
-    q.earned = earned;
-
-    rawPossible += possible;
-    rawEarned += earned;
-
-    const ratio = earned / possible;
-
-    if (ratio >= 0.999) {
-      correct++;
-    } else if (ratio > 0) {
-      partial++;
-    } else {
-      incorrect++;
-    }
-
-    questionRatingTotal += ratio * 4;
-  }
-
-  if (rawPossible <= 0) {
-    throw new Error("The AI did not return valid possible points.");
-  }
-
-  const percentage = Math.max(
-    0,
-    Math.min(100, rawEarned / rawPossible * 100)
-  );
-
-  const pointsPossible = Number(totalPoints);
-  const pointsEarned = pointsPossible * percentage / 100;
-  const letter = getLetterGrade(percentage);
-  const numeric = getNumberGrade(percentage);
-  const average = questionRatingTotal / questions.length;
-
-  latestReport = {
-    questions,
-    percentage,
-    pointsEarned,
-    pointsPossible,
-    letter,
-    numeric,
-    average,
-    mode,
-    assignment: "Test grading report",
-    overallFeedback: data.overallFeedback || "",
-    strengths: data.strengths || "",
-    improvements: data.improvements || "",
-    correct,
-    partial,
-    incorrect
-  };
-
-  renderReport(latestReport);
+function metricCard(label, value, note) {
+  return `
+    <div class="metric-card">
+      <div class="metric-label">${escapeHTML(label)}</div>
+      <div class="metric-value">${escapeHTML(value)}</div>
+      <div class="metric-note">${escapeHTML(note)}</div>
+    </div>`;
 }
 
-function renderReport(result) {
-  const mode = result.mode;
-  const gradeText = getGradeText(
-    result.letter,
-    result.numeric,
-    mode
-  );
+function renderReport(data, mode, totalPoints) {
+  currentReport = data;
 
-  document.getElementById("report-title").textContent =
-    "Your test results";
+  const questions = Array.isArray(data.questions) ? data.questions : [];
+  const earned = Number(data.earned ?? data.score ?? 0);
+  const possible = Number(data.possible ?? totalPoints) || totalPoints;
+  const percent = Math.max(0, Math.min(100, Number(data.percentage ?? (possible ? earned / possible * 100 : 0))));
+  const shownGrade = displayGrade(percent, mode);
+  const correct = questions.filter(q => Number(q.earned) >= Number(q.possible || 1) && Number(q.possible || 1) > 0).length;
+  const needsWork = questions.filter(q => Number(q.earned) < Number(q.possible || 1)).length;
 
-  document.getElementById("report-subtitle").textContent =
-    `${result.questions.length} questions analyzed`;
+  $("#emptyState").hidden = true;
+  $("#reportContent").hidden = false;
+  $("#copyReport").disabled = false;
+  $("#reportSubtitle").textContent = "Your AI-generated grading summary is ready.";
 
-  document.getElementById("percentage").textContent =
-    `${num(result.percentage)}%`;
+  const scoreValue = `${Number(earned.toFixed(2))} / ${Number(possible.toFixed(2))}`;
+  const modeGrade = mode === "letter" ? "Letter grade" : mode === "numeric" ? "Number grade" : "Letter + number";
+  $("#resultMetrics").innerHTML = [
+    metricCard("PERCENTAGE", `${percent.toFixed(1)}%`, "Overall result"),
+    metricCard("FINAL GRADE", shownGrade, modeGrade),
+    metricCard("POINTS EARNED", scoreValue, "Points awarded"),
+    metricCard("QUESTIONS", String(questions.length), `${correct} full-credit · ${needsWork} to review`)
+  ].join("");
 
-  document.getElementById("score-ring").style.setProperty(
-    "--score",
-    `${result.percentage}%`
-  );
+  const overview = Array.isArray(data.strengths) ? data.strengths : [];
+  const improvements = Array.isArray(data.improvements) ? data.improvements : [];
 
-  document.getElementById("main-grade").textContent = gradeText;
+  $("#performanceOverview").innerHTML = `
+    <p><strong>Score:</strong> ${escapeHTML(scoreValue)} (${percent.toFixed(1)}%)</p>
+    <p><strong>Grade:</strong> ${escapeHTML(shownGrade)}</p>
+    ${overview.length ? `<p><strong>Strengths</strong></p><ul>${overview.map(x => `<li>${escapeHTML(x)}</li>`).join("")}</ul>` : ""}
+    ${improvements.length ? `<p><strong>Areas to improve</strong></p><ul>${improvements.map(x => `<li>${escapeHTML(x)}</li>`).join("")}</ul>` : ""}
+  `;
 
-  document.getElementById("grade-secondary").textContent =
-    mode === "both"
-      ? "Letter + number grade"
-      : mode === "letter"
-        ? "Letter grade"
-        : "Number grade out of 4";
+  const feedback = data.overallFeedback || data.feedback || "Review the question-by-question feedback below. AI grading can make mistakes, so check important results.";
+  $("#overallFeedback").innerHTML = `<p>${escapeHTML(feedback)}</p>`;
 
-  document.getElementById("score-description").textContent =
-    `${num(result.pointsEarned)} of ${num(result.pointsPossible)} points earned.`;
+  $("#questionCount").textContent = `${questions.length} questions`;
 
-  document.getElementById("points-earned").textContent =
-    num(result.pointsEarned, 2);
-
-  document.getElementById("points-possible").textContent =
-    `Out of ${num(result.pointsPossible, 2)} points`;
-
-  document.getElementById("average").textContent =
-    `${num(result.average, 2)}`;
-
-  document.getElementById("correct-count").textContent =
-    result.correct;
-
-  document.getElementById("partial-count").textContent =
-    result.partial;
-
-  document.getElementById("incorrect-count").textContent =
-    result.incorrect;
-
-  document.getElementById("total-questions").textContent =
-    result.questions.length;
-
-  document.getElementById("letter-grade").textContent =
-    result.letter;
-
-  document.getElementById("number-grade").textContent =
-    `${result.numeric} / 4`;
-
-  document.getElementById("correct-caption").textContent =
-    `Out of ${result.questions.length} questions`;
-
-  document.getElementById("question-count").textContent =
-    `${result.questions.length} questions`;
-
-  document.getElementById("summary-note").textContent =
-    result.overallFeedback ||
-    "Review the question-level feedback below.";
-
-  document.getElementById("strengths").textContent =
-    result.strengths || "No specific strengths were identified.";
-
-  document.getElementById("improvements").textContent =
-    result.improvements || "Review the missed questions below.";
-
-  const list = document.getElementById("question-list");
-
-  list.innerHTML = result.questions.map((q, index) => {
-    const ratio = q.earned / q.possible;
-
-    let status;
-    if (ratio >= 0.999) {
-      status = "CORRECT";
-    } else if (ratio > 0) {
-      status = "PARTIAL";
-    } else {
-      status = "INCORRECT";
-    }
+  $("#questionList").innerHTML = questions.map((q, index) => {
+    const qEarned = Number(q.earned) || 0;
+    const qPossible = Number(q.possible) || 0;
+    const qPercent = qPossible > 0 ? qEarned / qPossible * 100 : 0;
+    const chipClass = qPercent >= 80 ? "good" : qPercent < 50 ? "bad" : "";
+    const questionTitle = q.question || `Question ${index + 1}`;
 
     return `
       <article class="question-card">
-        <div class="question-top">
-          <div class="question-name">
-            ${index + 1}. ${escapeHTML(q.question || "Question")}
-          </div>
-          <span class="points-badge">
-            ${num(q.earned, 2)} / ${num(q.possible, 2)} pts
-          </span>
+        <div class="question-card-top">
+          <div><h4>${index + 1}. ${escapeHTML(questionTitle)}</h4></div>
+          <span class="score-chip ${chipClass}">${qEarned} / ${qPossible} pts</span>
         </div>
-
-        <p><strong>Status:</strong> ${status}</p>
-
-        <p><strong>Student answer:</strong><br>
-          ${escapeHTML(q.studentAnswer || "No answer identified")}
-        </p>
-
-        <p><strong>Feedback:</strong><br>
-          ${escapeHTML(q.feedback || "No feedback provided")}
-        </p>
-
-        ${q.correctAnswer ? `
-          <p><strong>Suggested answer:</strong><br>
-            ${escapeHTML(q.correctAnswer)}
-          </p>
-        ` : ""}
-      </article>
-    `;
-  }).join("");
-
-  emptyState.hidden = true;
-  loadingState.hidden = true;
-  report.hidden = false;
-
-  report.scrollIntoView({
-    behavior: "smooth",
-    block: "start"
-  });
-
-  document.getElementById("copy-status").textContent = "";
+        ${q.studentAnswer ? `<div class="question-answer"><strong>Student answer:</strong> ${escapeHTML(q.studentAnswer)}</div>` : ""}
+        ${q.expectedAnswer ? `<div class="question-answer"><strong>Expected answer:</strong> ${escapeHTML(q.expectedAnswer)}</div>` : ""}
+        <div class="question-answer question-feedback"><strong>Feedback:</strong> ${escapeHTML(q.feedback || "No additional feedback supplied.")}</div>
+      </article>`;
+  }).join("") || `<p class="question-answer">The AI returned a score but no individual question breakdown.</p>`;
 }
 
-form.addEventListener("submit", async event => {
-  event.preventDefault();
+function makePlainReport() {
+  if (!currentReport) return "";
 
-  errorBox.hidden = true;
-  errorBox.textContent = "";
-  report.hidden = true;
-  emptyState.hidden = true;
-  loadingState.hidden = false;
-  gradeButton.disabled = true;
-  buttonLabel.textContent = "AI is grading...";
+  const questions = Array.isArray(currentReport.questions) ? currentReport.questions : [];
+  const earned = Number(currentReport.earned ?? currentReport.score ?? 0);
+  const possible = Number(currentReport.possible ?? Number($("#totalPoints").value) ?? 100);
+  const percent = Number(currentReport.percentage ?? (possible ? earned / possible * 100 : 0));
+  const mode = $('input[name="gradeMode"]:checked')?.value || "both";
 
-  const payload = {
-    submission: submission.value.trim(),
-    totalPoints: Number(
-      document.getElementById("total-points").value
-    ) || 100,
-    strictness: document.getElementById("strictness").value
-  };
+  const lines = [
+    "GRADENOVA — AI GRADING REPORT",
+    `Score: ${earned} / ${possible}`,
+    `Percentage: ${percent.toFixed(1)}%`,
+    `Grade: ${displayGrade(percent, mode)}`,
+    "",
+    "OVERALL FEEDBACK",
+    currentReport.overallFeedback || currentReport.feedback || "No overall feedback provided.",
+    "",
+    "QUESTION BREAKDOWN"
+  ];
+
+  questions.forEach((q, i) => {
+    lines.push(
+      `${i + 1}. ${q.question || "Question"}`,
+      `Score: ${q.earned ?? 0} / ${q.possible ?? 0}`,
+      `Student answer: ${q.studentAnswer || "Not supplied"}`,
+      `Expected answer: ${q.expectedAnswer || "Not supplied"}`,
+      `Feedback: ${q.feedback || "No feedback"}`,
+      ""
+    );
+  });
+
+  return lines.join("\n");
+}
+
+async function gradeTest() {
+  const test = $("#testInput").value.trim();
+  const totalPoints = Number($("#totalPoints").value);
+  const strictness = $("#strictness").value;
+  const mode = $('input[name="gradeMode"]:checked')?.value || "both";
+
+  $("#errorMessage").hidden = true;
+
+  if (!test) {
+    $("#errorMessage").textContent = "Paste your test and the student's answers into the workspace first.";
+    $("#errorMessage").hidden = false;
+    $("#testInput").focus();
+    return;
+  }
+
+  if (!Number.isFinite(totalPoints) || totalPoints <= 0 || totalPoints > 10000) {
+    $("#errorMessage").textContent = "Enter a total point value between 1 and 10,000.";
+    $("#errorMessage").hidden = false;
+    return;
+  }
+
+  const button = $("#gradeButton");
+  button.disabled = true;
+  $("#gradeButtonText").textContent = "AI is reviewing your test…";
+  button.querySelector(".button-sparkle").textContent = "◌";
 
   try {
     const response = await fetch("/api/grade", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(payload)
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ test, totalPoints, strictness, gradeMode: mode })
     });
 
-    const data = await response.json();
+    const data = await response.json().catch(() => ({}));
 
     if (!response.ok) {
-      throw new Error(
-        data.error || "The grading request failed."
-      );
+      throw new Error(data.error || `The grading server returned error ${response.status}.`);
     }
 
-    buildReport(data, payload.totalPoints, getMode());
-
+    renderReport(data, mode, totalPoints);
+    $("#formatStat").textContent = mode === "letter" ? "Letter grades" : mode === "numeric" ? "Number grades" : "Letter + 1–4";
+    $("#results").scrollIntoView({ behavior: "smooth", block: "start" });
   } catch (error) {
-    loadingState.hidden = true;
-    emptyState.hidden = false;
-
-    errorBox.textContent =
-      error.message || "An unexpected error occurred.";
-
-    errorBox.hidden = false;
-
+    $("#errorMessage").textContent =
+      `${error.message || "Could not grade the test."} Make sure the Node server is running and its AI API key is configured.`;
+    $("#errorMessage").hidden = false;
   } finally {
-    gradeButton.disabled = false;
-    buttonLabel.textContent = "Analyze & Grade Test";
+    button.disabled = false;
+    $("#gradeButtonText").textContent = "Grade my test with AI";
+    button.querySelector(".button-sparkle").textContent = "✦";
   }
+}
+
+async function prepareBackground(file) {
+  if (!file) return;
+  if (!file.type.startsWith("image/")) {
+    alert("Please select an image file.");
+    return;
+  }
+  if (file.size > 15 * 1024 * 1024) {
+    alert("That image is larger than 15 MB. Choose a smaller image.");
+    return;
+  }
+
+  const button = $("#chooseBackground");
+  button.disabled = true;
+  button.querySelector("strong").textContent = "Preparing your image…";
+
+  try {
+    const dataUrl = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(new Error("Could not read this image."));
+      reader.readAsDataURL(file);
+    });
+
+    const image = await new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error("Could not open this image."));
+      img.src = dataUrl;
+    });
+
+    // Resize the picture to reduce browser storage use.
+    const maxSide = 1600;
+    const scale = Math.min(1, maxSide / Math.max(image.width, image.height));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(image.width * scale));
+    canvas.height = Math.max(1, Math.round(image.height * scale));
+
+    const context = canvas.getContext("2d");
+    context.drawImage(image, 0, 0, canvas.width, canvas.height);
+    const compactImage = canvas.toDataURL("image/jpeg", 0.82);
+
+    setBackground(compactImage);
+
+    try {
+      localStorage.setItem("gn-background", compactImage);
+      $("#settingsSaved").textContent = "Background saved in this browser";
+    } catch {
+      // Still apply the image for this session if storage is full.
+      $("#settingsSaved").textContent = "Background applied for this session";
+      alert("The image is active, but your browser storage is full. It may not be saved after you close the browser.");
+    }
+  } catch (error) {
+    alert(error.message || "Could not use that image.");
+  } finally {
+    button.disabled = false;
+    button.querySelector("strong").textContent = "Choose an image";
+    $("#backgroundFile").value = "";
+  }
+}
+
+// Navigation and settings
+$("#openSettings").addEventListener("click", openSettings);
+$("#topSettings").addEventListener("click", openSettings);
+$("#sidebarCustomize").addEventListener("click", openSettings);
+$("#miniCustomize").addEventListener("click", openSettings);
+$("#footerSettings").addEventListener("click", openSettings);
+$("#closeSettings").addEventListener("click", closeSettings);
+$("#doneSettings").addEventListener("click", closeSettings);
+
+$("#settingsBackdrop").addEventListener("click", (event) => {
+  if (event.target === $("#settingsBackdrop")) closeSettings();
 });
 
-function makeShortReport(result) {
-  const mode = result.mode;
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && !$("#settingsBackdrop").hidden) closeSettings();
+});
 
-  const grade = getGradeText(
-    result.letter,
-    result.numeric,
-    mode
-  );
+$$("[data-scroll]").forEach(button => {
+  button.addEventListener("click", () => {
+    const target = document.getElementById(button.dataset.scroll);
+    target?.scrollIntoView({ behavior: "smooth", block: "start" });
 
-  return [
-    "GRADEPILOT AI — GRADE REPORT",
-    `Grade: ${grade}`,
-    `Percentage: ${num(result.percentage)}%`,
-    `Points: ${num(result.pointsEarned, 2)} / ${num(result.pointsPossible, 2)}`,
-    `Average question rating: ${num(result.average, 2)} / 4`,
-    `Fully correct: ${result.correct}`,
-    `Partially correct: ${result.partial}`,
-    `Incorrect or unanswered: ${result.incorrect}`,
-    `Questions analyzed: ${result.questions.length}`
-  ].join("\n");
-}
+    $$(".nav-item").forEach(item => item.classList.toggle("active", item === button));
+  });
+});
 
-function makeFullReport(result) {
-  const questionDetails = result.questions.map((q, index) => [
-    `Question ${index + 1}: ${q.question}`,
-    `Score: ${num(q.earned, 2)} / ${num(q.possible, 2)}`,
-    `Student answer: ${q.studentAnswer || "Not identified"}`,
-    `Feedback: ${q.feedback || "None"}`,
-    q.correctAnswer
-      ? `Suggested answer: ${q.correctAnswer}`
-      : ""
-  ].filter(Boolean).join("\n")).join("\n\n");
+// Theme selection
+$$(".theme-swatch").forEach(button => {
+  button.addEventListener("click", () => {
+    applyTheme(button.dataset.theme);
+    $("#settingsSaved").textContent = "Theme updated";
+  });
+});
 
-  return [
-    makeShortReport(result),
-    "",
-    "QUESTION BREAKDOWN",
-    questionDetails,
-    "",
-    "OVERALL FEEDBACK",
-    result.overallFeedback || "No overall feedback.",
-    "",
-    "STRENGTHS",
-    result.strengths || "Not specified.",
-    "",
-    "AREAS TO IMPROVE",
-    result.improvements || "Not specified.",
-    "",
-    "AI-generated grades should be reviewed by the teacher."
-  ].join("\n");
-}
+$$(".style-choice").forEach(button => {
+  button.addEventListener("click", () => {
+    applyStyle(button.dataset.style);
+    $("#settingsSaved").textContent = "Interface style updated";
+  });
+});
 
-async function copyText(text) {
-  const status = document.getElementById("copy-status");
+// Background image selection
+$("#chooseBackground").addEventListener("click", () => $("#backgroundFile").click());
+$("#backgroundFile").addEventListener("change", (event) => prepareBackground(event.target.files?.[0]));
+$("#removeBackground").addEventListener("click", () => {
+  setBackground("");
+  try { localStorage.removeItem("gn-background"); } catch {}
+  $("#settingsSaved").textContent = "Background removed";
+});
+
+$("#backgroundIntensity").addEventListener("input", (event) => {
+  applyIntensity(event.target.value);
+});
+
+// Grading workspace
+$("#testInput").addEventListener("input", () => {
+  $("#characterCount").textContent = `${$("#testInput").value.length.toLocaleString()} characters`;
+});
+
+$("#clearInput").addEventListener("click", () => {
+  $("#testInput").value = "";
+  $("#characterCount").textContent = "0 characters";
+  $("#testInput").focus();
+});
+
+$$('input[name="gradeMode"]').forEach(input => {
+  input.addEventListener("change", () => {
+    const mode = $('input[name="gradeMode"]:checked').value;
+    $("#formatStat").textContent = mode === "letter" ? "Letter grades" : mode === "numeric" ? "Number grades" : "Letter + 1–4";
+  });
+});
+
+$("#gradeButton").addEventListener("click", gradeTest);
+
+$("#copyReport").addEventListener("click", async () => {
+  const text = makePlainReport();
+  if (!text) return;
 
   try {
     await navigator.clipboard.writeText(text);
-    status.textContent = "✓ Copied to clipboard!";
+    $("#copyReport").textContent = "✓ Copied!";
+    setTimeout(() => { $("#copyReport").textContent = "▣ Copy report"; }, 1800);
   } catch {
-    const field = document.createElement("textarea");
-    field.value = text;
-    field.style.position = "fixed";
-    field.style.left = "-9999px";
-
-    document.body.appendChild(field);
-    field.select();
-
-    const success = document.execCommand("copy");
-    field.remove();
-
-    status.textContent = success
-      ? "✓ Copied to clipboard!"
-      : "Copy failed. Please select and copy the report manually.";
-  }
-}
-
-document.getElementById("copy-button").addEventListener("click", () => {
-  if (latestReport) {
-    copyText(makeShortReport(latestReport));
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    document.body.appendChild(textarea);
+    textarea.select();
+    const succeeded = document.execCommand("copy");
+    textarea.remove();
+    $("#copyReport").textContent = succeeded ? "✓ Copied!" : "Select report text to copy";
+    setTimeout(() => { $("#copyReport").textContent = "▣ Copy report"; }, 1800);
   }
 });
 
-document.getElementById("copy-detail-button").addEventListener("click", () => {
-  if (latestReport) {
-    copyText(makeFullReport(latestReport));
-  }
-});
-
-document.getElementById("copy-score-button").addEventListener("click", () => {
-  if (latestReport) {
-    const result = latestReport;
-    copyText(
-      `${getGradeText(result.letter, result.numeric, result.mode)} — ${num(result.percentage)}%`
-    );
-  }
-});
+loadPreferences();
