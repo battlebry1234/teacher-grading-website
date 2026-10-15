@@ -1,161 +1,352 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GradePilot - AI Teacher Grader</title>
+  <meta name="theme-color" content="#090d1b">
+  <title>GradePilot AI | Smart Grading Studio</title>
   <link rel="stylesheet" href="/styles.css">
   <script src="/app.js" defer></script>
 </head>
 <body>
+  <div class="background-effects" aria-hidden="true">
+    <div class="glow glow-one"></div>
+    <div class="glow glow-two"></div>
+    <div class="grid-overlay"></div>
+  </div>
+
   <header class="topbar">
-    <a class="brand" href="/">
-      <span class="brand-mark">G</span>
-      <span>GradePilot</span>
+    <a href="/" class="brand">
+      <span class="brand-icon">✳</span>
+      <span>gradepilot<span class="brand-ai"> AI</span></span>
     </a>
-    <span class="top-note">AI-assisted grading workspace</span>
+
+    <div class="header-right">
+      <span class="live-dot"></span>
+      <span>SMART GRADING STUDIO</span>
+      <span class="version-pill">BETA</span>
+    </div>
   </header>
 
-  <main class="shell">
+  <main class="container">
     <section class="hero">
-      <div class="eyebrow">TEACHER WORKSPACE</div>
-      <h1>Grade smarter.<br><span>Give better feedback.</span></h1>
-      <p>
-        Paste a test and a student's answers to get a score,
-        percentage, average, grade, and detailed feedback.
+      <div class="hero-badge">
+        <span>✦</span> YOUR AI-POWERED GRADING ASSISTANT
+      </div>
+
+      <h1>Less time grading.<br>
+        <span class="gradient-text">More time teaching.</span>
+      </h1>
+
+      <p class="hero-description">
+        Drop in an entire test. Let AI analyze the questions and answers,
+        calculate the results, and build your grading report in seconds.
       </p>
+
+      <div class="hero-features">
+        <span><span class="feature-check">✓</span> Automatic scoring</span>
+        <span><span class="feature-check">✓</span> Detailed feedback</span>
+        <span><span class="feature-check">✓</span> Copy-ready grades</span>
+      </div>
     </section>
 
-    <div class="workspace">
-      <section class="panel">
-        <div class="panel-heading">
-          <div class="eyebrow">01 / INPUT</div>
-          <h2>Set up a grading run</h2>
+    <section class="workspace">
+      <div class="glass-card input-card">
+        <div class="card-heading">
+          <div class="heading-icon purple-icon">✎</div>
+          <div>
+            <div class="section-label">STEP 01</div>
+            <h2>Drop your test</h2>
+            <p>One box. Everything you need.</p>
+          </div>
+          <span class="heading-number">01</span>
         </div>
 
         <form id="grade-form">
-          <label for="assignment">Assignment name</label>
-          <input id="assignment" maxlength="120"
-            placeholder="e.g. Unit 3 Math Test">
+          <label for="submission">TEST & STUDENT ANSWERS</label>
 
-          <label for="questions">Test questions *</label>
-          <textarea id="questions" rows="7" required
-            placeholder="Paste the entire test here..."></textarea>
-
-          <label for="answers">Student's answers *</label>
-          <textarea id="answers" rows="7" required
-            placeholder="Paste the student's answers here..."></textarea>
-
-          <label for="key">Answer key or rubric</label>
-          <textarea id="key" rows="4"
-            placeholder="Paste correct answers or grading criteria here..."></textarea>
-
-          <label for="instructions">Extra grading instructions</label>
-          <textarea id="instructions" rows="3"
-            placeholder="e.g. Give partial credit for correct reasoning."></textarea>
-
-          <div class="field-row">
-            <div>
-              <label for="points">Total possible points</label>
-              <input id="points" type="number" min="1"
-                max="10000" value="100" required>
+          <div class="textarea-wrap">
+            <div class="textarea-topline">
+              <span class="tiny-dot"></span>
+              <span>PASTE YOUR CONTENT BELOW</span>
+              <span class="auto-detect">AI AUTO-DETECT</span>
             </div>
-            <div>
-              <label for="scale">Grading scale</label>
-              <select id="scale">
-                <option value="default">4 = A+, 3 = A, 2 = B, 1 = C or below</option>
-                <option value="standards">4 = Exceeds, 3 = Meets, 2 = Developing, 1 = Beginning</option>
-              </select>
+
+            <textarea
+              id="submission"
+              name="submission"
+              required
+              minlength="10"
+              maxlength="80000"
+              placeholder="Paste the entire test here...
+
+Example:
+
+1. What is 8 × 7?
+Student answer: 56
+
+2. Explain why plants need sunlight.
+Student answer: Plants use sunlight to make food.
+
+3. What is the capital of France?
+Student answer: Paris
+
+Paste all the questions and student answers together. Include the answer key too if you have one."
+            ></textarea>
+
+            <div class="textarea-footer">
+              <span>✦ AI will identify questions and answers</span>
+              <span id="character-count">0 / 80,000</span>
             </div>
           </div>
 
-          <p class="privacy-note">
-            Avoid including unnecessary personal information.
-            Submitted answers are sent to your configured AI provider.
-          </p>
+          <div class="grading-options">
+            <div class="options-heading">
+              <div>
+                <div class="section-label">STEP 02</div>
+                <h3>Choose your grading style</h3>
+              </div>
+              <span class="customize-icon">⚙</span>
+            </div>
 
-          <button id="grade-button" class="primary-button" type="submit">
-            Grade test with AI →
+            <div class="grade-modes">
+              <label class="grade-mode">
+                <input type="radio" name="gradeMode" value="letter">
+                <span class="mode-content">
+                  <span class="mode-symbol letter-symbol">A+</span>
+                  <span class="mode-title">Letter grades</span>
+                  <span class="mode-description">A+ through F</span>
+                </span>
+              </label>
+
+              <label class="grade-mode">
+                <input type="radio" name="gradeMode" value="numeric">
+                <span class="mode-content">
+                  <span class="mode-symbol number-symbol">1–4</span>
+                  <span class="mode-title">Number scale</span>
+                  <span class="mode-description">Standards-based</span>
+                </span>
+              </label>
+
+              <label class="grade-mode">
+                <input type="radio" name="gradeMode" value="both" checked>
+                <span class="mode-content">
+                  <span class="mode-symbol both-symbol">A·4</span>
+                  <span class="mode-title">Show both</span>
+                  <span class="mode-description">Letters + numbers</span>
+                </span>
+              </label>
+            </div>
+
+            <div class="settings-grid">
+              <div>
+                <label for="total-points">TOTAL POSSIBLE POINTS</label>
+                <input id="total-points" type="number" min="1" max="10000" value="100">
+              </div>
+              <div>
+                <label for="strictness">GRADING STYLE</label>
+                <select id="strictness">
+                  <option value="balanced">Balanced</option>
+                  <option value="lenient">Lenient / partial credit</option>
+                  <option value="strict">Strict / exact answers</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="scale-note">
+              <span>ⓘ</span>
+              <p>
+                Default letter thresholds and the 1–4 conversion are shown
+                in the report. Teachers should adjust them to school policy.
+                A 4-point grade is a separate scale, not necessarily a GPA.
+              </p>
+            </div>
+          </div>
+
+          <button id="grade-button" class="grade-button" type="submit">
+            <span class="button-sparkle">✦</span>
+            <span id="button-label">Analyze & Grade Test</span>
+            <span class="button-arrow">↗</span>
           </button>
-          <p id="form-error" class="error" role="alert" hidden></p>
-        </form>
-      </section>
 
-      <section class="panel" aria-live="polite">
-        <div class="panel-heading">
-          <div class="eyebrow">02 / RESULTS</div>
-          <h2>Your grading report</h2>
+          <p id="form-error" class="error-message" role="alert" hidden></p>
+
+          <div class="security-note">
+            <span>◈</span>
+            <span>AI-assisted grading · Teacher review recommended</span>
+          </div>
+        </form>
+      </div>
+
+      <section class="glass-card report-card" aria-live="polite">
+        <div class="card-heading">
+          <div class="heading-icon blue-icon">▤</div>
+          <div>
+            <div class="section-label">STEP 03</div>
+            <h2>Grading report</h2>
+            <p>Your results, all in one place.</p>
+          </div>
+          <span class="heading-number">02</span>
         </div>
 
         <div id="empty-state" class="empty-state">
-          <div class="checkmark">✓</div>
-          <h3>Your report will appear here</h3>
+          <div class="empty-art">
+            <div class="art-ring ring-one"></div>
+            <div class="art-ring ring-two"></div>
+            <div class="art-sheet">
+              <div class="art-line wide"></div>
+              <div class="art-line"></div>
+              <div class="art-line short"></div>
+              <div class="art-score">4.0</div>
+            </div>
+            <span class="art-star star-one">✦</span>
+            <span class="art-star star-two">✧</span>
+          </div>
+
+          <h3>Your report starts here</h3>
           <p>
-            Submit a test to receive its score, average,
-            1–4 grade, and question-by-question feedback.
+            Paste a completed test and click Analyze & Grade.
+            Your full grading breakdown will appear here.
           </p>
+
+          <div class="empty-benefits">
+            <div><span>01</span> Overall performance</div>
+            <div><span>02</span> Question-by-question scoring</div>
+            <div><span>03</span> Copyable grade summary</div>
+          </div>
         </div>
 
-        <div id="loading-state" hidden>
-          <div class="spinner"></div>
-          <h3>Grading the test...</h3>
-          <p>Please wait while the AI reviews the answers.</p>
+        <div id="loading-state" class="loading-state" hidden>
+          <div class="loading-orbit">
+            <div class="orbit-core">✦</div>
+          </div>
+          <h3>AI is reading your test</h3>
+          <p>Identifying questions, evaluating answers, and calculating scores.</p>
+          <div class="loading-bar"><span></span></div>
+          <div class="loading-caption">PLEASE WAIT WHILE WE BUILD YOUR REPORT</div>
         </div>
 
         <div id="report" hidden>
           <div class="report-title-row">
             <div>
-              <div class="eyebrow">COMPLETED REPORT</div>
-              <h3 id="report-title"></h3>
+              <div class="section-label">ANALYSIS COMPLETE</div>
+              <h3 id="report-title">Test results</h3>
+              <p id="report-subtitle" class="report-subtitle"></p>
             </div>
-            <button id="copy-button" class="secondary-button" type="button">
-              Copy grade
+            <button id="copy-button" class="copy-button" type="button">
+              <span>▣</span> Copy grade
             </button>
           </div>
 
-          <div class="metrics">
-            <div class="metric metric-main">
-              <span>Final grade</span>
-              <strong id="grade-number">—</strong>
-              <small id="grade-label"></small>
+          <div class="score-hero">
+            <div class="score-ring" id="score-ring">
+              <div class="score-ring-inner">
+                <span id="percentage">—</span>
+                <small>PERCENT</small>
+              </div>
             </div>
-            <div class="metric">
-              <span>Percentage</span>
-              <strong id="percentage">—</strong>
-              <small id="points-line"></small>
-            </div>
-            <div class="metric">
-              <span>Average</span>
-              <strong id="average">—</strong>
-              <small>Out of 4</small>
+
+            <div class="score-hero-info">
+              <div class="section-label">OVERALL RESULT</div>
+              <div class="main-grade" id="main-grade">—</div>
+              <div class="grade-secondary" id="grade-secondary"></div>
+              <p id="score-description"></p>
             </div>
           </div>
 
-          <div id="summary-note" class="summary-note"></div>
+          <div class="metrics-grid">
+            <div class="metric-card metric-purple">
+              <span class="metric-icon">◈</span>
+              <span class="metric-label">POINTS EARNED</span>
+              <strong id="points-earned">—</strong>
+              <small id="points-possible">Out of 100 points</small>
+            </div>
 
-          <h3 class="section-title">
-            Question breakdown
-            <span id="question-count"></span>
-          </h3>
-          <div id="question-list" class="question-list"></div>
+            <div class="metric-card metric-blue">
+              <span class="metric-icon">◉</span>
+              <span class="metric-label">AVERAGE / 4</span>
+              <strong id="average">—</strong>
+              <small>Average question rating</small>
+            </div>
 
-          <h3 class="section-title">Teacher review</h3>
-          <p class="review-warning">
-            AI can make mistakes. Review the results before recording
-            an official grade.
-          </p>
-          <button id="copy-detail-button" class="secondary-button full-width"
-            type="button">
-            Copy full report and feedback
-          </button>
-          <p id="copy-status" role="status" class="copy-status"></p>
+            <div class="metric-card metric-green">
+              <span class="metric-icon">✓</span>
+              <span class="metric-label">CORRECT</span>
+              <strong id="correct-count">—</strong>
+              <small id="correct-caption">Fully correct questions</small>
+            </div>
+
+            <div class="metric-card metric-orange">
+              <span class="metric-icon">◐</span>
+              <span class="metric-label">PARTIAL CREDIT</span>
+              <strong id="partial-count">—</strong>
+              <small>Partially correct questions</small>
+            </div>
+          </div>
+
+          <div class="detail-strip">
+            <div><span>Incorrect / unanswered</span><strong id="incorrect-count">—</strong></div>
+            <div><span>Questions identified</span><strong id="total-questions">—</strong></div>
+            <div><span>Estimated letter grade</span><strong id="letter-grade">—</strong></div>
+            <div><span>Estimated number grade</span><strong id="number-grade">—</strong></div>
+          </div>
+
+          <div class="result-section">
+            <div class="result-section-heading">
+              <div>
+                <div class="section-label">ANSWER REVIEW</div>
+                <h3>Question breakdown</h3>
+              </div>
+              <span id="question-count" class="count-badge">0 questions</span>
+            </div>
+            <div id="question-list" class="question-list"></div>
+          </div>
+
+          <div class="feedback-panel">
+            <div class="feedback-icon">✦</div>
+            <div>
+              <div class="section-label">AI INSIGHTS</div>
+              <h3>Performance & next steps</h3>
+              <p id="summary-note"></p>
+              <div class="feedback-columns">
+                <div>
+                  <span class="insight-label">STRENGTHS</span>
+                  <p id="strengths"></p>
+                </div>
+                <div>
+                  <span class="insight-label">AREAS TO IMPROVE</span>
+                  <p id="improvements"></p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="report-actions">
+            <button id="copy-detail-button" class="secondary-action" type="button">
+              ▣ Copy full report
+            </button>
+            <button id="copy-score-button" class="secondary-action" type="button">
+              ↗ Copy score only
+            </button>
+          </div>
+
+          <p id="copy-status" class="copy-status" role="status"></p>
+
+          <div class="teacher-disclaimer">
+            <span>ⓘ</span>
+            <p>
+              AI-generated grades are estimates. Check the answers and rubric
+              before entering a grade into an official gradebook.
+            </p>
+          </div>
         </div>
       </section>
-    </div>
+    </section>
 
-    <footer>
-      <span>GradePilot · AI Teacher Grader</span>
-      <span>AI-assisted grading. Teacher-reviewed results.</span>
+    <footer class="footer">
+      <a href="/" class="footer-brand">✳ GRADEPILOT AI</a>
+      <span>BUILT FOR TEACHERS · POWERED BY AI</span>
+      <span>Review before recording official grades.</span>
     </footer>
   </main>
 </body>
