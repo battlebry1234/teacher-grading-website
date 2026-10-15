@@ -1,297 +1,63 @@
-
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#080a16">
-  <title>GradeNova — AI Grading Studio</title>
-  <link rel="stylesheet" href="styles.css">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GradeNova — Offline Grader</title>
+<style>
+:root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#f6f4ff;background:#0b0b16;--a:#a78bfa;--b:#7c3aed;--rgb:167,139,250;--panel:rgba(22,20,43,.86);--line:#ffffff20;--muted:#aaa8c5}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 15% 0%,rgba(var(--rgb),.22),transparent 38%),radial-gradient(ellipse at 95% 35%,#2459a52b,transparent 34%),#0b0b16;color:#f6f4ff}body:before{content:"";position:fixed;inset:0;background:rgba(8,8,18,var(--shade,.35));pointer-events:none;z-index:-1}.shell{width:min(1080px,calc(100% - 28px));margin:auto}.top{height:78px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #ffffff15}.brand{display:flex;align-items:center;gap:12px;font-weight:800}.logo{display:grid;place-items:center;width:42px;height:42px;border-radius:13px;background:linear-gradient(140deg,var(--a),var(--b));font-size:23px}.brand small{display:block;color:var(--muted);font-size:9px;letter-spacing:1.5px}.pill,.chip{border:1px solid var(--line);border-radius:99px;padding:8px 12px;font-size:11px;color:#d6d3ee}.pill:before{content:"";display:inline-block;width:7px;height:7px;background:#5de1a2;border-radius:50%;margin-right:8px}header.hero{padding:52px 0 27px}.eyebrow,.step{font-size:10px;font-weight:800;letter-spacing:1.7px;color:var(--a)}h1{font-size:clamp(42px,7vw,68px);letter-spacing:-3px;line-height:1.03;margin:16px 0}h1 span{background:linear-gradient(90deg,var(--a),#d5c8ff,#74c8f7);color:transparent;background-clip:text}.hero p{max-width:620px;color:#b7b5cf;font-size:14px;line-height:1.7}.tags{display:flex;gap:16px;flex-wrap:wrap;color:#cfcee2;font-size:11px;margin-top:20px}.card{margin:17px 0;padding:23px;border:1px solid var(--line);border-radius:20px;background:var(--panel);backdrop-filter:blur(15px);box-shadow:0 16px 50px #0002}body.solid .card{background:#17162b}.head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:20px}.head h2{font-size:21px;margin:6px 0 0;letter-spacing:-.5px}.muted,.hint{color:var(--muted)}.muted{font-size:11px}.settings{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.settings label,.opts label{display:flex;flex-direction:column;gap:8px;font-size:11px;color:#d1cee5}select,input[type=number],input[type=file]{width:100%;min-width:0;background:#08081799;border:1px solid var(--line);border-radius:10px;padding:10px;color:#fff;font:inherit;font-size:12px}select option{background:#17162b}input[type=range]{accent-color:var(--a);width:100%}.smallbtn,.btn{border:1px solid var(--line);border-radius:10px;padding:11px 14px;color:#e2dff5;background:#ffffff09;font-weight:700;font-size:12px;cursor:pointer}.btn.primary{background:linear-gradient(105deg,var(--b),var(--a));border:0;color:white;padding:13px 18px}.btn:hover,.smallbtn:hover{filter:brightness(1.15)}.settingsfoot{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:12px}.notice{font-size:11px;line-height:1.65;color:#d4d1eb;background:rgba(var(--rgb),.09);border:1px solid rgba(var(--rgb),.2);padding:13px;border-radius:12px;margin-bottom:17px}.notice code{background:#0004;padding:2px 4px;border-radius:4px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}.field{display:flex;flex-direction:column;gap:8px;font-size:12px;font-weight:700}.hint{font-size:10px;font-weight:400;line-height:1.5;min-height:25px}textarea{width:100%;min-height:210px;resize:vertical;border:1px solid var(--line);border-radius:12px;background:#07071499;color:#f8f7ff;padding:13px;font:12px/1.7 ui-monospace,Consolas,monospace;outline:none}textarea:focus,select:focus,input:focus{border-color:var(--a);outline:2px solid rgba(var(--rgb),.13)}textarea::placeholder{color:#77758f}.opts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:16px;max-width:650px}.actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:20px}.privacy{font-size:10px;color:var(--muted);margin-top:17px}.error{padding:11px;border-radius:9px;background:#ff42641a;border:1px solid #ff426444;color:#ffb6c0;font-size:12px}.report[hidden]{display:none}.scores{display:grid;grid-template-columns:1.35fr repeat(3,1fr);gap:11px}.score,.metric{padding:16px;border:1px solid var(--line);border-radius:13px;background:#ffffff08}.label{font-size:9px;letter-spacing:1.5px;color:var(--muted);font-weight:800}.big{font-size:44px;font-weight:850;letter-spacing:-2px;margin:9px 0}.big small{font-size:18px;color:var(--a)}.track{height:6px;background:#ffffff18;border-radius:9px;overflow:hidden}.bar{height:100%;width:0;background:linear-gradient(90deg,var(--b),var(--a))}.score p{font-size:10px;color:#d2d0e5}.metric{display:flex;flex-direction:column;justify-content:center;gap:9px}.metric strong{font-size:23px}.metric small{font-size:10px;color:var(--muted)}.summary{margin:18px 0;padding:15px;border:1px solid rgba(var(--rgb),.17);border-radius:12px;background:rgba(var(--rgb),.07)}.summary h3{font-size:13px;margin:0 0 7px}.summary p{font-size:12px;line-height:1.6;color:#d1cfe5;margin:0}.tablewrap{overflow:auto;border:1px solid var(--line);border-radius:12px}table{border-collapse:collapse;width:100%;min-width:620px;font-size:11px}th,td{text-align:left;padding:12px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.5;overflow-wrap:anywhere}th{font-size:9px;letter-spacing:1px;color:var(--muted);background:#ffffff08}tbody tr:last-child td{border:0}.status{display:inline-block;border-radius:99px;padding:4px 8px;font-size:10px;font-weight:800}.yes{background:#43dc971c;color:#6fe8ae}.no{background:#ff6a801c;color:#ff9cab}.foot{display:flex;justify-content:space-between;gap:12px;padding:20px 0 35px;color:#77758f;font-size:10px}.foot strong{color:#dedaf8}
+body.blue{--a:#7dd3fc;--b:#2563eb;--rgb:125,211,252}body.emerald{--a:#6ee7b7;--b:#059669;--rgb:110,231,183}body.rose{--a:#fda4af;--b:#e11d48;--rgb:253,164,175}body.amber{--a:#fcd34d;--b:#d97706;--rgb:252,211,77}
+@media(max-width:760px){.settings{grid-template-columns:1fr 1fr}.scores{grid-template-columns:1fr 1fr}.score{grid-column:span 2}}@media(max-width:570px){.card{padding:16px}.grid{grid-template-columns:1fr}.opts{grid-template-columns:1fr 1fr}.opts label:last-child{grid-column:span 2}.head .muted{display:none}.foot{flex-direction:column}h1{letter-spacing:-2px}}
+@media print{body{background:white;color:#111}.top,.hero,.settings,.workspace,.foot,#printBtn,.actions{display:none!important}.card{background:white!important;color:#111;box-shadow:none;border:0}.report{display:block!important}.score,.metric,.summary{background:white;border:1px solid #ddd;color:#111}td,.summary p,.score p,.metric small{color:#222}th{color:#333;background:#eee}}
+</style>
 </head>
 <body>
-  <div class="background-glow glow-one"></div>
-  <div class="background-glow glow-two"></div>
-  <div class="background-photo" id="backgroundPhoto"></div>
-  <div class="ambient-overlay" id="ambientOverlay"></div>
-
-  <div class="app-shell">
-    <aside class="sidebar">
-      <a class="brand" href="#">
-        <div class="brand-mark">G<span>✦</span></div>
-        <div>
-          <div class="brand-name">GradeNova</div>
-          <div class="brand-subtitle">AI GRADING STUDIO</div>
-        </div>
-      </a>
-
-      <div class="sidebar-label">WORKSPACE</div>
-      <button class="nav-item active" data-scroll="grader">
-        <span class="nav-icon">✳</span> AI Grader <span class="nav-pill">AI</span>
-      </button>
-      <button class="nav-item" data-scroll="results">
-        <span class="nav-icon">▤</span> Grade report
-      </button>
-      <button class="nav-item" id="openSettings">
-        <span class="nav-icon">⚙</span> Appearance
-      </button>
-
-      <div class="sidebar-card">
-        <div class="sidebar-card-icon">✦</div>
-        <div class="sidebar-card-title">Your classroom, upgraded.</div>
-        <p>Turn a whole test into clear, useful feedback in seconds.</p>
-        <button class="text-button" id="sidebarCustomize">Customize studio ↗</button>
-      </div>
-
-      <div class="sidebar-bottom">
-        <div class="status-dot"></div>
-        <div><strong>Grading studio</strong><small>Local interface ready</small></div>
-      </div>
-    </aside>
-
-    <main class="main-content">
-      <header class="topbar">
-        <div class="breadcrumbs">Workspace <span>/</span> <strong>AI Grader</strong></div>
-        <div class="top-actions">
-          <span class="top-status"><span class="status-dot"></span> Studio ready</span>
-          <button class="icon-button" id="topSettings" title="Open settings">⚙</button>
-          <div class="avatar">GN</div>
-        </div>
-      </header>
-
-      <section class="welcome-row">
-        <div>
-          <div class="eyebrow"><span class="sparkle">✦</span> YOUR PERSONAL GRADING ASSISTANT</div>
-          <h1>Make grading feel<br>like <span class="gradient-text">magic.</span></h1>
-          <p class="welcome-copy">Drop in a test. Let AI do the heavy lifting.<br>Get scores, insights, and feedback in moments.</p>
-        </div>
-        <div class="hero-orb" aria-hidden="true">
-          <div class="orb-ring ring-a"></div>
-          <div class="orb-ring ring-b"></div>
-          <div class="orb-core">✦</div>
-          <div class="orb-chip chip-top">AI POWERED</div>
-          <div class="orb-chip chip-bottom">SMART FEEDBACK</div>
-        </div>
-      </section>
-
-      <section class="stats-grid">
-        <article class="stat-card">
-          <div class="stat-top"><span>GRADING ENGINE</span><span class="stat-icon purple">✦</span></div>
-          <div class="stat-value">AI <span class="stat-muted">Assist</span></div>
-          <div class="stat-foot"><span class="tiny-dot"></span> Ready to evaluate</div>
-        </article>
-        <article class="stat-card">
-          <div class="stat-top"><span>OUTPUT FORMAT</span><span class="stat-icon blue">▤</span></div>
-          <div class="stat-value" id="formatStat">Letter + 1–4</div>
-          <div class="stat-foot">Choose how grades appear</div>
-        </article>
-        <article class="stat-card">
-          <div class="stat-top"><span>YOUR WORKSPACE</span><span class="stat-icon pink">◈</span></div>
-          <div class="stat-value">Your style<span class="stat-muted">.</span></div>
-          <div class="stat-foot">Personalize your studio</div>
-        </article>
-      </section>
-
-      <section class="workspace-grid" id="grader">
-        <div class="panel editor-panel">
-          <div class="panel-heading">
-            <div class="panel-heading-icon">✎</div>
-            <div>
-              <h2>Test workspace</h2>
-              <p>Paste the questions and answers together.</p>
-            </div>
-            <span class="live-badge"><span></span> LIVE</span>
-          </div>
-
-          <label class="field-label" for="testInput">TEST CONTENT <span>REQUIRED</span></label>
-          <textarea id="testInput" placeholder="Paste your test here...
-
-Example:
-
-Question 1: What is 8 × 7?
-Student answer: 56
-
-Question 2: Explain why plants need sunlight.
-Student answer: Plants use sunlight for photosynthesis.
-
-Question 3: What is the capital of France?
-Student answer: Paris
-
-You can paste the entire test in this one box. Include an answer key if you have one." spellcheck="false"></textarea>
-          <div class="textarea-footer"><span id="characterCount">0 characters</span><button class="text-button" id="clearInput">Clear text ↗</button></div>
-
-          <div class="section-divider"></div>
-
-          <div class="options-heading">
-            <div><h3>Grading preferences</h3><p>Make the report work your way.</p></div>
-            <span class="tiny-gear">⚙</span>
-          </div>
-
-          <label class="field-label">GRADE DISPLAY</label>
-          <div class="grade-options">
-            <label class="grade-option">
-              <input type="radio" name="gradeMode" value="letter">
-              <span class="grade-option-inner"><b>A+</b><span>Letter</span></span>
-            </label>
-            <label class="grade-option">
-              <input type="radio" name="gradeMode" value="numeric">
-              <span class="grade-option-inner"><b>4.0</b><span>Number</span></span>
-            </label>
-            <label class="grade-option">
-              <input type="radio" name="gradeMode" value="both" checked>
-              <span class="grade-option-inner"><b>A+ / 4</b><span>Both</span></span>
-            </label>
-          </div>
-
-          <div class="two-fields">
-            <div>
-              <label class="field-label" for="totalPoints">TOTAL POINTS</label>
-              <input class="text-input" id="totalPoints" type="number" min="1" max="10000" value="100">
-            </div>
-            <div>
-              <label class="field-label" for="strictness">GRADING STYLE</label>
-              <select class="text-input" id="strictness">
-                <option value="balanced">Balanced</option>
-                <option value="lenient">Lenient</option>
-                <option value="strict">Strict</option>
-              </select>
-            </div>
-          </div>
-
-          <button class="primary-button" id="gradeButton">
-            <span class="button-sparkle">✦</span>
-            <span id="gradeButtonText">Grade my test with AI</span>
-            <span class="button-arrow">↗</span>
-          </button>
-          <div class="privacy-note"><span>◈</span> AI grading requires a configured server and API key.</div>
-          <div id="errorMessage" class="error-message" role="alert" hidden></div>
-        </div>
-
-        <div class="right-column">
-          <div class="panel guide-panel">
-            <div class="guide-top">
-              <div class="guide-icon">✧</div>
-              <span class="mini-tag">HOW IT WORKS</span>
-            </div>
-            <h2>One paste.<br><span class="gradient-text">Full picture.</span></h2>
-            <p>Give the AI your test and student answers. It evaluates each response and builds a report you can review.</p>
-            <div class="step-list">
-              <div class="step-row"><span class="step-number">01</span><div><strong>Paste your test</strong><small>Questions, answers, and optional answer key.</small></div></div>
-              <div class="step-row"><span class="step-number">02</span><div><strong>Choose your grading</strong><small>Pick a format and grading style.</small></div></div>
-              <div class="step-row"><span class="step-number">03</span><div><strong>Review your report</strong><small>See scores, explanations, and next steps.</small></div></div>
-            </div>
-          </div>
-
-          <div class="panel tip-panel">
-            <div class="tip-icon">✦</div>
-            <div><strong>Pro tip</strong><p>Include the teacher's answer key or rubric in the same box for more consistent grading.</p></div>
-          </div>
-
-          <div class="panel theme-mini-panel">
-            <div><strong>Your studio, your vibe</strong><p>Change colors or add your own background.</p></div>
-            <button class="secondary-button" id="miniCustomize">Customize ↗</button>
-          </div>
-        </div>
-      </section>
-
-      <section class="panel report-panel" id="results">
-        <div class="report-heading">
-          <div>
-            <div class="eyebrow"><span class="sparkle">✦</span> YOUR RESULTS</div>
-            <h2>Grading report<span class="report-period">.</span></h2>
-            <p id="reportSubtitle">Your detailed report will appear here after grading.</p>
-          </div>
-          <button class="secondary-button" id="copyReport" disabled>▣ Copy report</button>
-        </div>
-
-        <div class="empty-state" id="emptyState">
-          <div class="empty-illustration"><span>▤</span><i>✦</i></div>
-          <h3>Your results will live here.</h3>
-          <p>Run your first AI grading session to reveal your score, grade, and question-by-question feedback.</p>
-        </div>
-
-        <div id="reportContent" hidden>
-          <div class="results-metrics" id="resultMetrics"></div>
-          <div class="report-columns">
-            <div class="report-subpanel">
-              <h3>Performance overview</h3>
-              <div id="performanceOverview"></div>
-            </div>
-            <div class="report-subpanel">
-              <h3>AI feedback</h3>
-              <div id="overallFeedback"></div>
-            </div>
-          </div>
-          <div class="question-results">
-            <div class="question-results-heading"><h3>Question breakdown</h3><span id="questionCount"></span></div>
-            <div id="questionList"></div>
-          </div>
-        </div>
-      </section>
-
-      <footer class="footer">
-        <div class="footer-brand"><span>✦</span> GradeNova</div>
-        <span>Made for clearer feedback and smarter learning.</span>
-        <button class="text-button" id="footerSettings">Studio settings ↗</button>
-      </footer>
-    </main>
-  </div>
-
-  <div class="modal-backdrop" id="settingsBackdrop" hidden>
-    <section class="settings-modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
-      <div class="modal-header">
-        <div><div class="eyebrow">MAKE IT YOURS</div><h2 id="settingsTitle">Studio settings<span class="gradient-text">.</span></h2></div>
-        <button class="icon-button close-button" id="closeSettings" aria-label="Close settings">×</button>
-      </div>
-
-      <div class="settings-content">
-        <div class="settings-section">
-          <h3>Color theme</h3>
-          <p>Pick an accent palette for your workspace.</p>
-          <div class="theme-swatches">
-            <button class="theme-swatch selected" data-theme="violet" aria-label="Violet theme"><span class="swatch-color violet-swatch"></span><span>Violet</span></button>
-            <button class="theme-swatch" data-theme="blue" aria-label="Blue theme"><span class="swatch-color blue-swatch"></span><span>Electric blue</span></button>
-            <button class="theme-swatch" data-theme="emerald" aria-label="Emerald theme"><span class="swatch-color emerald-swatch"></span><span>Emerald</span></button>
-            <button class="theme-swatch" data-theme="rose" aria-label="Rose theme"><span class="swatch-color rose-swatch"></span><span>Rose</span></button>
-            <button class="theme-swatch" data-theme="amber" aria-label="Amber theme"><span class="swatch-color amber-swatch"></span><span>Amber</span></button>
-          </div>
-        </div>
-
-        <div class="settings-section">
-          <h3>Background image</h3>
-          <p>Choose a picture from your computer to personalize your studio.</p>
-          <input type="file" id="backgroundFile" accept="image/*" hidden>
-          <button class="upload-zone" id="chooseBackground">
-            <span class="upload-icon">↑</span>
-            <strong>Choose an image</strong>
-            <small>PNG, JPG, WEBP · Stored in this browser</small>
-          </button>
-          <div class="background-actions">
-            <button class="secondary-button" id="removeBackground">Remove image</button>
-            <label class="intensity-control">Image intensity <input id="backgroundIntensity" type="range" min="5" max="45" value="18"><span id="intensityValue">18%</span></label>
-          </div>
-          <p class="settings-hint">Only select images you have permission to use. Very large images may use extra browser storage.</p>
-        </div>
-
-        <div class="settings-section">
-          <h3>Interface style</h3>
-          <p>Choose how the studio surfaces appear.</p>
-          <div class="style-options">
-            <button class="style-choice selected" data-style="glass"><span class="style-preview glass-preview"></span><strong>Glass</strong><small>Translucent panels</small></button>
-            <button class="style-choice" data-style="solid"><span class="style-preview solid-preview"></span><strong>Solid</strong><small>More opaque panels</small></button>
-          </div>
-        </div>
-      </div>
-
-      <div class="modal-footer">
-        <span class="settings-saved" id="settingsSaved">Changes apply instantly</span>
-        <button class="primary-button compact-button" id="doneSettings">Done <span>✓</span></button>
-      </div>
-    </section>
-  </div>
-
-  <script src="app.js"></script>
-</body>
-</html>
+<main class="shell">
+  <div class="top"><div class="brand"><span class="logo">G</span><span>GradeNova<small>OFFLINE GRADING STUDIO</small></span></div><span class="pill">Offline mode</span></div>
+  <header class="hero"><div class="eyebrow">✦ YOUR PRIVATE GRADING WORKSPACE</div><h1>Grade smarter.<br><span>Stay in control.</span></h1><p>Grade assignments locally with an answer key. No server, no API, and no internet connection required.</p><div class="tags"><span>✓ Runs in your browser</span><span>✓ Data stays on this device</span><span>✓ No account needed</span></div></header>
+  <section class="card"><div class="head"><div><div class="step">SETTINGS</div><h2>Make it yours</h2></div><span class="muted">Preferences save in this browser</span></div><div class="settings">
+    <label>Color theme<select id="theme"><option value="violet">Cosmic Violet</option><option value="blue">Ocean Blue</option><option value="emerald">Emerald</option><option value="rose">Rose</option><option value="amber">Amber</option></select></label>
+    <label>Surface style<select id="surface"><option value="glass">Glass</option><option value="solid">Solid</option></select></label>
+    <label>Background intensity <span id="intensityText">65%</span><input id="intensity" type="range" min="15" max="100" value="65"></label>
+    <label>Custom background image<input id="background" type="file" accept="image/*"></label>
+  </div><div class="settingsfoot"><button class="smallbtn" id="clearBg">Remove custom background</button><span class="muted">Image stays on this device and is not uploaded.</span></div></section>
+  <section class="card workspace"><div class="head"><div><div class="step">01 / INPUT</div><h2>Bring your assignment</h2></div><span class="chip">Answer-key grading</span></div>
+    <div class="notice">Enter numbered answers in both boxes, such as <code>1. Photosynthesis</code>. In the key, separate acceptable alternatives with <code>|</code>. Example: <code>1. Photosynthesis | process plants use to make food</code>. This tool compares text locally; it does not use AI or understand all equivalent wording.</div>
+    <div class="grid"><label class="field">Student answers<span class="hint">Paste numbered student answers. Numbered questions with answers are also okay.</span><textarea id="student" placeholder="1. Photosynthesis&#10;2. Mars&#10;3. 56"></textarea></label><label class="field">Answer key<span class="hint">One numbered correct answer per line. Add alternatives with |.</span><textarea id="key" placeholder="1. Photosynthesis | process plants use to make food&#10;2. Mars&#10;3. 56"></textarea></label></div>
+    <div class="opts"><label>Points per question<input id="points" type="number" min=".5" max="100" step=".5" value="1"></label><label>Passing percentage<input id="passing" type="number" min="0" max="100" value="60"></label><label>Grade scale<select id="scale"><option value="standard">Standard (A–F)</option><option value="plus">Plus/minus (A–F)</option></select></label></div>
+    <div class="actions"><button class="btn primary" id="grade">✦ Grade assignment</button><button class="btn" id="sample">Load sample</button><button class="btn" id="reset">Clear all</button></div><p class="privacy">● Everything is processed in this browser. No network requests are made.</p><p id="error" class="error" hidden role="alert"></p>
+  </section>
+  <section class="card report" id="report" hidden><div class="head"><div><div class="step">02 / RESULTS</div><h2>Grading report</h2></div><button class="btn" id="printBtn">Print report</button></div>
+    <div class="scores"><div class="score"><div class="label">FINAL SCORE</div><div class="big"><span id="percent">0</span><small>%</small></div><div class="track"><div id="bar" class="bar"></div></div><p id="message"></p></div><div class="metric"><div class="label">POINTS</div><strong id="pointsScore">0 / 0</strong><small>earned / possible</small></div><div class="metric"><div class="label">LETTER GRADE</div><strong id="letter">—</strong><small id="passStatus">—</small></div><div class="metric"><div class="label">CORRECT</div><strong id="correct">0 / 0</strong><small>exact matches</small></div></div>
+    <div class="summary"><h3>Summary</h3><p id="summaryText"></p></div><div class="tablewrap"><table><thead><tr><th>#</th><th>Student answer</th><th>Answer key</th><th>Result</th><th>Feedback</th></tr></thead><tbody id="rows"></tbody></table></div><div class="actions"><button class="btn primary" id="download">Export report (.txt)</button></div><p class="muted">Review differently worded answers manually. This offline grader does not interpret meaning like a human or AI grader.</p>
+  </section>
+  <footer class="foot"><strong>✦ GradeNova</strong><span>Local-first • No server • No network requests</span></footer>
+</main>
+<script>
+"use strict";
+(() => {
+ const $=id=>document.getElementById(id); let latest=null, imageUrl=null;
+ const themes=["blue","emerald","rose","amber"];
+ function theme(v){document.body.classList.remove(...themes);if(themes.includes(v))document.body.classList.add(v);localStorage.setItem("gn-theme",v)}
+ function err(s){$("error").textContent=s;$("error").hidden=false}function clearErr(){$("error").hidden=true;$("error").textContent=""}
+ function norm(s){return String(s||"").toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/×/g,"x").replace(/[“”‘’]/g,"'").replace(/[^\p{L}\p{N}]+/gu," ").trim().replace(/\s+/g," ")}
+ function parse(text){let lines=String(text).replace(/\r/g,"").split("\n"),out=[],cur=null,pat=/^\s*(?:(?:question|q)\s*)?(\d{1,3})\s*[.)\]:-]\s*(.*)$/i;for(let raw of lines){let line=raw.trim();if(!line)continue;let m=line.match(pat);if(m){if(cur)out.push(cur);cur={n:+m[1],text:m[2].trim()}}else if(cur)cur.text+=(cur.text?" ":"")+line;else return null}if(cur)out.push(cur);return out.length?out:null}
+ function entries(text,isKey){return (parse(text)||String(text).split(/\r?\n/).map((text,i)=>({n:i+1,text:text.trim()})).filter(x=>x.text)).map(x=>({n:x.n,text:x.text.replace(isKey?/^(?:correct\s+)?(?:answer|solution)\s*:\s*/i:/^(?:your\s+)?(?:answer|response)\s*:\s*/i,"").trim()}))}
+ function alternatives(s){return s.split(/\s+\|\s+|\s+\bOR\b\s+/i).map(norm).filter(Boolean)}
+ function letter(p,plus){if(plus){if(p>=97)return"A+";if(p>=93)return"A";if(p>=90)return"A−";if(p>=87)return"B+";if(p>=83)return"B";if(p>=80)return"B−";if(p>=77)return"C+";if(p>=73)return"C";if(p>=70)return"C−";if(p>=67)return"D+";if(p>=63)return"D";if(p>=60)return"D−";return"F"}return p>=90?"A":p>=80?"B":p>=70?"C":p>=60?"D":"F"}
+ function fmt(n){return Number.isInteger(n)?String(n):String(Number(n.toFixed(2)))}
+ function grade(){clearErr();let st=$("student").value.trim(),ky=$("key").value.trim();if(!st||!ky){err("Enter the student's answers and an answer key first.");return}let ss=entries(st,false),ks=entries(ky,true);if(!ss.length||!ks.length){err("Enter at least one answer in each box.");return}
+ const sn=parse(st),kn=parse(ky),sequential=!sn,kequential=!kn,byN=new Map(ss.map(x=>[x.n,x.text])),pp=Math.max(.5,Number($("points").value)||1),passing=Math.max(0,Math.min(100,Number($("passing").value)||0));let qs=[],earned=0,correct=0;
+ ks.forEach((k,i)=>{let answer=sequential&&kequential?(ss[i]?.text||""):(byN.has(k.n)?byN.get(k.n):(ss[i]?.text||"")),ok=!!norm(answer)&&alternatives(k.text).includes(norm(answer)),pts=ok?pp:0;earned+=pts;if(ok)correct++;qs.push({n:k.n,answer:answer||"(No answer provided)",expected:k.text.replace(/\s+\|\s+/g," / "),ok,pts,possible:pp,feedback:ok?"Matches an accepted answer.":(!answer?"No answer provided.":"Does not exactly match the answer key; review for equivalent wording.")})});
+ let possible=qs.length*pp,pct=possible?Math.round(earned/possible*10000)/100:0;latest={earned,possible,pct,correct,total:qs.length,letter:letter(pct,$("scale").value==="plus"),passed:pct>=passing,passing,qs,date:new Date().toLocaleString()};render(latest)}
+ function render(r){$("report").hidden=false;$("percent").textContent=fmt(r.pct);$("pointsScore").textContent=fmt(r.earned)+" / "+fmt(r.possible);$("letter").textContent=r.letter;$("passStatus").textContent=r.passed?"Meets passing mark":"Below passing mark";$("passStatus").style.color=r.passed?"#6fe8ae":"#ff9cab";$("correct").textContent=r.correct+" / "+r.total;$("bar").style.width=Math.min(100,r.pct)+"%";$("message").textContent=r.passed?"Assignment meets the passing threshold.":"Assignment is below the passing threshold.";$("summaryText").textContent=`${r.correct} of ${r.total} answers matched the key. Score: ${fmt(r.earned)} out of ${fmt(r.possible)} points. Exact normalized matching was used; equivalent answers with different wording may need manual review.`;let tb=$("rows");tb.replaceChildren();r.qs.forEach(q=>{let tr=document.createElement("tr");[String(q.n),q.answer,q.expected,q.ok?"Correct":"Review",q.feedback].forEach((v,i)=>{let td=document.createElement("td");if(i===3){let span=document.createElement("span");span.className="status "+(q.ok?"yes":"no");span.textContent=v;td.append(span)}else td.textContent=v;tr.append(td)});tb.append(tr)});$("report").scrollIntoView({behavior:"smooth",block:"start"})}
+ function textReport(r){let a=["GRADENOVA — OFFLINE GRADING REPORT","Generated: "+r.date,`Score: ${fmt(r.earned)} / ${fmt(r.possible)}`,`Percentage: ${r.pct}%`,`Letter grade: ${r.letter}`,`Passing: ${r.passed?"Yes":"No"} (threshold ${r.passing}%)`,`Correct matches: ${r.correct} / ${r.total}`,"","QUESTION DETAILS"];r.qs.forEach(q=>a.push("",`Question ${q.n}: ${q.ok?"CORRECT":"REVIEW"}`,`Student answer: ${q.answer}`,`Accepted answer(s): ${q.expected}`,`Points: ${fmt(q.pts)} / ${fmt(q.possible)}`,`Feedback: ${q.feedback}`));a.push("","Note: exact normalized matching; review equivalent answers manually.");return a.join("\n")}
+ $("theme").addEventListener("change",e=>theme(e.target.value));$("surface").addEventListener("change",e=>{document.body.classList.toggle("solid",e.target.value==="solid");localStorage.setItem("gn-surface",e.target.value)});$("intensity").addEventListener("input",e=>{document.documentElement.style.setProperty("--shade",String(.9-(Number(e.target.value)/100)*.48));$("intensityText").textContent=e.target.value+"%";localStorage.setItem("gn-intensity",e.target.value)});
+ $("background").addEventListener("change",e=>{let f=e.target.files?.[0];if(!f)return;if(!f.type.startsWith("image/")){err("Choose an image file.");return}if(imageUrl)URL.revokeObjectURL(imageUrl);imageUrl=URL.createObjectURL(f);document.body.style.backgroundImage=`linear-gradient(#08081288,#080812bb),url("${imageUrl}")`;document.body.style.backgroundSize="cover";document.body.style.backgroundPosition="center";document.body.style.backgroundAttachment="fixed";clearErr()});
+ $("clearBg").addEventListener("click",()=>{if(imageUrl)URL.revokeObjectURL(imageUrl);imageUrl=null;$("background").value="";document.body.style.backgroundImage="";document.body.style.backgroundColor=""});
+ $("grade").addEventListener("click",grade);$("sample").addEventListener("click",()=>{$("student").value="1. Photosynthesis\n2. Mars\n3. 56\n4. Pacific Ocean";$("key").value="1. Photosynthesis | process plants use to make food\n2. Mars | the red planet\n3. 56\n4. Pacific Ocean";clearErr()});$("reset").addEventListener("click",()=>{$("student").value="";$("key").value="";$("report").hidden=true;latest=null;clearErr()});$("printBtn").addEventListener("click",()=>print());
+ $("download").addEventListener("click",()=>{if(!latest)return;let url=URL.createObjectURL(new Blob([textReport(latest)],{type:"text/plain;charset=utf-8"})),a=document.createElement("a");a.href=url;a.download="GradeNova-report.txt";a.click();URL.revokeObjectURL(url)});
+ let t=localStorage.getItem("gn-theme")||"violet";$("theme").value=t;theme(t);let s=localStorage.getItem("gn-surface")||"glass";$("surface").value=s;document.body.classList.toggle("solid",s==="solid");let i=localStorage.getItem("gn-intensity")||65;$("intensity").value=i;$("intensityText").textContent=i+"%";document.documentElement.style.setProperty("--shade",String(.9-(Number(i)/100)*.48));
+})();
+</script>
+</body></html>
