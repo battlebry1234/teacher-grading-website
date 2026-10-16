@@ -1,219 +1,235 @@
 
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#0b0b14">
-  <title>GradeNova — AI Grading Studio</title>
-  <link rel="stylesheet" href="./style.css">
-  <script defer src="./script.js"></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#11142a">
+  <title>GradeNova — Teaching, Reimagined</title>
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="script.js"></script>
 </head>
 <body>
-  <div class="app-shell">
-    <aside class="sidebar">
-      <a class="brand" href="#" aria-label="GradeNova home">
-        <span class="brand-mark">✳</span>
-        <span>Grade<span class="brand-accent">Nova</span><small>AI GRADING STUDIO</small></span>
-      </a>
+<div class="app">
+  <aside class="sidebar">
+    <a class="brand" href="#">
+      <span class="logo">✦</span>
+      <span><b>GradeNova</b><small>TEACHING, REIMAGINED</small></span>
+    </a>
+    <p class="eyebrow">WORKSPACE</p>
+    <nav>
+      <button data-page="dashboard" class="nav active">⌂ Dashboard</button>
+      <button data-page="grader" class="nav">✎ AI Grader <i>AI</i></button>
+      <button data-page="history" class="nav">◷ Grade history</button>
+      <button data-page="studio" class="nav">◈ Background studio</button>
+      <button data-page="teach" class="nav">✧ Teach GradeNova</button>
+    </nav>
+    <div class="side-note">
+      <b>Good teaching starts here.</b>
+      <p>Spend less time marking and more time helping students grow.</p>
+    </div>
+    <div class="side-foot">✦ <span>Teacher workspace<small>Saved on this device</small></span><b class="dot"></b></div>
+  </aside>
 
-      <div class="side-label">WORKSPACE</div>
-      <button class="nav-item active" id="homeNav"><span>◫</span> Grading studio</button>
-      <button class="nav-item" id="settingsNav"><span>⚙</span> Appearance settings</button>
-
-      <div class="sidebar-bottom">
-        <div class="status-dot"></div>
-        <div><strong>Local workspace</strong><small>Your text stays in this tab</small></div>
+  <main>
+    <header>
+      <div class="crumb">Workspace <span>/</span> <b id="crumb">Dashboard</b></div>
+      <div class="header-actions">
+        <span class="privacy"><b class="dot"></b> Browser-based</span>
+        <button id="themeToggle" class="icon-btn" title="Toggle theme">☼</button>
       </div>
-    </aside>
+    </header>
 
-    <main class="main-area">
-      <header class="topbar">
+    <section class="page visible" id="dashboard">
+      <div class="welcome">
         <div>
-          <div class="eyebrow">YOUR PERSONAL GRADING ASSISTANT</div>
-          <h1>Grading studio <span class="sparkle">✦</span></h1>
+          <p class="eyebrow accent">✦ YOUR CLASSROOM, AMPLIFIED</p>
+          <h1>Make room for <em>the magic.</em></h1>
+          <p class="lede">Thoughtful grading, clearer feedback, and more time for what matters.</p>
         </div>
-        <button class="outline-button" id="topSettings">⚙ <span>Customize</span></button>
-      </header>
+        <button class="primary" data-go="grader">✦ Grade a test →</button>
+      </div>
 
-      <section class="hero">
-        <div class="hero-copy">
-          <span class="pill"><span class="live-dot"></span> YOUR AI WORKSPACE</span>
-          <h2>Less time grading.<br><span>More time teaching.</span></h2>
-          <p>Paste a test and student responses. Let your AI assistant work through the questions and prepare a clear grading report.</p>
-          <button class="primary-button" id="jumpToTest">Start grading <span>↗</span></button>
+      <div class="hero">
+        <div>
+          <small>YOUR AI TEACHING ASSISTANT</small>
+          <h2>From a stack of papers<br>to <em>actionable insight.</em></h2>
+          <p>Paste a test and student responses. GradeNova helps review answers, spot patterns, and draft useful feedback.</p>
+          <button class="white" data-go="grader">Start grading →</button>
         </div>
-        <div class="hero-art" aria-hidden="true">
-          <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
-          <div class="orb">✳</div>
-          <div class="float-card float-top"><span>✦</span> AI-powered review</div>
-          <div class="float-card float-bottom"><span>✓</span> Detailed feedback</div>
-        </div>
-      </section>
-
-      <section class="workspace" id="gradingWorkspace">
-        <div class="section-heading">
-          <div><div class="eyebrow">GET STARTED</div><h2>Your grading workspace</h2></div>
-          <span class="step-badge">01 / INPUT</span>
-        </div>
-
-        <div class="input-grid">
-          <label class="panel input-panel">
-            <span class="field-heading"><span class="field-icon violet">▤</span> Test and questions</span>
-            <span class="field-hint">Paste the complete test, including all questions and any instructions.</span>
-            <textarea id="testInput" placeholder="Paste your full test here…
-
-Example:
-1. Explain the water cycle.
-2. Solve: 3x + 5 = 20.
-3. What caused the American Revolution?"></textarea>
-            <span class="field-footer"><span>Include point values if provided.</span><span id="testCount">0 characters</span></span>
-          </label>
-
-          <label class="panel input-panel">
-            <span class="field-heading"><span class="field-icon blue">✎</span> Student's answers</span>
-            <span class="field-hint">Paste the student's answers in order. Include their work when available.</span>
-            <textarea id="answersInput" placeholder="Paste the student's answers here…
-
-1. Water evaporates, condenses, and falls as precipitation.
-2. x = 5
-3. …"></textarea>
-            <span class="field-footer"><span>Keep answers in question order.</span><span id="answerCount">0 characters</span></span>
-          </label>
-        </div>
-
-        <div class="panel grading-options">
-          <div class="option-copy"><strong>Grading preferences</strong><span>Choose how the AI should evaluate the work.</span></div>
-          <div class="option-controls">
-            <label>Grading style
-              <select id="gradingStyle">
-                <option value="balanced">Balanced and fair</option>
-                <option value="strict">Strict and precise</option>
-                <option value="partial">Reward partial credit</option>
-                <option value="teaching">Teaching-focused feedback</option>
-              </select>
-            </label>
-            <label>Grade level
-              <select id="gradeLevel">
-                <option value="general">Use the test's level</option>
-                <option>Elementary</option><option>Middle school</option>
-                <option>High school</option><option>College</option>
-              </select>
-            </label>
-          </div>
-          <label class="check-row"><input type="checkbox" id="showFeedback" checked> Include explanations and improvement tips</label>
-          <label class="check-row"><input type="checkbox" id="showAnswerKey" checked> Generate suggested correct answers</label>
-          <button class="primary-button grade-button" id="gradeButton">✦ Grade this test <span>→</span></button>
-          <p class="small-note">AI grading can make mistakes. Review the report before using grades officially.</p>
-          <div class="progress-area" id="progressArea" hidden>
-            <div class="progress-line"><span id="progressLabel">Preparing your grading session…</span><span id="progressPercent">0%</span></div>
-            <div class="progress-track"><div id="progressFill"></div></div>
-          </div>
-          <div class="error-message" id="errorMessage" role="alert" hidden></div>
-        </div>
-
-        <section class="panel report-panel" id="reportPanel" hidden>
-          <div class="report-head">
-            <div><div class="eyebrow">GRADING RESULTS</div><h2>Your grading report</h2></div>
-            <button class="outline-button" id="copyReport">Copy report</button>
-          </div>
-          <div class="score-banner">
-            <div><span class="muted-label">ESTIMATED SCORE</span><div class="score-number"><span id="scoreValue">—</span><small>%</small></div></div>
-            <div class="score-message" id="scoreSummary">Your report is ready.</div>
-          </div>
-          <div id="reportContent" class="report-content"></div>
-          <p class="small-note">This is an AI-generated estimate, not a verified official grade.</p>
-        </section>
-      </section>
-
-      <footer>GRADENOVA <span>·</span> Built for clearer, faster feedback</footer>
-    </main>
-  </div>
-
-  <div class="settings-backdrop" id="settingsBackdrop" hidden>
-    <section class="settings-drawer" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
-      <header class="settings-header">
-        <div><div class="eyebrow">MAKE IT YOURS</div><h2 id="settingsTitle">Appearance studio</h2></div>
-        <button class="icon-button" id="closeSettings" aria-label="Close settings">✕</button>
-      </header>
-      <p class="settings-intro">Create a workspace that feels like yours. Changes preview instantly and save automatically.</p>
-
-      <div class="settings-section">
-        <h3>01 — Interface theme</h3>
-        <div class="theme-grid">
-          <button class="theme-choice selected" data-theme="dark"><span class="theme-swatch swatch-dark"></span><span>Midnight</span></button>
-          <button class="theme-choice" data-theme="light"><span class="theme-swatch swatch-light"></span><span>Light</span></button>
-          <button class="theme-choice" data-theme="ocean"><span class="theme-swatch swatch-ocean"></span><span>Ocean</span></button>
-          <button class="theme-choice" data-theme="forest"><span class="theme-swatch swatch-forest"></span><span>Forest</span></button>
+        <div class="hero-art">
+          <div class="orbit"></div>
+          <div class="orb">GN<span>✦</span></div>
+          <div class="float f1">✦ <span><b>Feedback that teaches</b><small>Clear · Specific · Encouraging</small></span></div>
+          <div class="float f2">✓ <span><b>Review with confidence</b><small>You stay in control</small></span></div>
         </div>
       </div>
 
-      <div class="settings-section">
-        <h3>02 — Page background</h3>
-        <div class="segmented">
-          <button class="mode-button active" data-mode="solid">Solid</button>
-          <button class="mode-button" data-mode="gradient">Gradient</button>
-          <button class="mode-button" data-mode="photo">Photo</button>
-        </div>
-
-        <div id="solidControls" class="background-controls">
-          <label class="setting-label">Background color</label>
-          <div class="color-row"><input type="color" id="solidColor" value="#10101c"><input id="solidHex" value="#10101C" maxlength="7" aria-label="Background HEX color"></div>
-        </div>
-
-        <div id="gradientControls" class="background-controls" hidden>
-          <label class="setting-label">Gradient colors</label>
-          <div class="color-row"><input type="color" id="gradientColor1" value="#6d28d9"><input id="gradientHex1" value="#6D28D9" maxlength="7" aria-label="First gradient HEX color"></div>
-          <div class="color-row"><input type="color" id="gradientColor2" value="#0b102b"><input id="gradientHex2" value="#0B102B" maxlength="7" aria-label="Second gradient HEX color"></div>
-          <label class="setting-label" for="gradientDirection">Direction <span id="directionValue">135°</span></label>
-          <input class="range-input" type="range" id="gradientDirection" min="0" max="360" value="135">
-        </div>
-
-        <div id="photoControls" class="background-controls" hidden>
-          <label class="setting-label" for="backgroundUpload">Choose your photo</label>
-          <input class="file-input" type="file" id="backgroundUpload" accept="image/*">
-          <div class="control-pair">
-            <label>Image fit<select id="photoFit"><option value="cover">Fill screen</option><option value="contain">Fit image</option></select></label>
-            <label>Position<select id="photoPosition"><option value="center">Center</option><option value="top">Top</option><option value="bottom">Bottom</option><option value="left">Left</option><option value="right">Right</option></select></label>
-          </div>
-          <label class="setting-label">Image blur <span id="blurValue">0 px</span></label>
-          <input class="range-input" type="range" id="photoBlur" min="0" max="12" value="0">
-        </div>
+      <div class="section-title">
+        <div><h2>Your teaching toolkit</h2><p>Everything you need to get started.</p></div>
+        <small>MADE FOR EDUCATORS</small>
       </div>
 
-      <div class="settings-section">
-        <h3>03 — Presets</h3>
-        <div class="preset-grid">
-          <button class="preset-card preset-purple" data-preset="purple"><span></span>Purple Dream</button>
-          <button class="preset-card preset-midnight" data-preset="midnight"><span></span>Midnight Blue</button>
-          <button class="preset-card preset-sunset" data-preset="sunset"><span></span>Sunset Glow</button>
-          <button class="preset-card preset-ocean" data-preset="ocean"><span></span>Ocean Mist</button>
-          <button class="preset-card preset-forest" data-preset="forest"><span></span>Forest Night</button>
-          <button class="preset-card preset-rose" data-preset="rose"><span></span>Rose Quartz</button>
-        </div>
+      <div class="tools">
+        <button data-go="grader"><span class="tile purple">✎</span><b>AI test grader</b><p>Review answers and create structured feedback.</p><strong>Open grader ↗</strong></button>
+        <button data-go="history"><span class="tile blue">◷</span><b>Grade history</b><p>Revisit reports stored on this device.</p><strong>View history ↗</strong></button>
+        <button data-go="teach"><span class="tile gold">✧</span><b>Teach your AI</b><p>Save rubrics and corrections for future prompts.</p><strong>Customize AI ↗</strong></button>
+        <button data-go="studio"><span class="tile mint">◈</span><b>Your own vibe</b><p>Personalize your workspace with colors.</p><strong>Open studio ↗</strong></button>
       </div>
 
-      <div class="settings-section">
-        <h3>04 — Readability overlay</h3>
-        <label class="setting-label">Overlay color</label>
-        <div class="color-row"><input type="color" id="overlayColor" value="#080813"><span class="setting-help">Tint the background behind the workspace.</span></div>
-        <label class="setting-label">Overlay strength <span id="overlayValue">55%</span></label>
-        <input class="range-input" type="range" id="overlayOpacity" min="0" max="95" value="55">
-      </div>
-
-      <div class="settings-section">
-        <h3>05 — Live preview</h3>
-        <div class="background-preview" id="backgroundPreview">
-          <div class="preview-card"><span class="preview-mark">✳</span><strong>GradeNova</strong><small>Your workspace, your way.</small><span class="preview-chip">✦ AI STUDIO</span></div>
-        </div>
-      </div>
-
-      <div class="settings-actions">
-        <button class="outline-button" id="resetSettings">Reset appearance</button>
-        <button class="primary-button" id="doneSettings">Done <span>✓</span></button>
-      </div>
-      <p class="settings-footnote">Appearance preferences are saved in this browser. A large photo may need to be selected again after refreshing.</p>
+      <div class="notice">ⓘ <span><b>Teacher remains the final reviewer.</b><p>AI can misunderstand questions or complex math. Check reports before using grades officially.</p></span></div>
     </section>
-  </div>
+
+    <section class="page" id="grader">
+      <div class="page-head">
+        <div>
+          <p class="eyebrow accent">SMARTER WORKFLOWS</p>
+          <h1>AI <em>test grader</em></h1>
+          <p>Paste the questions and student answers. Review every result before assigning a grade.</p>
+        </div>
+        <span class="badge"><b class="dot"></b> Review-ready</span>
+      </div>
+
+      <div class="columns">
+        <div class="panel">
+          <div class="panel-head">
+            <span class="tile purple">✎</span>
+            <span><h2>Test details</h2><p>More context means better feedback.</p></span>
+          </div>
+
+          <label for="testTitle">Test name <small>OPTIONAL</small></label>
+          <input id="testTitle" placeholder="e.g. Fractions & equations quiz">
+
+          <div class="row">
+            <div><label for="gradeLevel">Grade level</label>
+              <select id="gradeLevel">
+                <option>Elementary</option><option selected>Middle school</option>
+                <option>High school</option><option>College</option><option>Not specified</option>
+              </select>
+            </div>
+            <div><label for="gradingStyle">Grading style</label>
+              <select id="gradingStyle">
+                <option value="balanced">Balanced</option><option value="strict">Strict</option>
+                <option value="partial">Partial credit</option><option value="teaching">Teaching-focused</option>
+              </select>
+            </div>
+          </div>
+
+          <label for="testInput">Test questions <small>REQUIRED</small></label>
+          <textarea id="testInput" class="tall" placeholder="Paste the full test, instructions, and point values..."></textarea>
+
+          <label for="answersInput">Student answers <small>REQUIRED</small></label>
+          <textarea id="answersInput" class="tall" placeholder="Paste answers and keep question numbers if possible..."></textarea>
+
+          <div class="checks">
+            <label><input type="checkbox" id="showFeedback" checked> Show explanations</label>
+            <label><input type="checkbox" id="showAnswerKey" checked> Show expected answers</label>
+          </div>
+          <button id="gradeButton" class="primary wide">✦ Grade this test →</button>
+          <p class="fine">AI model download may require internet and a compatible browser. Avoid entering sensitive student information.</p>
+        </div>
+
+        <div class="panel report" id="reportPanel">
+          <div class="panel-head">
+            <span class="tile purple">✧</span>
+            <span><h2>Grading report</h2><p>Results appear here.</p></span>
+            <button id="exportReport" class="icon-btn" title="Export report">↓</button>
+          </div>
+          <div id="progressArea" class="empty">
+            <div class="paper">✦<i></i><i></i><i></i><b>?</b></div>
+            <h3>Ready when you are</h3>
+            <p>Fill in the test details, then run the grader to see scores, expected answers, and feedback.</p>
+          </div>
+          <div id="scoreStrip" class="scores" hidden>
+            <div><small>OVERALL</small><b id="scoreValue">—</b></div>
+            <div><small>POINTS</small><b id="pointsValue">—</b></div>
+            <div><small>QUESTIONS</small><b id="questionCount">—</b></div>
+          </div>
+          <div id="reportContent"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="page" id="history">
+      <div class="page-head">
+        <div><p class="eyebrow accent">YOUR WORKSPACE</p><h1>Grade <em>history</em></h1><p>Reports are saved in this browser, not synced to an account.</p></div>
+        <button id="clearHistory" class="secondary">Clear history</button>
+      </div>
+      <div class="panel" id="historyList"></div>
+    </section>
+
+    <section class="page" id="studio">
+      <div class="page-head">
+        <div><p class="eyebrow accent">MAKE IT YOURS</p><h1>Background <em>studio</em></h1><p>Build a workspace that feels like you. Changes save on this device.</p></div>
+      </div>
+      <div class="columns studio">
+        <div class="panel">
+          <h2>Choose your atmosphere</h2><p class="sub">Pick a preset or fine-tune your background.</p>
+          <div class="presets">
+            <button data-preset="purple">🟣 Purple dream</button>
+            <button data-preset="blue">🔵 Midnight blue</button>
+            <button data-preset="sunset">🟠 Sunset glow</button>
+            <button data-preset="ocean">🩵 Ocean mist</button>
+            <button data-preset="forest">🟢 Forest night</button>
+            <button data-preset="rose">🌸 Rose quartz</button>
+          </div>
+          <hr>
+          <label for="themeSelect">Interface theme</label>
+          <select id="themeSelect"><option value="dark">Dark</option><option value="light">Light</option><option value="ocean">Ocean</option><option value="forest">Forest</option></select>
+          <label for="backgroundType">Background type</label>
+          <select id="backgroundType"><option value="gradient">Gradient</option><option value="solid">Solid color</option><option value="photo">Photo</option></select>
+          <div class="row">
+            <div><label for="gradientColor1">Gradient color 1</label><input id="gradientColor1" type="color" value="#312e81"></div>
+            <div><label for="gradientColor2">Gradient color 2</label><input id="gradientColor2" type="color" value="#0f172a"></div>
+          </div>
+          <label for="gradientDirection">Gradient direction</label>
+          <select id="gradientDirection"><option value="135deg">Diagonal ↘</option><option value="90deg">Left to right →</option><option value="180deg">Top to bottom ↓</option><option value="45deg">Diagonal ↗</option></select>
+          <label for="solidColor">Solid color</label><input id="solidColor" type="color" value="#111827">
+          <label for="photoInput">Photo background (under 8 MB)</label><input id="photoInput" type="file" accept="image/*">
+          <div class="row">
+            <div><label for="photoFit">Photo fit</label><select id="photoFit"><option>cover</option><option>contain</option></select></div>
+            <div><label for="photoPosition">Photo position</label><select id="photoPosition"><option>center</option><option>top</option><option>bottom</option></select></div>
+          </div>
+          <label for="overlayColor">Overlay color</label><input id="overlayColor" type="color" value="#000000">
+          <label for="overlayOpacity">Overlay strength <span id="overlayValue">0%</span></label><input id="overlayOpacity" type="range" min="0" max="80" value="0">
+          <label for="photoBlur">Photo blur <span id="blurValue">0px</span></label><input id="photoBlur" type="range" min="0" max="12" value="0">
+          <button id="resetAppearance" class="secondary">Reset appearance</button>
+        </div>
+        <div class="panel">
+          <h2>Live preview</h2><p class="sub">See your look before you settle in.</p>
+          <div id="backgroundPreview" class="preview">
+            <div class="mock"><small>GRADENOVA</small><h2>Small steps.<br><em>Big progress.</em></h2><i></i><i></i><i></i><button>Continue →</button></div>
+          </div>
+          <p class="sub">Your custom look applies across the workspace.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="page" id="teach">
+      <div class="page-head">
+        <div><p class="eyebrow accent">PERSONALIZE FEEDBACK</p><h1>Teach <em>GradeNova</em></h1><p>Save preferences, rubrics, and corrections for future grading prompts.</p></div>
+        <span class="badge">Saved on this device</span>
+      </div>
+      <div class="columns">
+        <div class="panel">
+          <div class="panel-head"><span class="tile gold">✧</span><span><h2>Teaching notes</h2><p>Tell the AI what to follow or correct.</p></span></div>
+          <label for="learningInput">Your note or correction</label>
+          <textarea id="learningInput" placeholder="Example: Accept equivalent fractions. Award partial credit for a correct setup. Check multiplication carefully."></textarea>
+          <button id="saveCorrectionBtn" class="primary">Save teaching note →</button>
+          <p id="learningMessage" class="message"></p>
+          <div class="notice">ⓘ <span><b>This is prompt-based learning, not model retraining.</b><p>Notes guide future prompts but cannot guarantee perfect results.</p></span></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><span class="tile blue">▤</span><span><h2>Saved notes</h2><p>Your most recent 50 notes.</p></span></div>
+          <div id="correctionList"></div>
+          <button id="clearCorrectionsBtn" class="secondary">Clear all notes</button>
+        </div>
+      </div>
+    </section>
+
+    <footer>✦ GradeNova <span>Thoughtful tools for thoughtful teachers.</span><span>AI can be wrong — review important grades.</span></footer>
+  </main>
+</div>
+<div id="toast" role="status" aria-live="polite"></div>
 </body>
 </html>
