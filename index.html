@@ -1,235 +1,153 @@
 
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#11142a">
-  <title>GradeNova — Teaching, Reimagined</title>
+  <meta name="theme-color" content="#11101b">
+  <title>GradeNova — AI Grading</title>
   <link rel="stylesheet" href="style.css">
-  <script type="module" src="script.js"></script>
+  <script src="script.js" defer></script>
 </head>
 <body>
-<div class="app">
-  <aside class="sidebar">
-    <a class="brand" href="#">
-      <span class="logo">✦</span>
-      <span><b>GradeNova</b><small>TEACHING, REIMAGINED</small></span>
-    </a>
-    <p class="eyebrow">WORKSPACE</p>
-    <nav>
-      <button data-page="dashboard" class="nav active">⌂ Dashboard</button>
-      <button data-page="grader" class="nav">✎ AI Grader <i>AI</i></button>
-      <button data-page="history" class="nav">◷ Grade history</button>
-      <button data-page="studio" class="nav">◈ Background studio</button>
-      <button data-page="teach" class="nav">✧ Teach GradeNova</button>
-    </nav>
-    <div class="side-note">
-      <b>Good teaching starts here.</b>
-      <p>Spend less time marking and more time helping students grow.</p>
-    </div>
-    <div class="side-foot">✦ <span>Teacher workspace<small>Saved on this device</small></span><b class="dot"></b></div>
-  </aside>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="#" data-page="dashboard">
+        <span class="brand-icon">G</span>
+        <span>Grade<span class="accent">Nova</span><small>AI TEACHING ASSISTANT</small></span>
+      </a>
 
-  <main>
-    <header>
-      <div class="crumb">Workspace <span>/</span> <b id="crumb">Dashboard</b></div>
-      <div class="header-actions">
-        <span class="privacy"><b class="dot"></b> Browser-based</span>
-        <button id="themeToggle" class="icon-btn" title="Toggle theme">☼</button>
+      <div class="nav-label">WORKSPACE</div>
+      <button class="nav-item active" data-page="dashboard"><span>⌂</span> Dashboard</button>
+      <button class="nav-item" data-page="grader"><span>✎</span> AI Grader</button>
+      <button class="nav-item" data-page="history"><span>◷</span> Grading history</button>
+      <button class="nav-item" data-page="settings"><span>⚙</span> Settings</button>
+
+      <div class="sidebar-bottom">
+        <div class="status-dot"></div>
+        <div><strong id="connectionLabel">Checking connection…</strong><small id="connectionDetail">Connecting to GradeNova</small></div>
       </div>
-    </header>
+    </aside>
 
-    <section class="page visible" id="dashboard">
-      <div class="welcome">
+    <main class="main">
+      <header class="topbar">
         <div>
-          <p class="eyebrow accent">✦ YOUR CLASSROOM, AMPLIFIED</p>
-          <h1>Make room for <em>the magic.</em></h1>
-          <p class="lede">Thoughtful grading, clearer feedback, and more time for what matters.</p>
+          <div class="eyebrow">YOUR TEACHING WORKSPACE</div>
+          <h1 id="pageTitle">Dashboard</h1>
         </div>
-        <button class="primary" data-go="grader">✦ Grade a test →</button>
-      </div>
+        <button id="themeToggle" class="secondary-button" type="button">☼ Theme</button>
+      </header>
 
-      <div class="hero">
-        <div>
-          <small>YOUR AI TEACHING ASSISTANT</small>
-          <h2>From a stack of papers<br>to <em>actionable insight.</em></h2>
-          <p>Paste a test and student responses. GradeNova helps review answers, spot patterns, and draft useful feedback.</p>
-          <button class="white" data-go="grader">Start grading →</button>
-        </div>
-        <div class="hero-art">
-          <div class="orbit"></div>
-          <div class="orb">GN<span>✦</span></div>
-          <div class="float f1">✦ <span><b>Feedback that teaches</b><small>Clear · Specific · Encouraging</small></span></div>
-          <div class="float f2">✓ <span><b>Review with confidence</b><small>You stay in control</small></span></div>
-        </div>
-      </div>
-
-      <div class="section-title">
-        <div><h2>Your teaching toolkit</h2><p>Everything you need to get started.</p></div>
-        <small>MADE FOR EDUCATORS</small>
-      </div>
-
-      <div class="tools">
-        <button data-go="grader"><span class="tile purple">✎</span><b>AI test grader</b><p>Review answers and create structured feedback.</p><strong>Open grader ↗</strong></button>
-        <button data-go="history"><span class="tile blue">◷</span><b>Grade history</b><p>Revisit reports stored on this device.</p><strong>View history ↗</strong></button>
-        <button data-go="teach"><span class="tile gold">✧</span><b>Teach your AI</b><p>Save rubrics and corrections for future prompts.</p><strong>Customize AI ↗</strong></button>
-        <button data-go="studio"><span class="tile mint">◈</span><b>Your own vibe</b><p>Personalize your workspace with colors.</p><strong>Open studio ↗</strong></button>
-      </div>
-
-      <div class="notice">ⓘ <span><b>Teacher remains the final reviewer.</b><p>AI can misunderstand questions or complex math. Check reports before using grades officially.</p></span></div>
-    </section>
-
-    <section class="page" id="grader">
-      <div class="page-head">
-        <div>
-          <p class="eyebrow accent">SMARTER WORKFLOWS</p>
-          <h1>AI <em>test grader</em></h1>
-          <p>Paste the questions and student answers. Review every result before assigning a grade.</p>
-        </div>
-        <span class="badge"><b class="dot"></b> Review-ready</span>
-      </div>
-
-      <div class="columns">
-        <div class="panel">
-          <div class="panel-head">
-            <span class="tile purple">✎</span>
-            <span><h2>Test details</h2><p>More context means better feedback.</p></span>
+      <section class="page active" data-page-panel="dashboard">
+        <div class="hero">
+          <div class="hero-content">
+            <div class="pill"><span class="status-dot"></span> YOUR AI GRADING WORKSPACE</div>
+            <h2>Less time grading.<br><span>More time teaching.</span></h2>
+            <p>Grade tests, check calculations, research factual answers, and give students helpful feedback.</p>
+            <button class="primary-button" data-open-page="grader" type="button">Start grading <span>→</span></button>
           </div>
+          <div class="hero-art" aria-hidden="true">
+            <div class="orbit orbit-one"></div>
+            <div class="orbit orbit-two"></div>
+            <div class="hero-symbol">✦</div>
+            <div class="floating-card">✓ <span>Answers checked</span></div>
+          </div>
+        </div>
 
-          <label for="testTitle">Test name <small>OPTIONAL</small></label>
-          <input id="testTitle" placeholder="e.g. Fractions & equations quiz">
+        <div class="section-heading">
+          <div><h2>Your workspace</h2><p>Everything you need to grade more confidently.</p></div>
+        </div>
 
-          <div class="row">
-            <div><label for="gradeLevel">Grade level</label>
-              <select id="gradeLevel">
-                <option>Elementary</option><option selected>Middle school</option>
-                <option>High school</option><option>College</option><option>Not specified</option>
-              </select>
-            </div>
-            <div><label for="gradingStyle">Grading style</label>
-              <select id="gradingStyle">
-                <option value="balanced">Balanced</option><option value="strict">Strict</option>
-                <option value="partial">Partial credit</option><option value="teaching">Teaching-focused</option>
-              </select>
+        <div class="stat-grid">
+          <article class="stat-card"><span class="stat-icon">▤</span><p>Tests graded</p><strong id="statTests">0</strong><small>Saved on this device</small></article>
+          <article class="stat-card"><span class="stat-icon">✓</span><p>Last score</p><strong id="statScore">—</strong><small>Your latest report</small></article>
+          <article class="stat-card"><span class="stat-icon">✦</span><p>Saved corrections</p><strong id="statCorrections">0</strong><small>Personal grading notes</small></article>
+        </div>
+
+        <div class="section-heading"><div><h2>Quick actions</h2><p>Pick up where you left off.</p></div></div>
+        <div class="quick-grid">
+          <button class="quick-card" data-open-page="grader" type="button"><span>✎</span><strong>Grade a test</strong><small>Check answers and generate feedback</small><b>→</b></button>
+          <button class="quick-card" data-open-page="history" type="button"><span>◷</span><strong>View history</strong><small>Review reports saved on this device</small><b>→</b></button>
+          <button class="quick-card" data-open-page="settings" type="button"><span>⚙</span><strong>Personalize</strong><small>Choose a theme and manage notes</small><b>→</b></button>
+        </div>
+
+        <div class="notice">AI grades can be wrong. Review flagged questions and verify important grades before sharing results.</div>
+      </section>
+
+      <section class="page" data-page-panel="grader" hidden>
+        <div class="page-intro"><h2>AI test grader</h2><p>Enter the test and student answers. GradeNova will solve questions, check straightforward arithmetic independently, and research factual questions when useful.</p></div>
+
+        <form id="gradingForm">
+          <div class="form-card">
+            <div class="card-heading"><span>01</span><div><h3>Test details</h3><p>Set up your grading session.</p></div></div>
+            <div class="field-grid">
+              <label>Test title<input id="testTitle" placeholder="e.g. Fractions quiz" maxlength="120"></label>
+              <label>Grade level<select id="gradeLevel"><option>Elementary</option><option>Middle school</option><option selected>High school</option><option>College</option><option>Other</option></select></label>
+              <label>Grading style<select id="gradingStyle"><option value="fair">Fair and encouraging</option><option value="standard">Standard</option><option value="strict">Strict</option></select></label>
+              <label>Points per question<input id="pointsPerQuestion" type="number" min="1" max="100" value="1"></label>
             </div>
           </div>
 
-          <label for="testInput">Test questions <small>REQUIRED</small></label>
-          <textarea id="testInput" class="tall" placeholder="Paste the full test, instructions, and point values..."></textarea>
-
-          <label for="answersInput">Student answers <small>REQUIRED</small></label>
-          <textarea id="answersInput" class="tall" placeholder="Paste answers and keep question numbers if possible..."></textarea>
-
-          <div class="checks">
-            <label><input type="checkbox" id="showFeedback" checked> Show explanations</label>
-            <label><input type="checkbox" id="showAnswerKey" checked> Show expected answers</label>
+          <div class="form-card">
+            <div class="card-heading"><span>02</span><div><h3>Questions and answers</h3><p>Use clear numbering so the grader can match each answer.</p></div></div>
+            <label>Test questions<textarea id="testInput" rows="8" required placeholder="1. What is 5 × 5?&#10;2. Calculate 15 − 7.&#10;3. What is photosynthesis?"></textarea></label>
+            <label>Student answers<textarea id="answersInput" rows="6" required placeholder="1. 25&#10;2. 8&#10;3. Photosynthesis is how plants use light to make food."></textarea></label>
+            <label>Optional answer key<textarea id="answerKey" rows="4" placeholder="Leave blank if you want the AI to solve the questions independently."></textarea></label>
+            <div class="checkbox-row"><input type="checkbox" id="useWebSearch" checked><label for="useWebSearch">Use Google Search for factual questions when helpful</label></div>
+            <div class="checkbox-row"><input type="checkbox" id="showFeedback" checked><label for="showFeedback">Include explanations and improvement tips</label></div>
           </div>
-          <button id="gradeButton" class="primary wide">✦ Grade this test →</button>
-          <p class="fine">AI model download may require internet and a compatible browser. Avoid entering sensitive student information.</p>
+
+          <div class="form-actions">
+            <button class="secondary-button" id="clearForm" type="button">Clear form</button>
+            <button class="primary-button" id="gradeButton" type="submit">✦ Grade test</button>
+          </div>
+        </form>
+
+        <div id="progressArea" class="progress-card" hidden role="status">
+          <div class="spinner"></div><div><strong>Working on your report…</strong><p id="progressMessage">Checking answers and calculations.</p></div>
         </div>
+        <div id="errorBox" class="error-box" hidden role="alert"></div>
 
-        <div class="panel report" id="reportPanel">
-          <div class="panel-head">
-            <span class="tile purple">✧</span>
-            <span><h2>Grading report</h2><p>Results appear here.</p></span>
-            <button id="exportReport" class="icon-btn" title="Export report">↓</button>
+        <section id="reportPanel" class="report-panel" hidden>
+          <div class="report-header"><div><div class="eyebrow">GRADING RESULTS</div><h2 id="reportTitle">Grading report</h2></div><button id="exportReport" class="secondary-button" type="button">Export JSON</button></div>
+          <div class="score-grid">
+            <div class="score-card"><small>Final score</small><strong id="scoreValue">—</strong></div>
+            <div class="score-card"><small>Points</small><strong id="pointsValue">—</strong></div>
+            <div class="score-card"><small>Questions</small><strong id="questionCount">—</strong></div>
+            <div class="score-card"><small>Needs review</small><strong id="reviewCount">—</strong></div>
           </div>
-          <div id="progressArea" class="empty">
-            <div class="paper">✦<i></i><i></i><i></i><b>?</b></div>
-            <h3>Ready when you are</h3>
-            <p>Fill in the test details, then run the grader to see scores, expected answers, and feedback.</p>
-          </div>
-          <div id="scoreStrip" class="scores" hidden>
-            <div><small>OVERALL</small><b id="scoreValue">—</b></div>
-            <div><small>POINTS</small><b id="pointsValue">—</b></div>
-            <div><small>QUESTIONS</small><b id="questionCount">—</b></div>
-          </div>
+          <p id="reportSummary" class="report-summary"></p>
           <div id="reportContent"></div>
-        </div>
-      </div>
-    </section>
+          <div id="sourceList" class="sources"></div>
+        </section>
+      </section>
 
-    <section class="page" id="history">
-      <div class="page-head">
-        <div><p class="eyebrow accent">YOUR WORKSPACE</p><h1>Grade <em>history</em></h1><p>Reports are saved in this browser, not synced to an account.</p></div>
-        <button id="clearHistory" class="secondary">Clear history</button>
-      </div>
-      <div class="panel" id="historyList"></div>
-    </section>
+      <section class="page" data-page-panel="history" hidden>
+        <div class="page-intro"><h2>Grading history</h2><p>Reports saved in this browser on this device.</p></div>
+        <div class="form-actions"><span class="muted">History stays in your browser.</span><button id="clearHistory" class="secondary-button" type="button">Clear history</button></div>
+        <div id="historyList" class="history-list"></div>
+      </section>
 
-    <section class="page" id="studio">
-      <div class="page-head">
-        <div><p class="eyebrow accent">MAKE IT YOURS</p><h1>Background <em>studio</em></h1><p>Build a workspace that feels like you. Changes save on this device.</p></div>
-      </div>
-      <div class="columns studio">
-        <div class="panel">
-          <h2>Choose your atmosphere</h2><p class="sub">Pick a preset or fine-tune your background.</p>
-          <div class="presets">
-            <button data-preset="purple">🟣 Purple dream</button>
-            <button data-preset="blue">🔵 Midnight blue</button>
-            <button data-preset="sunset">🟠 Sunset glow</button>
-            <button data-preset="ocean">🩵 Ocean mist</button>
-            <button data-preset="forest">🟢 Forest night</button>
-            <button data-preset="rose">🌸 Rose quartz</button>
-          </div>
-          <hr>
-          <label for="themeSelect">Interface theme</label>
-          <select id="themeSelect"><option value="dark">Dark</option><option value="light">Light</option><option value="ocean">Ocean</option><option value="forest">Forest</option></select>
-          <label for="backgroundType">Background type</label>
-          <select id="backgroundType"><option value="gradient">Gradient</option><option value="solid">Solid color</option><option value="photo">Photo</option></select>
-          <div class="row">
-            <div><label for="gradientColor1">Gradient color 1</label><input id="gradientColor1" type="color" value="#312e81"></div>
-            <div><label for="gradientColor2">Gradient color 2</label><input id="gradientColor2" type="color" value="#0f172a"></div>
-          </div>
-          <label for="gradientDirection">Gradient direction</label>
-          <select id="gradientDirection"><option value="135deg">Diagonal ↘</option><option value="90deg">Left to right →</option><option value="180deg">Top to bottom ↓</option><option value="45deg">Diagonal ↗</option></select>
-          <label for="solidColor">Solid color</label><input id="solidColor" type="color" value="#111827">
-          <label for="photoInput">Photo background (under 8 MB)</label><input id="photoInput" type="file" accept="image/*">
-          <div class="row">
-            <div><label for="photoFit">Photo fit</label><select id="photoFit"><option>cover</option><option>contain</option></select></div>
-            <div><label for="photoPosition">Photo position</label><select id="photoPosition"><option>center</option><option>top</option><option>bottom</option></select></div>
-          </div>
-          <label for="overlayColor">Overlay color</label><input id="overlayColor" type="color" value="#000000">
-          <label for="overlayOpacity">Overlay strength <span id="overlayValue">0%</span></label><input id="overlayOpacity" type="range" min="0" max="80" value="0">
-          <label for="photoBlur">Photo blur <span id="blurValue">0px</span></label><input id="photoBlur" type="range" min="0" max="12" value="0">
-          <button id="resetAppearance" class="secondary">Reset appearance</button>
+      <section class="page" data-page-panel="settings" hidden>
+        <div class="page-intro"><h2>Settings</h2><p>Personalize your workspace and manage your saved correction notes.</p></div>
+        <div class="form-card">
+          <h3>Appearance</h3>
+          <label>Color theme<select id="themeSelect"><option value="dark">Midnight purple</option><option value="light">Light</option><option value="ocean">Ocean blue</option><option value="forest">Forest green</option></select></label>
         </div>
-        <div class="panel">
-          <h2>Live preview</h2><p class="sub">See your look before you settle in.</p>
-          <div id="backgroundPreview" class="preview">
-            <div class="mock"><small>GRADENOVA</small><h2>Small steps.<br><em>Big progress.</em></h2><i></i><i></i><i></i><button>Continue →</button></div>
-          </div>
-          <p class="sub">Your custom look applies across the workspace.</p>
+        <div class="form-card">
+          <h3>Teacher corrections</h3>
+          <p class="muted">Saved notes are included in future grading prompts. They guide the AI but do not retrain the model.</p>
+          <label>Question<input id="learningInput" placeholder="Question to correct"></label>
+          <label>Expected answer<input id="learningAnswer" placeholder="Correct answer"></label>
+          <label>Explanation<input id="learningMessage" placeholder="Why this answer is correct"></label>
+          <div class="form-actions"><button id="saveCorrectionBtn" class="primary-button" type="button">Save correction</button><button id="clearCorrectionsBtn" class="secondary-button" type="button">Clear corrections</button></div>
+          <div id="correctionList" class="history-list"></div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <section class="page" id="teach">
-      <div class="page-head">
-        <div><p class="eyebrow accent">PERSONALIZE FEEDBACK</p><h1>Teach <em>GradeNova</em></h1><p>Save preferences, rubrics, and corrections for future grading prompts.</p></div>
-        <span class="badge">Saved on this device</span>
-      </div>
-      <div class="columns">
-        <div class="panel">
-          <div class="panel-head"><span class="tile gold">✧</span><span><h2>Teaching notes</h2><p>Tell the AI what to follow or correct.</p></span></div>
-          <label for="learningInput">Your note or correction</label>
-          <textarea id="learningInput" placeholder="Example: Accept equivalent fractions. Award partial credit for a correct setup. Check multiplication carefully."></textarea>
-          <button id="saveCorrectionBtn" class="primary">Save teaching note →</button>
-          <p id="learningMessage" class="message"></p>
-          <div class="notice">ⓘ <span><b>This is prompt-based learning, not model retraining.</b><p>Notes guide future prompts but cannot guarantee perfect results.</p></span></div>
-        </div>
-        <div class="panel">
-          <div class="panel-head"><span class="tile blue">▤</span><span><h2>Saved notes</h2><p>Your most recent 50 notes.</p></span></div>
-          <div id="correctionList"></div>
-          <button id="clearCorrectionsBtn" class="secondary">Clear all notes</button>
-        </div>
-      </div>
-    </section>
-
-    <footer>✦ GradeNova <span>Thoughtful tools for thoughtful teachers.</span><span>AI can be wrong — review important grades.</span></footer>
-  </main>
-</div>
-<div id="toast" role="status" aria-live="polite"></div>
+      <footer>GradeNova <span>•</span> AI-assisted grading, with human review</footer>
+    </main>
+  </div>
+  <div id="toast" class="toast" hidden role="status"></div>
 </body>
 </html>
