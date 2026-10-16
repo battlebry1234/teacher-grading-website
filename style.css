@@ -34,18 +34,20 @@ body {
   transition: background .25s, color .25s;
 }
 
+
 body::before {
   content: "";
   position: fixed;
   z-index: -2;
   inset: -20px;
-  background-color: var(--page-background);
-  background-image: var(--page-image);
+  background: var(--page-background);
   background-size: var(--photo-fit);
   background-position: var(--photo-position);
   background-repeat: no-repeat;
   filter: blur(var(--photo-blur));
   transform: scale(1.03);
+}
+
 }
 
 body::after {
