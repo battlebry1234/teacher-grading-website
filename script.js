@@ -1,341 +1,145 @@
 
 "use strict";
 
-/*
- * GradeNova — script.js
- *
- * Requires server.py running at http://127.0.0.1:8000.
- * The Gemini API key stays on the Python backend.
- */
-
 const $ = (id) => document.getElementById(id);
+const HISTORY_KEY = "gn-history-v4";
+const NOTES_KEY = "gn-notes-v4";
+const THEME_KEY = "gn-theme-v4";
 
-const GradeNova = {
-  grading: false,
-  lastReport: null,
-  historyKey: "gn-history-v3",
-  correctionsKey: "gn-notes-v3"
-};
+let currentReport = null;
+let grading = false;
+let toastTimer;
 
-/* ---------- Safe math verification ---------- */
-
-/*
- * Supports ordinary numeric arithmetic without eval().
- * Examples: 5 × 5, 15 - 7, (8 + 2) * 3, 12 / 4.
- * This is intentionally not a full algebra solver.
- */
-
-function tokenizeMath(expression) {
-  const input = String(expression)
-    .replace(/[−–—]/g, "-")
-    .replace(/[×✕]/g, "*")
-    .replace(/÷/g, "/")
-    .replace(/\*\*/g, "^")
-    .replace(/(\d)\s*[xX]\s*(?=\d|\()/g, "$1*")
-    .replace(/\s+/g, "");
-
-  const tokens = [];
-  let i = 0;
-
-  while (i < input.length) {
-    const rest = input.slice(i);
-    const number = rest.match(/^(?:\d+\.?\d*|\.\d+)(?:e[+-]?\d+)?/i);
-
-    if (number) {
-      tokens.push({ type: "number", value: Number(number[0]) });
-      i += number[0].length;
-      continue;
-    }
-
-    const char = input[i];
-
-    if ("+-*/^()".includes(char)) {
-      tokens.push({ type: char, value: char });
-      i++;
-      continue;
-    }
-
-    throw new Error("Unsupported math symbol");
-  }
-
-  return tokens;
+function toast(message) {
+  const el = $("toast");
+  el.textContent = message;
+  el.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.hidden = true; }, 3500);
 }
 
-function calculateMath(expression) {
-  const tokens = tokenizeMath(expression);
-  let index = 0;
-
-  function peek() {
-    return tokens[index];
-  }
-
-  function take(type) {
-    if (!peek() || peek().type !== type) {
-      throw new Error("Unexpected math expression");
-    }
-    return tokens[index++];
-  }
-
-  function primary() {
-    if (peek()?.type === "+") {
-      take("+");
-      return primary();
-    }
-
-    if (peek()?.type === "-") {
-      take("-");
-      return -primary();
-    }
-
-    if (peek()?.type === "number") {
-      return take("number").value;
-    }
-
-    if (peek()?.type === "(") {
-      take("(");
-      const value = addSub();
-      take(")");
-      return value;
-    }
-
-    throw new Error("Expected a number");
-  }
-
-  function power() {
-    let value = primary();
-    if (peek()?.type === "^") {
-      take("^");
-      value = Math.pow(value, unaryPower());
-    }
-    return value;
-  }
-
-  function unaryPower() {
-    if (peek()?.type === "+") {
-      take("+");
-      return unaryPower();
-    }
-    if (peek()?.type === "-") {
-      take("-");
-      return -unaryPower();
-    }
-    return power();
-  }
-
-  function multiplyDivide() {
-    let value = power();
-
-    while (peek()?.type === "*" || peek()?.type === "/") {
-      const op = tokens[index++].type;
-      const right = power();
-
-      if (op === "/" && right === 0) {
-        throw new Error("Division by zero");
-      }
-
-      value = op === "*" ? value * right : value / right;
-    }
-
-    return value;
-  }
-
-  function addSub() {
-    let value = multiplyDivide();
-
-    while (peek()?.type === "+" || peek()?.type === "-") {
-      const op = tokens[index++].type;
-      const right = multiplyDivide();
-      value = op === "+" ? value + right : value - right;
-    }
-
-    return value;
-  }
-
-  if (!tokens.length) throw new Error("Empty expression");
-
-  const result = addSub();
-
-  if (index !== tokens.length || !Number.isFinite(result)) {
-    throw new Error("Invalid expression");
-  }
-
-  return result;
-}
-
-function extractNumericAnswer(value) {
-  const text = String(value ?? "").trim().replace(/,/g, "");
-  const match = text.match(/^[\s$]*([+-]?(?:\d+\.?\d*|\.\d+)(?:e[+-]?\d+)?)(?:\s*[%])?(?:\s*[a-zA-Z]+)?\s*$/i);
-
-  if (!match) return null;
-
-  const number = Number(match[1]);
-  return Number.isFinite(number) ? number : null;
-}
-
-function verifySimpleMath(question, studentAnswer, expectedAnswer) {
-  const q = String(question ?? "").trim();
-
-  // Only attempt deterministic verification on explicit arithmetic
-  // questions, avoiding general algebra and word problems.
-  const match = q.match(
-    /(?:what\s+is\s+)?([0-9().+\-−–—×✕*÷/^ ]+(?:[xX][ ]*[0-9(]+)?)[?=]\s*$/i
-  );
-
-  if (!match) return { checked: false };
-
-  const expression = match[1].trim();
-
-  // Require at least one arithmetic operator.
-  if (!/[+\-−×✕*÷/^]/.test(expression)) {
-    return { checked: false };
-  }
-
+function readList(key) {
   try {
-    const correct = calculateMath(expression);
-    const student = extractNumericAnswer(studentAnswer);
-
-    if (student === null) {
-      return {
-        checked: true,
-        correctValue: correct,
-        matches: false,
-        reason: "The student's answer was not a plain numeric answer."
-      };
-    }
-
-    const matches =
-      Math.abs(student - correct) <=
-      1e-9 * Math.max(1, Math.abs(correct));
-
-    return {
-      checked: true,
-      correctValue: correct,
-      studentValue: student,
-      matches,
-      reason: matches ? "Arithmetic verified." : "Arithmetic mismatch."
-    };
-  } catch {
-    return { checked: false };
-  }
-}
-
-/* ---------- Corrections and learning notes ---------- */
-
-function getCorrections() {
-  try {
-    const saved = JSON.parse(
-      localStorage.getItem(GradeNova.correctionsKey) || "[]"
-    );
-    return Array.isArray(saved) ? saved : [];
+    const value = JSON.parse(localStorage.getItem(key) || "[]");
+    return Array.isArray(value) ? value : [];
   } catch {
     return [];
   }
 }
 
-function saveCorrection(question, answer, explanation) {
-  const notes = getCorrections();
-
-  notes.unshift({
-    question: String(question).slice(0, 1000),
-    answer: String(answer).slice(0, 1000),
-    explanation: String(explanation).slice(0, 1000),
-    date: new Date().toISOString()
-  });
-
-  localStorage.setItem(
-    GradeNova.correctionsKey,
-    JSON.stringify(notes.slice(0, 50))
-  );
-
-  renderCorrections();
+function saveList(key, list) {
+  try {
+    localStorage.setItem(key, JSON.stringify(list));
+  } catch {
+    toast("Browser storage is full. Some data could not be saved.");
+  }
 }
 
-function renderCorrections() {
-  const container = $("correctionList");
-  if (!container) return;
+function showPage(name) {
+  const page = document.querySelector(`[data-page-panel="${name}"]`);
+  if (!page) return;
 
-  const notes = getCorrections();
+  document.querySelectorAll("[data-page-panel]").forEach((el) => {
+    el.hidden = el !== page;
+    el.classList.toggle("active", el === page);
+  });
 
-  if (!notes.length) {
-    container.textContent = "No corrections saved yet.";
-    return;
-  }
+  document.querySelectorAll(".nav-item[data-page]").forEach((button) => {
+    button.classList.toggle("active", button.dataset.page === name);
+  });
 
-  container.replaceChildren();
+  const titles = {
+    dashboard: "Dashboard",
+    grader: "AI Grader",
+    history: "Grading history",
+    settings: "Settings"
+  };
 
-  notes.forEach((note) => {
-    const item = document.createElement("div");
-    item.className = "correction-item";
+  $("pageTitle").textContent = titles[name] || "GradeNova";
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
 
-    const question = document.createElement("strong");
-    question.textContent = note.question;
+function initializeNavigation() {
+  document.querySelectorAll("[data-page]").forEach((button) => {
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      showPage(button.dataset.page);
+    });
+  });
 
-    const answer = document.createElement("p");
-    answer.textContent = "Expected answer: " + note.answer;
-
-    const explanation = document.createElement("p");
-    explanation.textContent = note.explanation;
-
-    item.append(question, answer, explanation);
-    container.appendChild(item);
+  document.querySelectorAll("[data-open-page]").forEach((button) => {
+    button.addEventListener("click", () => showPage(button.dataset.openPage));
   });
 }
 
-/* ---------- Prompt construction ---------- */
-
-function buildGradingPrompt() {
-  const test = $("testInput")?.value?.trim() || "";
-  const answers = $("answersInput")?.value?.trim() || "";
-  const title = $("testTitle")?.value?.trim() || "Untitled test";
-  const grade = $("gradeLevel")?.value || "Not specified";
-  const style = $("gradingStyle")?.value || "fair";
-
-  if (!test) {
-    throw new Error("Paste the test questions first.");
-  }
-
-  const corrections = getCorrections()
-    .slice(0, 20)
-    .map((note, i) =>
-      `${i + 1}. Question: ${note.question}\n` +
-      `Expected answer: ${note.answer}\n` +
-      `Explanation: ${note.explanation}`
-    )
-    .join("\n\n");
-
-  return `
-GRADE NOVA TEST GRADING REQUEST
-
-Test title: ${title}
-Grade level: ${grade}
-Grading style: ${style}
-
-TEST QUESTIONS AND STUDENT ANSWERS:
-${test}
-
-${answers ? `SEPARATE ANSWER KEY:\n${answers}` : "No separate answer key supplied. Solve each question independently."}
-
-PREVIOUS TEACHER CORRECTIONS:
-${corrections || "No saved corrections."}
-
-IMPORTANT:
-- Grade every question.
-- Use exact arithmetic for numeric calculations.
-- Check multiplication, subtraction, order of operations, fractions,
-  decimals, and negative numbers carefully.
-- Do not confuse × with + or -.
-- Show the correct answer and explain each mistake.
-- Accept equivalent wording and mathematically equivalent answers.
-- If a problem is ambiguous, mark it for review.
-- Use Google Search for factual questions when it would help.
-- Never invent a citation or pretend you searched if no source was found.
-- Return the JSON report format requested by the server.
-`;
+function setTheme(theme) {
+  const allowed = ["dark", "light", "ocean", "forest"];
+  const selected = allowed.includes(theme) ? theme : "dark";
+  document.documentElement.dataset.theme = selected;
+  $("themeSelect").value = selected;
+  localStorage.setItem(THEME_KEY, selected);
 }
 
-/* ---------- AI request ---------- */
+function initializeTheme() {
+  setTheme(localStorage.getItem(THEME_KEY) || "dark");
+  $("themeSelect").addEventListener("change", (event) => {
+    setTheme(event.target.value);
+  });
+  $("themeToggle").addEventListener("click", () => {
+    const current = document.documentElement.dataset.theme || "dark";
+    setTheme(current === "light" ? "dark" : "light");
+  });
+}
 
-async function askGradeNovaAI(prompt) {
+async function checkConnection() {
+  const label = $("connectionLabel");
+  const detail = $("connectionDetail");
+
+  try {
+    const response = await fetch("/api/health", { cache: "no-store" });
+    const result = await response.json();
+
+    if (!response.ok || !result.ok) throw new Error(result.error || "Not ready");
+
+    label.textContent = result.apiConfigured ? "AI ready" : "API key needed";
+    detail.textContent = result.apiConfigured
+      ? "Backend connected"
+      : "Set GEMINI_API_KEY";
+    label.style.color = result.apiConfigured ? "var(--good)" : "var(--bad)";
+  } catch {
+    label.textContent = "Server unavailable";
+    detail.textContent = "Start server.py and reload";
+    label.style.color = "var(--bad)";
+  }
+}
+
+function buildPrompt() {
+  const questions = $("testInput").value.trim();
+  const answers = $("answersInput").value.trim();
+
+  if (!questions) throw new Error("Enter the test questions first.");
+  if (!answers) throw new Error("Enter the student's answers first.");
+
+  const notes = readList(NOTES_KEY).slice(0, 20).map((n, i) =>
+    `${i + 1}. Question: ${n.question}\nExpected: ${n.answer}\nExplanation: ${n.explanation}`
+  ).join("\n\n");
+
+  return JSON.stringify({
+    task: "Grade a student's test.",
+    title: $("testTitle").value.trim() || "Untitled test",
+    gradeLevel: $("gradeLevel").value,
+    gradingStyle: $("gradingStyle").value,
+    pointsPerQuestion: Number($("pointsPerQuestion").value) || 1,
+    questions,
+    studentAnswers: answers,
+    answerKey: $("answerKey").value.trim() || null,
+    useWebSearch: $("useWebSearch").checked,
+    includeFeedback: $("showFeedback").checked,
+    teacherCorrections: notes || "None"
+  });
+}
+
+async function requestGrade(prompt) {
   const response = await fetch("/api/grade", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -343,564 +147,310 @@ async function askGradeNovaAI(prompt) {
   });
 
   let result;
-
   try {
     result = await response.json();
   } catch {
-    throw new Error("The server returned an unreadable response.");
+    throw new Error("The server returned an invalid response.");
   }
 
-  if (!response.ok) {
-    throw new Error(result.error || "The AI grading request failed.");
-  }
-
+  if (!response.ok) throw new Error(result.error || "Grading failed.");
   return result;
 }
 
-/* ---------- Independent grading checks ---------- */
-
-function strengthenMathResults(report) {
-  if (!Array.isArray(report.questions)) return report;
-
-  for (const question of report.questions) {
-    const check = verifySimpleMath(
-      question.question,
-      question.studentAnswer,
-      question.correctAnswer
-    );
-
-    if (!check.checked) continue;
-
-    question.mathVerified = true;
-    question.mathVerification = check;
-
-    if (!check.matches) {
-      question.needsReview = true;
-      question.isCorrect = false;
-      question.correctAnswer = String(check.correctValue);
-
-      question.feedback =
-        (question.feedback ? question.feedback + " " : "") +
-        `Independent arithmetic check: the correct result is ${check.correctValue}. ` +
-        "This item has been flagged for review.";
-
-      // Correct the score conservatively for a clear numeric mismatch.
-      question.pointsEarned = 0;
-    } else {
-      question.isCorrect = true;
-      question.correctAnswer = String(check.correctValue);
-      question.pointsEarned = question.pointsPossible;
-      question.feedback =
-        (question.feedback ? question.feedback + " " : "") +
-        "Independent arithmetic check confirms the numeric answer.";
-    }
-  }
-
-  const reviewed = report.questions.filter((q) => !q.needsReview);
-
-  // Recalculate score only if all items use valid point values.
-  const validScores = report.questions.every((q) =>
-    Number.isFinite(Number(q.pointsEarned)) &&
-    Number.isFinite(Number(q.pointsPossible))
-  );
-
-  if (validScores) {
-    report.score = report.questions.reduce(
-      (sum, q) => sum + Number(q.pointsEarned), 0
-    );
-
-    report.maxScore = report.questions.reduce(
-      (sum, q) => sum + Number(q.pointsPossible), 0
-    );
-
-    report.percentage = report.maxScore
-      ? Math.round(report.score / report.maxScore * 100)
-      : 0;
-  }
-
-  report.reviewCount = report.questions.filter(
-    (q) => q.needsReview
-  ).length;
-
-  return report;
+function addText(parent, tag, text, className) {
+  const el = document.createElement(tag);
+  el.textContent = text == null ? "" : String(text);
+  if (className) el.className = className;
+  parent.appendChild(el);
+  return el;
 }
 
-/* ---------- Report display ---------- */
+function renderSources(report) {
+  const container = $("sourceList");
+  container.replaceChildren();
 
-function addTextElement(parent, tag, text, className) {
-  const element = document.createElement(tag);
-  element.textContent = text ?? "";
+  const sources = Array.isArray(report.sources) ? report.sources : [];
+  if (!sources.length) return;
 
-  if (className) element.className = className;
-
-  parent.appendChild(element);
-  return element;
-}
-
-function renderSources(report, parent) {
-  const metadata = report._groundingMetadata || {};
-  const chunks = metadata.groundingChunks || [];
-
-  const sources = [
-    ...(report.sources || []),
-    ...chunks
-      .filter((chunk) => chunk.web?.uri)
-      .map((chunk) => ({
-        title: chunk.web.title || chunk.web.uri,
-        url: chunk.web.uri
-      }))
-  ];
-
-  const unique = [
-    ...new Map(
-      sources
-        .filter((source) => source.url)
-        .map((source) => [source.url, source])
-    ).values()
-  ];
-
-  if (!unique.length) return;
-
-  addTextElement(parent, "h3", "Sources");
-
+  addText(container, "h3", "Research sources");
   const list = document.createElement("ul");
 
-  unique.forEach((source) => {
+  sources.forEach((source) => {
     try {
       const url = new URL(source.url);
+      if (url.protocol !== "https:" && url.protocol !== "http:") return;
 
-      if (!["https:", "http:"].includes(url.protocol)) return;
-
-      const item = document.createElement("li");
+      const li = document.createElement("li");
       const link = document.createElement("a");
-
       link.href = url.href;
-      link.textContent = source.title || url.hostname;
       link.target = "_blank";
       link.rel = "noopener noreferrer";
-
-      item.appendChild(link);
-      list.appendChild(item);
+      link.textContent = source.title || url.hostname;
+      li.appendChild(link);
+      list.appendChild(li);
     } catch {
-      // Ignore invalid URLs.
+      // Ignore malformed source links.
     }
   });
 
-  parent.appendChild(list);
+  container.appendChild(list);
 }
 
 function renderReport(report) {
-  const panel = $("reportPanel");
-  const content = $("reportContent");
+  $("reportPanel").hidden = false;
+  $("reportTitle").textContent = report.title || "Grading report";
+  $("scoreValue").textContent = `${report.percentage ?? 0}%`;
+  $("pointsValue").textContent =
+    `${report.score ?? 0} / ${report.maxScore ?? 0}`;
+  $("questionCount").textContent = String(report.questions?.length ?? 0);
+  $("reviewCount").textContent = String(report.reviewCount ?? 0);
+  $("reportSummary").textContent = report.summary || "";
+  $("reportContent").replaceChildren();
 
-  if (!panel || !content) {
-    console.warn("GradeNova report elements were not found.");
-    return;
-  }
-
-  content.replaceChildren();
-
-  addTextElement(content, "h2", report.title || "Grading report");
-  addTextElement(content, "p", report.summary || "");
-
-  const score = `${report.score ?? 0} / ${report.maxScore ?? 0}`;
-  const percentage = `${report.percentage ?? 0}%`;
-
-  addTextElement(content, "h3", `Score: ${score} (${percentage})`);
-
-  if (report.reviewCount) {
-    addTextElement(
-      content,
-      "p",
-      `${report.reviewCount} question(s) need a human review.`
-    );
-  }
-
-  const questions = Array.isArray(report.questions)
-    ? report.questions
-    : [];
-
-  questions.forEach((question, index) => {
-    const card = document.createElement("section");
+  (report.questions || []).forEach((q, index) => {
+    const card = document.createElement("article");
     card.className = "graded-question";
 
-    addTextElement(
-      card,
-      "h3",
-      `Question ${question.number ?? index + 1}: ` +
-      `${question.isCorrect ? "Correct" : "Incorrect / review"}`
-    );
+    const number = q.number ?? index + 1;
+    const state = q.needsReview
+      ? "Needs review"
+      : q.isCorrect ? "Correct" : "Incorrect";
 
-    addTextElement(card, "p", question.question || "");
-    addTextElement(
-      card,
-      "p",
-      "Student answer: " + (question.studentAnswer ?? "Not supplied")
-    );
-    addTextElement(
-      card,
-      "p",
-      "Expected answer: " + (question.correctAnswer ?? "Not determined")
-    );
-    addTextElement(
-      card,
-      "p",
-      `Points: ${question.pointsEarned ?? 0} / ${question.pointsPossible ?? 1}`
-    );
-    addTextElement(card, "p", question.feedback || "");
+    addText(card, "h3", `Question ${number} — ${state}`);
+    addText(card, "p", q.question || "");
+    addText(card, "p", `Student answer: ${q.studentAnswer ?? "Not provided"}`);
+    addText(card, "p", `Expected answer: ${q.correctAnswer ?? "Not determined"}`);
+    addText(card, "p", `Points: ${q.pointsEarned ?? 0} / ${q.pointsPossible ?? 1}`);
 
-    if (question.needsReview) {
-      addTextElement(
-        card,
-        "p",
-        "Please check this question manually.",
-        "review-warning"
-      );
+    if ($("showFeedback").checked) {
+      addText(card, "p", q.feedback || "No explanation supplied.");
     }
 
-    const saveButton = document.createElement("button");
-    saveButton.type = "button";
-    saveButton.textContent = "Save correction";
+    if (q.needsReview) {
+      addText(card, "p", "Please check this question manually.", "review-warning");
+    }
 
-    saveButton.addEventListener("click", () => {
-      const expected = window.prompt(
-        "Enter the correct answer:",
-        String(question.correctAnswer ?? "")
-      );
-
-      if (expected === null) return;
-
-      const explanation = window.prompt(
-        "Explain the correction:",
-        String(question.feedback ?? "")
-      );
-
+    const save = document.createElement("button");
+    save.type = "button";
+    save.textContent = "Save teacher correction";
+    save.addEventListener("click", () => {
+      const answer = window.prompt("Correct answer:", String(q.correctAnswer || ""));
+      if (answer === null) return;
+      const explanation = window.prompt("Explanation:", String(q.feedback || ""));
       if (explanation === null) return;
-
-      saveCorrection(question.question, expected, explanation);
-      showToast("Correction saved.");
+      addCorrection(q.question || "", answer, explanation);
+      toast("Correction saved.");
     });
 
-    card.appendChild(saveButton);
-    content.appendChild(card);
+    card.appendChild(save);
+    $("reportContent").appendChild(card);
   });
 
-  renderSources(report, content);
-  panel.hidden = false;
-
-  const scoreValue = $("scoreValue");
-  if (scoreValue) scoreValue.textContent = percentage;
-
-  const pointsValue = $("pointsValue");
-  if (pointsValue) pointsValue.textContent = score;
-
-  const questionCount = $("questionCount");
-  if (questionCount) questionCount.textContent = String(questions.length);
-
-  const exportButton = $("exportReport");
-  if (exportButton) exportButton.disabled = false;
-
-  panel.scrollIntoView({ behavior: "smooth", block: "start" });
-}
-
-/* ---------- History and export ---------- */
-
-function getHistory() {
-  try {
-    const history = JSON.parse(
-      localStorage.getItem(GradeNova.historyKey) || "[]"
-    );
-    return Array.isArray(history) ? history : [];
-  } catch {
-    return [];
-  }
+  renderSources(report);
+  $("reportPanel").scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function saveHistory(report) {
-  const history = getHistory();
-
+  const history = readList(HISTORY_KEY);
   history.unshift({
+    id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     date: new Date().toISOString(),
     title: report.title || "Untitled test",
     score: report.score ?? 0,
     maxScore: report.maxScore ?? 0,
-    percentage: report.percentage ?? 0
+    percentage: report.percentage ?? 0,
+    report
   });
-
-  localStorage.setItem(
-    GradeNova.historyKey,
-    JSON.stringify(history.slice(0, 50))
-  );
-
+  saveList(HISTORY_KEY, history.slice(0, 30));
   renderHistory();
+  updateStats();
 }
 
 function renderHistory() {
   const container = $("historyList");
-  if (!container) return;
-
   container.replaceChildren();
-  const history = getHistory();
+  const history = readList(HISTORY_KEY);
 
   if (!history.length) {
-    container.textContent = "No grading history yet.";
+    addText(container, "p", "No reports saved yet.");
     return;
   }
 
   history.forEach((entry) => {
-    const row = document.createElement("div");
-    row.className = "history-item";
+    const card = document.createElement("article");
+    card.className = "history-item";
+    addText(card, "strong", entry.title);
+    addText(card, "p", `${entry.percentage}% — ${entry.score}/${entry.maxScore}`);
+    addText(card, "small", new Date(entry.date).toLocaleString());
 
-    addTextElement(row, "strong", entry.title);
-    addTextElement(
-      row,
-      "p",
-      `${entry.percentage}% — ${entry.score}/${entry.maxScore}`
-    );
-    addTextElement(
-      row,
-      "small",
-      new Date(entry.date).toLocaleString()
-    );
+    const view = document.createElement("button");
+    view.type = "button";
+    view.className = "secondary-button";
+    view.textContent = "Open report";
+    view.addEventListener("click", () => {
+      if (!entry.report) return toast("This older history item has no saved report.");
+      currentReport = entry.report;
+      showPage("grader");
+      renderReport(currentReport);
+    });
 
-    container.appendChild(row);
+    card.appendChild(view);
+    container.appendChild(card);
+  });
+}
+
+function updateStats() {
+  const history = readList(HISTORY_KEY);
+  $("statTests").textContent = String(history.length);
+  $("statScore").textContent = history.length ? `${history[0].percentage}%` : "—";
+  $("statCorrections").textContent = String(readList(NOTES_KEY).length);
+}
+
+function addCorrection(question, answer, explanation) {
+  const notes = readList(NOTES_KEY);
+  notes.unshift({
+    question: String(question).slice(0, 1000),
+    answer: String(answer).slice(0, 1000),
+    explanation: String(explanation).slice(0, 1000),
+    date: new Date().toISOString()
+  });
+  saveList(NOTES_KEY, notes.slice(0, 50));
+  renderCorrections();
+  updateStats();
+}
+
+function renderCorrections() {
+  const container = $("correctionList");
+  container.replaceChildren();
+  const notes = readList(NOTES_KEY);
+
+  if (!notes.length) {
+    addText(container, "p", "No corrections saved yet.");
+    return;
+  }
+
+  notes.forEach((note) => {
+    const card = document.createElement("article");
+    card.className = "history-item";
+    addText(card, "strong", note.question);
+    addText(card, "p", `Expected answer: ${note.answer}`);
+    addText(card, "small", note.explanation);
+    container.appendChild(card);
   });
 }
 
 function exportReport() {
-  if (!GradeNova.lastReport) {
-    showToast("Grade a test before exporting.");
-    return;
-  }
+  if (!currentReport) return toast("Grade a test before exporting.");
 
-  const blob = new Blob(
-    [JSON.stringify(GradeNova.lastReport, null, 2)],
-    { type: "application/json" }
-  );
-
+  const blob = new Blob([JSON.stringify(currentReport, null, 2)], {
+    type: "application/json"
+  });
   const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-
-  link.href = url;
-  link.download = "gradenova-report.json";
-  link.click();
-
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "gradenova-report.json";
+  a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-/* ---------- UI helpers ---------- */
+async function gradeTest(event) {
+  event.preventDefault();
+  if (grading) return;
 
-function showToast(message) {
-  const toast = $("toast");
-
-  if (toast) {
-    toast.textContent = message;
-    toast.hidden = false;
-    toast.setAttribute("role", "status");
-  } else {
-    console.info("GradeNova:", message);
-  }
-}
-
-function setGradingState(isGrading) {
-  GradeNova.grading = isGrading;
-
-  const button = $("gradeButton");
-  if (button) {
-    button.disabled = isGrading;
-    button.textContent = isGrading ? "Grading..." : "Grade test";
-  }
-
-  const progress = $("progressArea");
-  if (progress) {
-    progress.hidden = !isGrading;
-    progress.textContent = isGrading
-      ? "Checking answers and researching facts..."
-      : "";
-  }
-}
-
-/* ---------- Main grading workflow ---------- */
-
-async function gradeTest() {
-  if (GradeNova.grading) return;
-
-  setGradingState(true);
+  grading = true;
+  $("gradeButton").disabled = true;
+  $("gradeButton").textContent = "Grading…";
+  $("progressArea").hidden = false;
+  $("errorBox").hidden = true;
+  $("reportPanel").hidden = true;
+  $("progressMessage").textContent =
+    "Solving questions, checking calculations, and researching facts when needed.";
 
   try {
-    const prompt = buildGradingPrompt();
-    let report = await askGradeNovaAI(prompt);
+    const report = await requestGrade(buildPrompt());
+    if (!Array.isArray(report.questions)) {
+      throw new Error("The AI report did not contain a question list. Please try again.");
+    }
 
-    report = strengthenMathResults(report);
-
-    GradeNova.lastReport = report;
+    currentReport = report;
     renderReport(report);
     saveHistory(report);
-
-    showToast("Grading finished. Review flagged questions.");
+    toast("Grading complete. Review flagged questions.");
   } catch (error) {
-    console.error("GradeNova grading error:", error);
-    showToast(error.message || "Grading failed. Please try again.");
+    $("errorBox").textContent = error.message || "Something went wrong.";
+    $("errorBox").hidden = false;
+    toast("Grading failed. See the error message.");
   } finally {
-    setGradingState(false);
+    grading = false;
+    $("gradeButton").disabled = false;
+    $("gradeButton").textContent = "✦ Grade test";
+    $("progressArea").hidden = true;
+    checkConnection();
   }
 }
 
-/* ---------- Appearance and navigation ---------- */
+function initializeControls() {
+  $("gradingForm").addEventListener("submit", gradeTest);
 
-function initializeNavigation() {
-  document.querySelectorAll(".nav[data-page]").forEach((button) => {
-    button.addEventListener("click", () => {
-      const target = button.dataset.page;
-
-      document.querySelectorAll("[data-page-panel]").forEach((panel) => {
-        panel.hidden = panel.dataset.pagePanel !== target;
-      });
-
-      document.querySelectorAll(".nav[data-page]").forEach((nav) => {
-        nav.classList.toggle("active", nav === button);
-      });
-
-      const crumb = $("crumb");
-      if (crumb) crumb.textContent = button.textContent.trim();
-    });
+  $("clearForm").addEventListener("click", () => {
+    if (!window.confirm("Clear all test fields?")) return;
+    $("gradingForm").reset();
+    $("reportPanel").hidden = true;
+    $("errorBox").hidden = true;
+    currentReport = null;
   });
 
-  document.querySelectorAll("[data-go]").forEach((button) => {
-    button.addEventListener("click", () => {
-      const target = document.querySelector(
-        `[data-page-panel="${CSS.escape(button.dataset.go)}"]`
-      );
-
-      if (!target) return;
-
-      document.querySelectorAll("[data-page-panel]").forEach((panel) => {
-        panel.hidden = panel !== target;
-      });
-    });
-  });
-}
-
-function initializeAppearance() {
-  const key = "gn-appearance-v3";
-
-  let settings = {};
-  try {
-    settings = JSON.parse(localStorage.getItem(key) || "{}");
-  } catch {
-    settings = {};
-  }
-
-  if (settings.theme) {
-    document.documentElement.dataset.theme = settings.theme;
-  }
-
-  if (settings.background) {
-    document.body.style.background = settings.background;
-  }
-
-  const themeSelect = $("themeSelect");
-  if (themeSelect) {
-    if (settings.theme) themeSelect.value = settings.theme;
-
-    themeSelect.addEventListener("change", () => {
-      document.documentElement.dataset.theme = themeSelect.value;
-      settings.theme = themeSelect.value;
-      localStorage.setItem(key, JSON.stringify(settings));
-    });
-  }
-
-  const toggle = $("themeToggle");
-  if (toggle) {
-    toggle.addEventListener("click", () => {
-      const current = document.documentElement.dataset.theme;
-      const next = current === "light" ? "dark" : "light";
-
-      document.documentElement.dataset.theme = next;
-      settings.theme = next;
-      localStorage.setItem(key, JSON.stringify(settings));
-    });
-  }
-
-  const photoInput = $("photoInput");
-  if (photoInput) {
-    photoInput.addEventListener("change", () => {
-      const file = photoInput.files?.[0];
-      if (!file) return;
-
-      if (!file.type.startsWith("image/")) {
-        showToast("Choose an image file.");
-        return;
-      }
-
-      if (file.size > 5 * 1024 * 1024) {
-        showToast("Choose an image smaller than 5 MB.");
-        return;
-      }
-
-      const reader = new FileReader();
-
-      reader.onload = () => {
-        const background = `url("${reader.result}") center / cover fixed`;
-        document.body.style.background = background;
-        settings.background = background;
-        localStorage.setItem(key, JSON.stringify(settings));
-      };
-
-      reader.readAsDataURL(file);
-    });
-  }
-
-  const reset = $("resetAppearance");
-  if (reset) {
-    reset.addEventListener("click", () => {
-      localStorage.removeItem(key);
-      document.documentElement.dataset.theme = "dark";
-      document.body.style.background = "";
-      showToast("Appearance reset.");
-    });
-  }
-}
-
-/* ---------- Start ---------- */
-
-document.addEventListener("DOMContentLoaded", () => {
-  $("gradeButton")?.addEventListener("click", gradeTest);
-  $("exportReport")?.addEventListener("click", exportReport);
-
-  $("clearHistory")?.addEventListener("click", () => {
-    if (!window.confirm("Clear all grading history?")) return;
-
-    localStorage.removeItem(GradeNova.historyKey);
+  $("clearHistory").addEventListener("click", () => {
+    if (!window.confirm("Delete saved grading history?")) return;
+    localStorage.removeItem(HISTORY_KEY);
     renderHistory();
-    showToast("History cleared.");
+    updateStats();
+    toast("History cleared.");
   });
 
-  $("clearCorrectionsBtn")?.addEventListener("click", () => {
-    if (!window.confirm("Clear all saved corrections?")) return;
-
-    localStorage.removeItem(GradeNova.correctionsKey);
-    renderCorrections();
-    showToast("Corrections cleared.");
-  });
-
-  $("saveCorrectionBtn")?.addEventListener("click", () => {
-    const question = $("learningInput")?.value?.trim();
-    const answer = $("learningMessage")?.value?.trim();
+  $("saveCorrectionBtn").addEventListener("click", () => {
+    const question = $("learningInput").value.trim();
+    const answer = $("learningAnswer").value.trim();
+    const explanation = $("learningMessage").value.trim();
 
     if (!question || !answer) {
-      showToast("Enter both a question and its correct answer.");
+      toast("Enter a question and its correct answer.");
       return;
     }
 
-    saveCorrection(question, answer, "Teacher-provided correction.");
-    showToast("Correction saved.");
+    addCorrection(question, answer, explanation);
+    $("learningInput").value = "";
+    $("learningAnswer").value = "";
+    $("learningMessage").value = "";
+    toast("Correction saved.");
   });
 
-  initializeNavigation();
-  initializeAppearance();
-  renderHistory();
-  renderCorrections();
+  $("clearCorrectionsBtn").addEventListener("click", () => {
+    if (!window.confirm("Delete all saved corrections?")) return;
+    localStorage.removeItem(NOTES_KEY);
+    renderCorrections();
+    updateStats();
+    toast("Corrections cleared.");
+  });
 
-  console.info("GradeNova initialized.");
+  $("exportReport").addEventListener("click", exportReport);
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  try {
+    initializeNavigation();
+    initializeTheme();
+    initializeControls();
+    renderHistory();
+    renderCorrections();
+    updateStats();
+    checkConnection();
+  } catch (error) {
+    console.error("GradeNova initialization failed:", error);
+    const box = $("errorBox");
+    if (box) {
+      box.hidden = false;
+      box.textContent = "GradeNova could not initialize. Open the browser Console (F12) for details.";
+    }
+  }
 });
