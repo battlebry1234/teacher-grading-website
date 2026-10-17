@@ -3547,3 +3547,625 @@ body.reduce-motion *::after {
     font-size: 9px;
   }
 }
+
+/* ==========================================================
+   GRADENOVA ATMOSPHERE UPGRADE
+   Paste this at the VERY BOTTOM of style.css.
+   ========================================================== */
+
+/* Give the background its own immersive scene. */
+.backdrop {
+  isolation: isolate;
+  background:
+    radial-gradient(ellipse at 50% 0%, #21154c 0%, transparent 48%),
+    radial-gradient(ellipse at 15% 55%, #100d38 0%, transparent 48%),
+    linear-gradient(180deg, #03030d, #080719 55%, #02020a);
+}
+
+.backdrop-glow {
+  filter: blur(100px);
+  opacity: 0.38;
+}
+
+.backdrop-stars {
+  opacity: 0.9;
+  background-image:
+    radial-gradient(2px 2px at 7% 14%, #fff 55%, transparent 70%),
+    radial-gradient(1px 1px at 14% 68%, #c4b5fd 55%, transparent 70%),
+    radial-gradient(2px 2px at 24% 35%, #fff 55%, transparent 70%),
+    radial-gradient(1px 1px at 33% 82%, #a5f3fc 55%, transparent 70%),
+    radial-gradient(2px 2px at 42% 19%, #fff 55%, transparent 70%),
+    radial-gradient(1px 1px at 51% 57%, #ddd6fe 55%, transparent 70%),
+    radial-gradient(2px 2px at 63% 31%, #fff 55%, transparent 70%),
+    radial-gradient(1px 1px at 71% 76%, #a5f3fc 55%, transparent 70%),
+    radial-gradient(2px 2px at 82% 12%, #fff 55%, transparent 70%),
+    radial-gradient(1px 1px at 94% 48%, #c4b5fd 55%, transparent 70%);
+  background-size: 280px 250px;
+  animation: gn-star-drift 65s linear infinite;
+}
+
+.backdrop-scenery {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  transition: opacity 0.8s ease, background 0.8s ease;
+}
+
+.ambient-dots {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* ----------------------------------------------------------
+   COSMIC SPACE — purple-black galaxy, stars, nebula clouds
+   ---------------------------------------------------------- */
+
+body[data-theme="cosmic"] .backdrop {
+  background:
+    radial-gradient(ellipse at 48% 15%, #39206d 0%, transparent 42%),
+    radial-gradient(ellipse at 10% 65%, #171043 0%, transparent 48%),
+    radial-gradient(ellipse at 92% 78%, #102d51 0%, transparent 42%),
+    linear-gradient(180deg, #03030b 0%, #09071d 55%, #02030a 100%);
+}
+
+body[data-theme="cosmic"] .glow-a {
+  background: #7c3aed;
+  opacity: 0.3;
+}
+
+body[data-theme="cosmic"] .glow-b {
+  background: #2563eb;
+  opacity: 0.2;
+}
+
+body[data-theme="cosmic"] .backdrop-scenery {
+  opacity: 0.9;
+  background:
+    radial-gradient(ellipse at 25% 25%, #8b5cf733, transparent 38%),
+    radial-gradient(ellipse at 72% 45%, #4338ca30, transparent 40%),
+    radial-gradient(ellipse at 55% 85%, #0e74902b, transparent 36%);
+  animation: gn-nebula-breathe 12s ease-in-out infinite alternate;
+}
+
+/* ----------------------------------------------------------
+   INFERNO — visible animated fire and rising embers
+   ---------------------------------------------------------- */
+
+body[data-theme="inferno"] .backdrop {
+  background:
+    radial-gradient(ellipse at 50% 100%, #a52b08 0%, transparent 53%),
+    radial-gradient(ellipse at 15% 70%, #571006 0%, transparent 45%),
+    linear-gradient(180deg, #100408 0%, #260806 48%, #130403 100%);
+}
+
+body[data-theme="inferno"] .backdrop-stars {
+  opacity: 0.13;
+}
+
+body[data-theme="inferno"] .glow-a {
+  background: #ff3d00;
+  opacity: 0.32;
+}
+
+body[data-theme="inferno"] .glow-b {
+  background: #ff8a00;
+  opacity: 0.22;
+}
+
+body[data-theme="inferno"] .backdrop-scenery {
+  opacity: 1;
+  filter: none;
+  background:
+    radial-gradient(ellipse at 15% 100%, #ff3d00a8, transparent 48%),
+    radial-gradient(ellipse at 50% 100%, #ff7b00a8, transparent 52%),
+    radial-gradient(ellipse at 85% 100%, #d91e18a0, transparent 48%);
+  animation: gn-heat-pulse 2.4s ease-in-out infinite alternate;
+}
+
+/* Large tongues of flame rise up from the bottom of the screen. */
+body[data-theme="inferno"] .backdrop-scenery::before {
+  content: "";
+  position: absolute;
+  inset: 30% -5% -2%;
+  transform-origin: bottom center;
+  background:
+    radial-gradient(ellipse at 12% 100%, #ffb000 0%, #ff4d00 22%, transparent 52%),
+    radial-gradient(ellipse at 29% 100%, #ffe066 0%, #ff6a00 25%, transparent 53%),
+    radial-gradient(ellipse at 49% 100%, #ff9d00 0%, #ff3c00 28%, transparent 56%),
+    radial-gradient(ellipse at 71% 100%, #ffd166 0%, #ff4d00 25%, transparent 52%),
+    radial-gradient(ellipse at 90% 100%, #ff9d00 0%, #dc2626 27%, transparent 55%);
+  filter: blur(12px);
+  animation: gn-flame-glow 2s ease-in-out infinite alternate;
+}
+
+/* A separate layer creates sharp, flickering flame silhouettes. */
+body[data-theme="inferno"] .ambient-dots::before {
+  content: "";
+  position: absolute;
+  left: -5%;
+  right: -5%;
+  bottom: -3%;
+  height: 53%;
+  background:
+    linear-gradient(165deg, transparent 0 35%, #ffb000 36% 42%, #ff4d00 43% 55%, transparent 70%) 0 100% / 19% 100% no-repeat,
+    linear-gradient(195deg, transparent 0 30%, #ffd166 31% 39%, #ff5a00 40% 57%, transparent 72%) 12% 100% / 22% 100% no-repeat,
+    linear-gradient(160deg, transparent 0 32%, #ffae00 33% 43%, #e52b00 44% 58%, transparent 73%) 31% 100% / 23% 100% no-repeat,
+    linear-gradient(200deg, transparent 0 25%, #ffe08a 26% 36%, #ff6200 37% 57%, transparent 74%) 50% 100% / 22% 100% no-repeat,
+    linear-gradient(160deg, transparent 0 34%, #ffb000 35% 43%, #f13b00 44% 59%, transparent 73%) 69% 100% / 23% 100% no-repeat,
+    linear-gradient(200deg, transparent 0 29%, #ffd166 30% 40%, #ff4d00 41% 58%, transparent 74%) 88% 100% / 22% 100% no-repeat;
+  filter: drop-shadow(0 0 18px #ff4d00);
+  opacity: 0.66;
+  animation: gn-flames-sway 1.8s ease-in-out infinite alternate;
+}
+
+body[data-theme="inferno"] .ambient-dots::after {
+  content: "";
+  position: absolute;
+  inset: 5% 0 0;
+  background-image:
+    radial-gradient(circle, #ffe7a1 0 1.5px, transparent 3px),
+    radial-gradient(circle, #ff6a00 0 2px, transparent 4px),
+    radial-gradient(circle, #ffb000 0 1px, transparent 3px);
+  background-size: 113px 151px, 173px 197px, 83px 127px;
+  background-position: 0 0, 40px 70px, 20px 30px;
+  opacity: 0.7;
+  animation: gn-embers-rise 9s linear infinite;
+}
+
+/* ----------------------------------------------------------
+   ENCHANTED FOREST — woodland silhouettes, mist, fireflies
+   ---------------------------------------------------------- */
+
+body[data-theme="forest"] .backdrop {
+  background:
+    radial-gradient(ellipse at 50% 30%, #174d31 0%, transparent 47%),
+    radial-gradient(ellipse at 48% 80%, #0c3b26 0%, transparent 48%),
+    linear-gradient(180deg, #020c08 0%, #062015 52%, #010905 100%);
+}
+
+body[data-theme="forest"] .backdrop-stars {
+  opacity: 0.12;
+}
+
+body[data-theme="forest"] .glow-a {
+  background: #16a34a;
+  opacity: 0.2;
+}
+
+body[data-theme="forest"] .glow-b {
+  background: #84cc16;
+  opacity: 0.12;
+}
+
+body[data-theme="forest"] .backdrop-scenery {
+  opacity: 1;
+  background:
+    radial-gradient(ellipse at 50% 52%, #8cf7a018, transparent 48%),
+    linear-gradient(180deg, transparent 40%, #03150d70 73%, #010704 100%);
+}
+
+/* Layered forest trunks and distant tree silhouettes. */
+body[data-theme="forest"] .backdrop-scenery::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(75deg, transparent 0 43%, #010704 44% 49%, transparent 50%) 0 0 / 18% 100%,
+    linear-gradient(105deg, transparent 0 42%, #020a06 43% 51%, transparent 52%) 10% 0 / 21% 100%,
+    linear-gradient(78deg, transparent 0 42%, #010704 43% 50%, transparent 51%) 29% 0 / 23% 100%,
+    linear-gradient(100deg, transparent 0 42%, #020a06 43% 51%, transparent 52%) 54% 0 / 22% 100%,
+    linear-gradient(75deg, transparent 0 42%, #010704 43% 50%, transparent 51%) 77% 0 / 24% 100%,
+    linear-gradient(90deg, #010704cc, transparent 24% 76%, #010704cc);
+  opacity: 0.65;
+}
+
+/* Leafy canopies frame the edges, like looking into a forest. */
+body[data-theme="forest"] .ambient-dots::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 0% 0%, #174d2a 0 13%, transparent 34%),
+    radial-gradient(ellipse at 13% 0%, #0b381e 0 10%, transparent 29%),
+    radial-gradient(ellipse at 100% 0%, #174d2a 0 13%, transparent 34%),
+    radial-gradient(ellipse at 87% 0%, #0b381e 0 10%, transparent 29%),
+    radial-gradient(ellipse at 0% 100%, #020b06 0 15%, transparent 36%),
+    radial-gradient(ellipse at 100% 100%, #020b06 0 15%, transparent 36%);
+}
+
+/* Fireflies blink at different points in the forest. */
+body[data-theme="forest"] .ambient-dots::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle, #eaff9c 0 2px, #b8ff6a55 3px, transparent 8px),
+    radial-gradient(circle, #d9f99d 0 1.5px, #84cc1655 3px, transparent 7px),
+    radial-gradient(circle, #f0fda8 0 1.5px, transparent 6px);
+  background-size: 193px 227px, 271px 183px, 337px 293px;
+  background-position: 15px 22px, 95px 75px, 40px 120px;
+  animation: gn-fireflies 7s ease-in-out infinite alternate;
+}
+
+/* ----------------------------------------------------------
+   OCEAN DEPTHS — underwater rays, moving fish, bubbles
+   ---------------------------------------------------------- */
+
+body[data-theme="ocean"] .backdrop {
+  background:
+    radial-gradient(ellipse at 50% -5%, #147aa0 0%, transparent 48%),
+    radial-gradient(ellipse at 18% 45%, #064c72 0%, transparent 48%),
+    linear-gradient(180deg, #052e49 0%, #03243c 48%, #010b19 100%);
+}
+
+body[data-theme="ocean"] .backdrop-stars {
+  opacity: 0.06;
+}
+
+body[data-theme="ocean"] .glow-a {
+  background: #0891b2;
+  opacity: 0.22;
+}
+
+body[data-theme="ocean"] .glow-b {
+  background: #0284c7;
+  opacity: 0.2;
+}
+
+body[data-theme="ocean"] .backdrop-scenery {
+  opacity: 1;
+  background:
+    linear-gradient(105deg, transparent 8%, #a5f3fc0d 18%, transparent 30%),
+    linear-gradient(75deg, transparent 28%, #a5f3fc14 40%, transparent 54%),
+    linear-gradient(115deg, transparent 52%, #67e8f90c 64%, transparent 76%),
+    radial-gradient(ellipse at 50% 0%, #7dd3fc30, transparent 55%);
+  animation: gn-water-rays 11s ease-in-out infinite alternate;
+}
+
+/* Seaweed silhouettes at the bottom of the water. */
+body[data-theme="ocean"] .backdrop-scenery::before {
+  content: "";
+  position: absolute;
+  left: -3%;
+  right: -3%;
+  bottom: -3%;
+  height: 25%;
+  background:
+    radial-gradient(ellipse at 10% 100%, #021a22 0 22%, transparent 23%),
+    radial-gradient(ellipse at 25% 100%, #04352f 0 20%, transparent 21%),
+    radial-gradient(ellipse at 43% 100%, #021a22 0 24%, transparent 25%),
+    radial-gradient(ellipse at 67% 100%, #04352f 0 23%, transparent 24%),
+    radial-gradient(ellipse at 88% 100%, #021a22 0 27%, transparent 28%),
+    linear-gradient(0deg, #010b18 0%, transparent 88%);
+  animation: gn-seaweed 5s ease-in-out infinite alternate;
+}
+
+/* Fish silhouettes swim across the background. */
+body[data-theme="ocean"] .ambient-dots::before {
+  content: "";
+  position: absolute;
+  top: 24%;
+  left: -15%;
+  width: 52px;
+  height: 25px;
+  border-radius: 55% 45% 45% 55%;
+  background: #7dd3fc;
+  opacity: 0.52;
+  clip-path: polygon(0 50%, 18% 25%, 55% 8%, 85% 27%, 100% 0, 96% 50%, 100% 100%, 85% 73%, 55% 92%, 18% 75%);
+  filter: drop-shadow(0 0 9px #38bdf8);
+  box-shadow: 0 0 20px #38bdf8;
+  animation: gn-fish-swim 24s linear infinite;
+}
+
+body[data-theme="ocean"] .ambient-dots::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle, transparent 0 3px, #a5f3fc88 3.5px, #a5f3fc88 4.5px, transparent 5px),
+    radial-gradient(circle, transparent 0 2px, #bae6fd77 2.5px, #bae6fd77 3.5px, transparent 4px),
+    radial-gradient(circle, transparent 0 4px, #a5f3fc66 4.5px, #a5f3fc66 5.5px, transparent 6px);
+  background-size: 137px 171px, 211px 193px, 281px 229px;
+  background-position: 10px 20px, 85px 75px, 42px 110px;
+  animation: gn-bubbles-rise 18s linear infinite;
+}
+
+/* ----------------------------------------------------------
+   LOGO ATMOSPHERES
+   The graduation cap remains recognizable, but its surroundings
+   become fire, vines, or water instead of generic orbit lines.
+   ---------------------------------------------------------- */
+
+.brand-mark,
+.hero-logo,
+.live-preview-mark {
+  isolation: isolate;
+}
+
+.brand-mark .brand-orbit,
+.hero-logo .hero-orbit,
+.live-preview-mark .brand-orbit {
+  transition: opacity 0.45s ease, border-color 0.45s ease;
+}
+
+/* Inferno: replace orbit rings with animated flames around the cap. */
+body[data-theme="inferno"] .brand-mark .brand-orbit,
+body[data-theme="inferno"] .hero-logo .hero-orbit,
+body[data-theme="inferno"] .live-preview-mark .brand-orbit {
+  opacity: 0;
+}
+
+body[data-theme="inferno"] .brand-mark::before,
+body[data-theme="inferno"] .hero-logo::before,
+body[data-theme="inferno"] .live-preview-mark::before {
+  content: "";
+  position: absolute;
+  inset: -12%;
+  z-index: 1;
+  border-radius: 45% 55% 48% 52%;
+  background:
+    radial-gradient(ellipse at 50% 85%, #fff0a6 0 10%, #ff9d00 23%, #ff4d00 43%, transparent 70%);
+  filter: drop-shadow(0 0 10px #ff4d00);
+  clip-path: polygon(5% 65%, 18% 42%, 26% 58%, 36% 10%, 47% 44%, 61% 0, 69% 45%, 86% 24%, 95% 66%, 85% 100%, 15% 100%);
+  animation: gn-logo-fire 1.4s ease-in-out infinite alternate;
+}
+
+body[data-theme="inferno"] .brand-mark::after,
+body[data-theme="inferno"] .hero-logo::after,
+body[data-theme="inferno"] .live-preview-mark::after {
+  content: "";
+  position: absolute;
+  inset: 9%;
+  z-index: 1;
+  border: 2px solid #ff9d0055;
+  border-radius: 50%;
+  box-shadow: 0 0 17px #ff4d0066, inset 0 0 12px #ff4d0033;
+  animation: gn-fire-ring 2s ease-in-out infinite alternate;
+}
+
+body[data-theme="inferno"] .brand-mark svg,
+body[data-theme="inferno"] .hero-logo svg,
+body[data-theme="inferno"] .live-preview-mark svg {
+  filter: drop-shadow(0 0 8px #ff5a00) drop-shadow(0 0 17px #ff2200);
+}
+
+/* Forest: leafy vine rings replace the cosmic orbits. */
+body[data-theme="forest"] .brand-mark .brand-orbit,
+body[data-theme="forest"] .hero-logo .hero-orbit,
+body[data-theme="forest"] .live-preview-mark .brand-orbit {
+  opacity: 0;
+}
+
+body[data-theme="forest"] .brand-mark::before,
+body[data-theme="forest"] .hero-logo::before,
+body[data-theme="forest"] .live-preview-mark::before {
+  content: "";
+  position: absolute;
+  inset: -7%;
+  z-index: 1;
+  border: 2px solid #4ade80;
+  border-radius: 43% 57% 52% 48%;
+  background:
+    radial-gradient(ellipse at 14% 30%, #a3e635 0 5%, transparent 7%),
+    radial-gradient(ellipse at 82% 25%, #86efac 0 5%, transparent 7%),
+    radial-gradient(ellipse at 22% 78%, #a3e635 0 5%, transparent 7%),
+    radial-gradient(ellipse at 85% 70%, #86efac 0 5%, transparent 7%);
+  box-shadow: 0 0 12px #22c55e55;
+  transform: rotate(-18deg);
+  animation: gn-vine-turn 12s linear infinite;
+}
+
+body[data-theme="forest"] .brand-mark::after,
+body[data-theme="forest"] .hero-logo::after,
+body[data-theme="forest"] .live-preview-mark::after {
+  content: "";
+  position: absolute;
+  inset: 2%;
+  z-index: 1;
+  border: 2px dashed #a3e635;
+  border-radius: 48% 52% 42% 58%;
+  filter: drop-shadow(0 0 5px #4ade80);
+  transform: rotate(24deg);
+  animation: gn-vine-turn-reverse 18s linear infinite;
+}
+
+body[data-theme="forest"] .brand-mark svg,
+body[data-theme="forest"] .hero-logo svg,
+body[data-theme="forest"] .live-preview-mark svg {
+  filter: drop-shadow(0 0 8px #4ade80) drop-shadow(0 0 16px #166534);
+}
+
+/* Ocean: rippling water rings surround the cap. */
+body[data-theme="ocean"] .brand-mark .brand-orbit,
+body[data-theme="ocean"] .hero-logo .hero-orbit,
+body[data-theme="ocean"] .live-preview-mark .brand-orbit {
+  opacity: 0;
+}
+
+body[data-theme="ocean"] .brand-mark::before,
+body[data-theme="ocean"] .hero-logo::before,
+body[data-theme="ocean"] .live-preview-mark::before {
+  content: "";
+  position: absolute;
+  inset: -8%;
+  z-index: 1;
+  border: 2px solid #7dd3fcaa;
+  border-radius: 50%;
+  box-shadow: 0 0 12px #38bdf866, inset 0 0 13px #38bdf833;
+  transform: rotateX(58deg);
+  animation: gn-water-ring 4s ease-in-out infinite;
+}
+
+body[data-theme="ocean"] .brand-mark::after,
+body[data-theme="ocean"] .hero-logo::after,
+body[data-theme="ocean"] .live-preview-mark::after {
+  content: "";
+  position: absolute;
+  inset: 2%;
+  z-index: 1;
+  border: 2px solid #5eead466;
+  border-radius: 50%;
+  box-shadow: 0 0 16px #22d3ee55;
+  transform: rotateX(58deg) rotate(35deg);
+  animation: gn-water-ring 4s ease-in-out -2s infinite;
+}
+
+body[data-theme="ocean"] .brand-mark svg,
+body[data-theme="ocean"] .hero-logo svg,
+body[data-theme="ocean"] .live-preview-mark svg {
+  filter: drop-shadow(0 0 8px #38bdf8) drop-shadow(0 0 16px #0891b2);
+}
+
+/* Remove extra decorations for the clean Light theme. */
+body[data-theme="light"] .brand-mark::before,
+body[data-theme="light"] .brand-mark::after,
+body[data-theme="light"] .hero-logo::before,
+body[data-theme="light"] .hero-logo::after,
+body[data-theme="light"] .live-preview-mark::before,
+body[data-theme="light"] .live-preview-mark::after {
+  content: none;
+}
+
+body[data-theme="light"] .backdrop-scenery,
+body[data-theme="light"] .ambient-dots {
+  opacity: 0;
+}
+
+/* Keep the home hero illustration in sync with the selected world. */
+body[data-theme="inferno"] .hero-halo,
+body[data-theme="forest"] .hero-halo,
+body[data-theme="ocean"] .hero-halo {
+  border-color: var(--accent);
+  box-shadow: 0 0 24px var(--glow);
+}
+
+body[data-theme="inferno"] .hero-planet {
+  background: radial-gradient(circle at 35% 30%, #fff0a6, #ff5a00 45%, #8b1c05 75%);
+  opacity: 0.42;
+}
+
+body[data-theme="forest"] .hero-planet {
+  background: radial-gradient(circle at 35% 30%, #d9f99d, #22c55e 45%, #052e16 75%);
+  opacity: 0.35;
+}
+
+body[data-theme="ocean"] .hero-planet {
+  background: radial-gradient(circle at 35% 30%, #cffafe, #0ea5e9 45%, #082f49 75%);
+  opacity: 0.4;
+}
+
+/* ----------------------------------------------------------
+   ANIMATION DEFINITIONS
+   ---------------------------------------------------------- */
+
+@keyframes gn-star-drift {
+  from { background-position: 0 0; }
+  to { background-position: -280px 250px; }
+}
+
+@keyframes gn-nebula-breathe {
+  from { transform: scale(1); opacity: 0.65; }
+  to { transform: scale(1.08); opacity: 1; }
+}
+
+@keyframes gn-heat-pulse {
+  from { opacity: 0.7; }
+  to { opacity: 1; }
+}
+
+@keyframes gn-flame-glow {
+  from { transform: scaleX(0.96) skewX(-1deg); opacity: 0.7; }
+  to { transform: scaleX(1.04) skewX(1deg); opacity: 1; }
+}
+
+@keyframes gn-flames-sway {
+  from { transform: translateY(2%) scaleX(0.97); }
+  to { transform: translateY(-2%) scaleX(1.03); }
+}
+
+@keyframes gn-embers-rise {
+  from { background-position: 0 100%, 40px 120%, 20px 80%; }
+  to { background-position: -20px -100vh, 70px -90vh, -30px -110vh; }
+}
+
+@keyframes gn-fireflies {
+  0% { opacity: 0.25; transform: translateY(1%); }
+  50% { opacity: 0.85; }
+  100% { opacity: 0.45; transform: translateY(-1%); }
+}
+
+@keyframes gn-water-rays {
+  from { background-position: 0 0, 0 0, 0 0, center; opacity: 0.55; }
+  to { background-position: 3% 0, -2% 0, 4% 0, center; opacity: 1; }
+}
+
+@keyframes gn-seaweed {
+  from { transform: skewX(-1deg); }
+  to { transform: skewX(1deg); }
+}
+
+@keyframes gn-fish-swim {
+  0% { left: -15%; top: 24%; transform: scale(0.8); }
+  45% { top: 35%; }
+  50% { left: 110%; top: 28%; transform: scale(0.8); }
+  51% { left: 110%; transform: scaleX(-0.8); }
+  100% { left: -15%; top: 24%; transform: scaleX(-0.8); }
+}
+
+@keyframes gn-bubbles-rise {
+  from { background-position: 10px 110%, 85px 115%, 42px 120%; }
+  to { background-position: 10px -30%, 85px -40%, 42px -25%; }
+}
+
+@keyframes gn-logo-fire {
+  from { transform: scale(0.96) rotate(-2deg); opacity: 0.78; }
+  to { transform: scale(1.06) rotate(2deg); opacity: 1; }
+}
+
+@keyframes gn-fire-ring {
+  from { transform: scale(0.94) rotate(-8deg); opacity: 0.45; }
+  to { transform: scale(1.06) rotate(8deg); opacity: 0.95; }
+}
+
+@keyframes gn-vine-turn {
+  from { transform: rotate(-18deg); }
+  to { transform: rotate(342deg); }
+}
+
+@keyframes gn-vine-turn-reverse {
+  from { transform: rotate(24deg); }
+  to { transform: rotate(-336deg); }
+}
+
+@keyframes gn-water-ring {
+  0%, 100% { transform: rotateX(58deg) scale(0.94); opacity: 0.55; }
+  50% { transform: rotateX(58deg) scale(1.08); opacity: 1; }
+}
+
+/* Respect the motion setting and accessibility preferences. */
+body.motion-off *,
+body.motion-off *::before,
+body.motion-off *::after {
+  animation-play-state: paused !important;
+  scroll-behavior: auto !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .backdrop *,
+  .backdrop *::before,
+  .backdrop *::after,
+  .brand-mark *,
+  .brand-mark::before,
+  .brand-mark::after,
+  .hero-logo *,
+  .hero-logo::before,
+  .hero-logo::after,
+  .live-preview-mark *,
+  .live-preview-mark::before,
+  .live-preview-mark::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
