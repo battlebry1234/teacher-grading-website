@@ -1,426 +1,859 @@
 
-/* ==========================================
-   GradeNova — Interactive Dashboard
-   Themes • Settings • Rubric • Grading UI
-   ========================================== */
+(() => {
+  "use strict";
 
-"use strict";
-
-document.addEventListener("DOMContentLoaded", () => {
   const $ = (selector, root = document) =>
     root.querySelector(selector);
 
   const $$ = (selector, root = document) =>
     [...root.querySelectorAll(selector)];
 
-  const STORAGE_KEY = "gradenova-preferences";
-  const VALID_THEMES = [
-    "cosmic",
-    "inferno",
-    "forest",
-    "ocean",
-    "light"
-  ];
+  const PREFS_KEY = "gradenova-v2-preferences";
+  const HISTORY_KEY = "gradenova-v2-history";
+
+  const themes = {
+    cosmic: {
+      name: "Cosmic Space",
+      short: "Cosmic",
+      description:
+        "A deep-space atmosphere with stars, planets, and glowing nebula clouds.",
+      caption: "Space, stars, and nebulae"
+    },
+
+    inferno: {
+      name: "Inferno",
+      short: "Inferno",
+      description:
+        "A fiery atmosphere with glowing flames, heat, and drifting embers.",
+      caption: "Flames and glowing embers"
+    },
+
+    forest: {
+      name: "Enchanted Forest",
+      short: "Forest",
+      description:
+        "Ancient trees, moonlit mist, green vines, and fireflies.",
+      caption: "Trees, vines, and fireflies"
+    },
+
+    ocean: {
+      name: "Ocean Depths",
+      short: "Ocean",
+      description:
+        "Underwater light rays, swimming fish, seaweed, and rising bubbles.",
+      caption: "Fish, water, and bubbles"
+    },
+
+    light: {
+      name: "Light",
+      short: "Light",
+      description:
+        "A clean, bright workspace with a soft, calm background.",
+      caption: "Bright and minimal"
+    }
+  };
+
+  const pages = {
+    home: "Home",
+    grade: "Grade a Test",
+    history: "History",
+    customize: "Customization",
+    settings: "Settings"
+  };
 
   const body = document.body;
-  const themeSelect = $("#settings-theme");
-  const motionCheckbox = $("#settings-motion");
-  const strictnessSelect = $("#settings-default-strictness");
-  const gradingStrictness = $("#grading-strictness");
-  const settingsStatus = $("#settings-status");
-  const gradingStatus = $("#grading-status");
-  const gradingForm = $("#grading-form");
-  const rubricCriteria = $("#rubric-criteria");
-  const addCriterionButton = $("#add-criterion");
 
-  let nextCriterionId = 4;
+  let currentPage = "home";
+  let nextCriterion = 4;
 
-  // ------------------------------------------
-  // SAFE PREFERENCE STORAGE
-  // ------------------------------------------
+  // ----------------------------------------
+  // LOCAL STORAGE
+  // ----------------------------------------
 
-  function loadPreferences() {
+  function read(key, fallback) {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      return saved ? JSON.parse(saved) : {};
-    } catch (error) {
-      console.warn("Could not load GradeNova preferences.", error);
-      return {};
+      const value = localStorage.getItem(key);
+      return value ? JSON.parse(value) : fallback;
+    } catch {
+      return fallback;
     }
   }
 
-  function savePreferences(preferences) {
+  function write(key, value) {
     try {
-      localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify(preferences)
-      );
+      localStorage.setItem(key, JSON.stringify(value));
       return true;
-    } catch (error) {
-      console.warn("Could not save GradeNova preferences.", error);
+    } catch {
       return false;
     }
   }
 
-  const preferences = loadPreferences();
+  // ----------------------------------------
+  // MULTI-SCREEN NAVIGATION
+  // ----------------------------------------
 
-  // ------------------------------------------
-  // THEME SYSTEM
-  // ------------------------------------------
+  function goTo(page, updateHash = true) {
+    if (!pages[page]) {
+      page = "home";
+    }
 
-  function updateThemeButtons(theme) {
-    $$("[data-set-theme]").forEach((button) => {
-      const selected = button.dataset.setTheme === theme;
+    currentPage = page;
 
-      button.setAttribute("aria-pressed", String(selected));
-      button.classList.toggle("active", selected);
+    $$(".page").forEach(section => {
+      section.classList.toggle(
+        "active",
+        section.dataset.page === page
+      );
     });
+
+    $$("[data-nav]").forEach(button => {
+      button.classList.toggle(
+        "active",
+        button.dataset.nav === page &&
+          button.classList.contains("nav-item")
+      );
+    });
+
+    const breadcrumb = $("#page-breadcrumb");
+
+    if (breadcrumb) {
+      breadcrumb.textContent = pages[page];
+    }
+
+    if (
+      updateHash &&
+      location.hash !== `#${page}`
+    ) {
+      history.replaceState(null, "", `#${page}`);
+    }
+
+    window.scrollTo({
+      top: 0,
+      behavior: body.classList.contains("motion-off")
+        ? "auto"
+        : "smooth"
+    });
+
+    if (page === "history") {
+      renderHistory();
+    }
+
+    if (page === "home") {
+      updateOverview();
+    }
   }
 
+  $$("[data-nav]").forEach(button => {
+    button.addEventListener("click", event => {
+      event.preventDefault();
+      goTo(button.dataset.nav);
+    });
+  });
+
+  window.addEventListener("hashchange", () => {
+    const page = location.hash.slice(1);
+
+    if (pages[page]) {
+      goTo(page, false);
+    }
+  });
+
+  // ----------------------------------------
+  // THEME CUSTOMIZATION
+  // ----------------------------------------
+
   function applyTheme(theme, persist = true) {
-    if (!VALID_THEMES.includes(theme)) {
+    if (!Object.hasOwn(themes, theme)) {
       theme = "cosmic";
     }
 
     body.dataset.theme = theme;
 
-    if (themeSelect) {
-      themeSelect.value = theme;
+    $$("[data-set-theme]").forEach(button => {
+      const selected =
+        button.dataset.setTheme === theme;
+
+      button.classList.toggle("selected", selected);
+
+      button.setAttribute(
+        "aria-pressed",
+        String(selected)
+      );
+    });
+
+    const customName = $("#custom-theme-name");
+    const customDescription =
+      $("#custom-theme-description");
+
+    if (customName) {
+      customName.textContent = themes[theme].name;
     }
 
-    updateThemeButtons(theme);
+    if (customDescription) {
+      customDescription.textContent =
+        themes[theme].description;
+    }
 
     if (persist) {
-      savePreferences({
-        ...loadPreferences(),
+      write(PREFS_KEY, {
+        ...read(PREFS_KEY, {}),
         theme
       });
     }
+
+    updateOverview();
   }
 
-  $$("[data-set-theme]").forEach((button) => {
+  $$("[data-set-theme]").forEach(button => {
     button.addEventListener("click", () => {
       applyTheme(button.dataset.setTheme);
     });
   });
 
-  if (themeSelect) {
-    themeSelect.addEventListener("change", () => {
-      applyTheme(themeSelect.value);
-    });
-  }
-
-  // ------------------------------------------
-  // BACKGROUND ANIMATION SETTING
-  // ------------------------------------------
+  // ----------------------------------------
+  // MOTION SETTINGS
+  // ----------------------------------------
 
   function applyMotion(enabled) {
     body.classList.toggle("motion-off", !enabled);
 
-    if (motionCheckbox) {
-      motionCheckbox.checked = enabled;
+    const motion = $("#settings-motion");
+
+    if (motion) {
+      motion.checked = enabled;
     }
   }
 
-  // Add an accessible way to disable animated effects.
-  const motionStyle = document.createElement("style");
-
-  motionStyle.textContent = `
-    .motion-off *,
-    .motion-off *::before,
-    .motion-off *::after {
-      animation: none !important;
-      scroll-behavior: auto !important;
-      transition: none !important;
+  $("#settings-motion")?.addEventListener(
+    "change",
+    event => {
+      applyMotion(event.target.checked);
     }
-  `;
+  );
 
-  document.head.appendChild(motionStyle);
+  // ----------------------------------------
+  // DASHBOARD STATISTICS
+  // ----------------------------------------
 
-  if (motionCheckbox) {
-    motionCheckbox.addEventListener("change", () => {
-      applyMotion(motionCheckbox.checked);
-    });
+  function updateSummary() {
+    const points =
+      $("#total-points")?.value || "100";
+
+    const criteria = $$(".criterion-row", $("#rubric-criteria")).length;
+
+    const summaryPoints = $("#summary-points");
+    const summaryCriteria = $("#summary-criteria");
+    const summaryKey = $("#summary-key");
+
+    if (summaryPoints) {
+      summaryPoints.textContent = points;
+    }
+
+    if (summaryCriteria) {
+      summaryCriteria.textContent = String(criteria);
+    }
+
+    if (summaryKey) {
+      summaryKey.textContent =
+        $("#answer-key-input")?.value.trim()
+          ? "Added"
+          : "Optional";
+    }
+
+    updateOverview();
   }
 
-  // ------------------------------------------
-  // SAVE SETTINGS
-  // ------------------------------------------
+  function updateOverview() {
+    const historyItems = read(HISTORY_KEY, []);
 
-  const saveSettingsButton = $("#save-settings");
+    const sessionCount = $("#stat-sessions");
+    const criteriaCount = $("#stat-criteria");
+    const themeName = $("#stat-theme");
+    const themeCaption = $("#stat-theme-caption");
 
-  if (saveSettingsButton) {
-    saveSettingsButton.addEventListener("click", () => {
-      const currentPreferences = {
-        ...loadPreferences(),
-        theme: themeSelect?.value || "cosmic",
-        motion: motionCheckbox?.checked ?? true,
-        strictness: strictnessSelect?.value || "balanced"
-      };
+    if (sessionCount) {
+      sessionCount.textContent = String(
+        Array.isArray(historyItems)
+          ? historyItems.length
+          : 0
+      );
+    }
 
-      if (VALID_THEMES.includes(currentPreferences.theme)) {
-        applyTheme(currentPreferences.theme, false);
-      }
+    if (criteriaCount) {
+      criteriaCount.textContent = String(
+        $$(".criterion-row", $("#rubric-criteria")).length || 0
+      );
+    }
 
-      applyMotion(currentPreferences.motion);
+    const theme =
+      themes[body.dataset.theme] || themes.cosmic;
 
-      if (gradingStrictness) {
-        gradingStrictness.value = currentPreferences.strictness;
-      }
+    if (themeName) {
+      themeName.textContent = theme.short;
+    }
 
-      const saved = savePreferences(currentPreferences);
-
-      if (settingsStatus) {
-        settingsStatus.textContent = saved
-          ? "✓ Your preferences have been saved on this device."
-          : "Your preferences could not be saved. Check your browser settings.";
-      }
-    });
+    if (themeCaption) {
+      themeCaption.textContent = theme.caption;
+    }
   }
 
-  // ------------------------------------------
+  $("#total-points")?.addEventListener(
+    "input",
+    updateSummary
+  );
+
+  $("#answer-key-input")?.addEventListener(
+    "input",
+    updateSummary
+  );
+
+  // ----------------------------------------
   // RUBRIC BUILDER
-  // ------------------------------------------
+  // ----------------------------------------
 
-  function createCriterion(id) {
-    const wrapper = document.createElement("div");
-    wrapper.className = "field-group rubric-row";
+  function renumberCriteria() {
+    const rows = $$(".criterion-row", $("#rubric-criteria"));
 
-    const nameLabel = document.createElement("label");
-    nameLabel.htmlFor = `criterion-${id}`;
-    nameLabel.textContent = `Criterion ${id}`;
-
-    const nameInput = document.createElement("input");
-    nameInput.id = `criterion-${id}`;
-    nameInput.name = "criterion-name";
-    nameInput.type = "text";
-    nameInput.placeholder = "e.g. Evidence and reasoning";
-    nameInput.maxLength = 150;
-
-    const pointsLabel = document.createElement("label");
-    pointsLabel.htmlFor = `criterion-points-${id}`;
-    pointsLabel.textContent = "Points";
-
-    const pointsInput = document.createElement("input");
-    pointsInput.id = `criterion-points-${id}`;
-    pointsInput.name = "criterion-points";
-    pointsInput.type = "number";
-    pointsInput.min = "0";
-    pointsInput.max = "10000";
-    pointsInput.step = "1";
-    pointsInput.value = "0";
-
-    const removeButton = document.createElement("button");
-    removeButton.type = "button";
-    removeButton.className = "btn btn-secondary";
-    removeButton.textContent = "Remove criterion";
-    removeButton.setAttribute(
-      "aria-label",
-      `Remove criterion ${id}`
-    );
-
-    removeButton.addEventListener("click", () => {
-      wrapper.remove();
-      updateCriterionLabels();
-    });
-
-    wrapper.append(
-      nameLabel,
-      nameInput,
-      pointsLabel,
-      pointsInput,
-      removeButton
-    );
-
-    return wrapper;
-  }
-
-  function updateCriterionLabels() {
-    if (!rubricCriteria) return;
-
-    $$(".rubric-row", rubricCriteria).forEach((row, index) => {
+    rows.forEach((row, index) => {
       const number = index + 1;
-      const nameInput = $('input[name="criterion-name"]', row);
-      const pointsInput = $('input[name="criterion-points"]', row);
-      const labels = $$("label", row);
 
-      if (!nameInput || !pointsInput) return;
-
-      nameInput.id = `criterion-${number}`;
-      nameInput.placeholder = "e.g. Accuracy and reasoning";
-      pointsInput.id = `criterion-points-${number}`;
-
-      if (labels[0]) {
-        labels[0].htmlFor = nameInput.id;
-        labels[0].textContent = `Criterion ${number}`;
-      }
-
-      if (labels[1]) {
-        labels[1].htmlFor = pointsInput.id;
-        labels[1].textContent = "Points";
-      }
-    });
-  }
-
-  if (addCriterionButton && rubricCriteria) {
-    addCriterionButton.addEventListener("click", () => {
-      const row = createCriterion(nextCriterionId++);
-
-      rubricCriteria.appendChild(row);
-      updateCriterionLabels();
-
-      const inputs = $$('input[name="criterion-name"]', row);
-      inputs[0]?.focus();
-    });
-  }
-
-  // ------------------------------------------
-  // RUBRIC DATA COLLECTION
-  // ------------------------------------------
-
-  function collectRubric() {
-    const criteria = $$(".rubric-row", rubricCriteria || document)
-      .map((row) => {
-        const name = $('input[name="criterion-name"]', row);
-        const points = $('input[name="criterion-points"]', row);
-
-        return {
-          name: name?.value.trim() || "",
-          points: Number(points?.value || 0)
-        };
-      })
-      .filter((criterion) => criterion.name.length > 0);
-
-    return {
-      name: $("#rubric-name")?.value.trim() || "",
-      totalPoints: Number($("#total-points")?.value || 100),
-      strictness: gradingStrictness?.value || "balanced",
-      instructions: $("#rubric-instructions")?.value.trim() || "",
-      criteria
-    };
-  }
-
-  // ------------------------------------------
-  // GRADING FORM VALIDATION
-  // ------------------------------------------
-
-  if (gradingForm) {
-    gradingForm.addEventListener("submit", (event) => {
-      event.preventDefault();
-
-      const test = $("#test-input")?.value.trim() || "";
-      const answers = $("#answers-input")?.value.trim() || "";
-      const answerKey = $("#answer-key-input")?.value.trim() || "";
-      const rubric = collectRubric();
-
-      if (!test || !answers) {
-        if (gradingStatus) {
-          gradingStatus.textContent =
-            "Please enter both the test and the student's answers.";
-        }
-
-        (!test ? $("#test-input") : $("#answers-input"))?.focus();
-        return;
-      }
-
-      if (!Number.isFinite(rubric.totalPoints) ||
-          rubric.totalPoints <= 0) {
-        if (gradingStatus) {
-          gradingStatus.textContent =
-            "Please enter a total possible score greater than zero.";
-        }
-
-        $("#total-points")?.focus();
-        return;
-      }
-
-      if (rubric.criteria.some((item) =>
-        !Number.isFinite(item.points) || item.points < 0
-      )) {
-        if (gradingStatus) {
-          gradingStatus.textContent =
-            "Please check the point values in your rubric.";
-        }
-        return;
-      }
-
-      // Prepare the grading request without exposing private keys.
-      const gradingRequest = {
-        test,
-        answers,
-        answerKey: answerKey || null,
-        rubric,
-        options: {
-          feedback: $("#option-feedback")?.checked ?? true,
-          breakdown: $("#option-breakdown")?.checked ?? true,
-          history: $("#option-history")?.checked ?? true,
-          explanations: $("#option-explanations")?.checked ?? true
-        }
-      };
-
-      // The backend endpoint is not configured yet.
-      // Do not pretend that grading has occurred.
-      console.info(
-        "GradeNova grading request prepared.",
-        {
-          hasTest: Boolean(gradingRequest.test),
-          hasAnswers: Boolean(gradingRequest.answers),
-          hasAnswerKey: Boolean(gradingRequest.answerKey),
-          rubricCriteria: gradingRequest.rubric.criteria.length,
-          strictness: gradingRequest.rubric.strictness
-        }
+      const name = $(
+        'input[name="criterion-name"]',
+        row
       );
 
-      if (gradingStatus) {
-        gradingStatus.textContent =
-          "✓ Your test, answers, and grading options are ready. " +
-          "AI grading will become available after the Python backend " +
-          "is hosted and connected.";
+      const points = $(
+        'input[name="criterion-points"]',
+        row
+      );
+
+      const label = $("label", row);
+      const remove = $(".remove-criterion", row);
+
+      if (name) {
+        name.id = `criterion-${number}`;
       }
+
+      if (points) {
+        points.id = `criterion-points-${number}`;
+      }
+
+      if (label && name) {
+        label.htmlFor = name.id;
+        label.textContent = String(number).padStart(2, "0");
+      }
+
+      if (remove) {
+        remove.disabled = rows.length <= 1;
+
+        remove.setAttribute(
+          "aria-label",
+          `Remove criterion ${number}`
+        );
+      }
+    });
+
+    nextCriterion = rows.length + 1;
+
+    updateSummary();
+  }
+
+  function createCriterion(number) {
+    const row = document.createElement("div");
+    row.className = "criterion-row";
+
+    const label = document.createElement("label");
+    label.htmlFor = `criterion-${number}`;
+    label.textContent = String(number).padStart(2, "0");
+
+    const name = document.createElement("input");
+    name.type = "text";
+    name.name = "criterion-name";
+    name.id = `criterion-${number}`;
+    name.placeholder = "Criterion name";
+    name.maxLength = 150;
+
+    const pointsLabel = document.createElement("span");
+    pointsLabel.textContent = "POINTS";
+
+    const points = document.createElement("input");
+    points.type = "number";
+    points.name = "criterion-points";
+    points.id = `criterion-points-${number}`;
+    points.min = "0";
+    points.max = "10000";
+    points.value = "0";
+
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "remove-criterion";
+    remove.textContent = "×";
+
+    remove.setAttribute(
+      "aria-label",
+      `Remove criterion ${number}`
+    );
+
+    remove.addEventListener("click", () => {
+      row.remove();
+      renumberCriteria();
+    });
+
+    row.append(
+      label,
+      name,
+      pointsLabel,
+      points,
+      remove
+    );
+
+    return row;
+  }
+
+  $("#add-criterion")?.addEventListener("click", () => {
+    const list = $("#rubric-criteria");
+
+    if (!list) {
+      return;
+    }
+
+    const row = createCriterion(nextCriterion++);
+
+    list.appendChild(row);
+    renumberCriteria();
+
+    $('input[name="criterion-name"]', row)?.focus();
+  });
+
+  $("#rubric-criteria")?.addEventListener(
+    "input",
+    updateSummary
+  );
+
+  // ----------------------------------------
+  // STATUS MESSAGES
+  // ----------------------------------------
+
+  function status(message, kind = "") {
+    const element = $("#grading-status");
+
+    if (!element) {
+      return;
+    }
+
+    element.textContent = message;
+
+    element.classList.remove("success", "error");
+
+    if (kind) {
+      element.classList.add(kind);
+    }
+  }
+
+  // ----------------------------------------
+  // HISTORY SCREEN
+  // ----------------------------------------
+
+  function renderHistory() {
+    const list = $("#history-list");
+
+    if (!list) {
+      return;
+    }
+
+    const items = read(HISTORY_KEY, []);
+
+    list.replaceChildren();
+
+    if (!Array.isArray(items) || !items.length) {
+      const empty = document.createElement("div");
+      empty.className = "empty-state";
+
+      const icon = document.createElement("span");
+      icon.textContent = "◷";
+
+      const title = document.createElement("strong");
+      title.textContent = "No sessions saved yet";
+
+      const paragraph = document.createElement("p");
+      paragraph.textContent =
+        "When you prepare a grading request, its session details can appear here.";
+
+      empty.append(icon, title, paragraph);
+      list.appendChild(empty);
+
+      return;
+    }
+
+    items.slice().reverse().forEach(item => {
+      const row = document.createElement("div");
+      row.className = "history-entry";
+
+      const info = document.createElement("div");
+      info.className = "history-entry-info";
+
+      const icon = document.createElement("span");
+      icon.className = "history-entry-icon";
+      icon.textContent = "▤";
+
+      const copy = document.createElement("div");
+
+      const title = document.createElement("strong");
+      title.textContent =
+        item.rubricName || "Untitled grading session";
+
+      const meta = document.createElement("small");
+
+      const date = new Date(item.createdAt);
+
+      meta.textContent =
+        `${
+          Number.isNaN(date.getTime())
+            ? "Saved session"
+            : date.toLocaleString()
+        } · ${item.totalPoints} possible points · ${item.criterionCount} criteria`;
+
+      copy.append(title, meta);
+      info.append(icon, copy);
+
+      const chip = document.createElement("span");
+      chip.className = "history-chip";
+      chip.textContent = "Prepared";
+
+      row.append(info, chip);
+
+      list.appendChild(row);
     });
   }
 
-  // ------------------------------------------
-  // NAVIGATION HIGHLIGHTING
-  // ------------------------------------------
+  // ----------------------------------------
+  // GRADING FORM
+  // ----------------------------------------
 
-  $$('nav a[href^="#"]').forEach((link) => {
-    link.addEventListener("click", () => {
-      $$("nav a").forEach((item) => {
-        item.classList.toggle("active", item === link);
+  $("#grading-form")?.addEventListener(
+    "submit",
+    event => {
+      event.preventDefault();
+
+      const test = $("#test-input").value.trim();
+
+      const answers =
+        $("#answers-input").value.trim();
+
+      const answerKey =
+        $("#answer-key-input").value.trim();
+
+      const totalPoints = Number(
+        $("#total-points").value || 100
+      );
+
+      const criteria = $$(".criterion-row", $("#rubric-criteria"))
+        .map(row => ({
+          name: $(
+            'input[name="criterion-name"]',
+            row
+          )?.value.trim() || "",
+
+          points: Number(
+            $(
+              'input[name="criterion-points"]',
+              row
+            )?.value || 0
+          )
+        }))
+        .filter(item => item.name);
+
+      if (!test || !answers) {
+        status(
+          "Please enter both the test and the student's answers.",
+          "error"
+        );
+
+        (!test ? $("#test-input") : $("#answers-input")).focus();
+
+        return;
+      }
+
+      if (
+        !Number.isFinite(totalPoints) ||
+        totalPoints <= 0
+      ) {
+        status(
+          "Enter a total possible score greater than zero.",
+          "error"
+        );
+
+        $("#total-points").focus();
+
+        return;
+      }
+
+      if (
+        criteria.some(
+          item =>
+            !Number.isFinite(item.points) ||
+            item.points < 0
+        )
+      ) {
+        status(
+          "Please check the point values in your rubric.",
+          "error"
+        );
+
+        return;
+      }
+
+      const criteriaPoints = criteria.reduce(
+        (sum, item) => sum + item.points,
+        0
+      );
+
+      if (
+        criteria.length &&
+        criteriaPoints > totalPoints
+      ) {
+        status(
+          `Your criteria add up to ${criteriaPoints} points, more than the ${totalPoints} possible points. Adjust the rubric first.`,
+          "error"
+        );
+
+        return;
+      }
+
+      // Do not log student answers or the answer key.
+      console.info("GradeNova request prepared", {
+        hasTest: true,
+        hasAnswers: true,
+        hasAnswerKey: Boolean(answerKey),
+        criteriaCount: criteria.length
       });
-    });
-  });
 
-  // ------------------------------------------
-  // RESTORE PREFERENCES
-  // ------------------------------------------
+      const prefs = read(PREFS_KEY, {});
 
-  const initialTheme = VALID_THEMES.includes(preferences.theme)
-    ? preferences.theme
-    : "cosmic";
+      if (
+        $("#option-history").checked &&
+        prefs.saveHistory !== false
+      ) {
+        const historyItems = read(HISTORY_KEY, []);
 
-  applyTheme(initialTheme, false);
+        const entry = {
+          id: String(Date.now()),
+          createdAt: new Date().toISOString(),
+
+          rubricName:
+            $("#rubric-name").value.trim() ||
+            "Untitled grading session",
+
+          totalPoints,
+          criterionCount: criteria.length,
+
+          strictness:
+            $("#grading-strictness").value,
+
+          hasAnswerKey: Boolean(answerKey)
+        };
+
+        write(
+          HISTORY_KEY,
+          (
+            Array.isArray(historyItems)
+              ? [...historyItems, entry]
+              : [entry]
+          ).slice(-50)
+        );
+
+        renderHistory();
+      }
+
+      status(
+        "✓ Your grading request is prepared. Actual AI grading will work once the secure Python backend is hosted and connected.",
+        "success"
+      );
+
+      const results = $("#results-content");
+
+      if (results) {
+        results.replaceChildren();
+
+        const empty = document.createElement("div");
+        empty.className = "empty-state";
+
+        const icon = document.createElement("span");
+        icon.textContent = "⌁";
+
+        const title = document.createElement("strong");
+        title.textContent =
+          "Request prepared — not graded yet";
+
+        const paragraph = document.createElement("p");
+        paragraph.textContent =
+          "The front-end validated your inputs. Connect the hosted backend to receive an actual score and feedback report.";
+
+        empty.append(icon, title, paragraph);
+
+        results.appendChild(empty);
+      }
+
+      updateOverview();
+    }
+  );
+
+  // ----------------------------------------
+  // EXPORT HISTORY
+  // ----------------------------------------
+
+  $("#export-history")?.addEventListener(
+    "click",
+    () => {
+      const items = read(HISTORY_KEY, []);
+
+      const blob = new Blob(
+        [
+          JSON.stringify(
+            Array.isArray(items) ? items : [],
+            null,
+            2
+          )
+        ],
+        { type: "application/json" }
+      );
+
+      const url = URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+
+      link.href = url;
+      link.download = "gradenova-history.json";
+
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      URL.revokeObjectURL(url);
+    }
+  );
+
+  // ----------------------------------------
+  // CLEAR HISTORY
+  // ----------------------------------------
+
+  $("#clear-history")?.addEventListener(
+    "click",
+    () => {
+      const confirmed = window.confirm(
+        "Clear saved GradeNova session history from this browser?"
+      );
+
+      if (!confirmed) {
+        return;
+      }
+
+      write(HISTORY_KEY, []);
+
+      renderHistory();
+      updateOverview();
+    }
+  );
+
+  // ----------------------------------------
+  // SAVE SETTINGS
+  // ----------------------------------------
+
+  $("#save-settings")?.addEventListener(
+    "click",
+    () => {
+      const old = read(PREFS_KEY, {});
+
+      const prefs = {
+        ...old,
+
+        theme: body.dataset.theme || "cosmic",
+
+        motion:
+          $("#settings-motion")?.checked ?? true,
+
+        strictness:
+          $("#settings-default-strictness")?.value ||
+          "balanced",
+
+        saveHistory:
+          $("#settings-save-history")?.checked ?? true
+      };
+
+      applyMotion(prefs.motion);
+
+      const saved = write(PREFS_KEY, prefs);
+
+      const message = $("#settings-status");
+
+      if (message) {
+        message.textContent = saved
+          ? "✓ Preferences saved on this device."
+          : "Could not save preferences in this browser.";
+
+        message.classList.toggle("success", saved);
+        message.classList.toggle("error", !saved);
+      }
+
+      if ($("#grading-strictness")) {
+        $("#grading-strictness").value =
+          prefs.strictness;
+      }
+    }
+  );
+
+  // ----------------------------------------
+  // INITIALIZE THE APPLICATION
+  // ----------------------------------------
+
+  const prefs = read(PREFS_KEY, {});
+
+  applyTheme(
+    Object.hasOwn(themes, prefs.theme)
+      ? prefs.theme
+      : "cosmic",
+    false
+  );
 
   applyMotion(
-    typeof preferences.motion === "boolean"
-      ? preferences.motion
+    typeof prefs.motion === "boolean"
+      ? prefs.motion
       : true
   );
 
   if (
-    strictnessSelect &&
-    ["lenient", "balanced", "strict"].includes(preferences.strictness)
+    $("#settings-default-strictness") &&
+    ["lenient", "balanced", "strict"].includes(
+      prefs.strictness
+    )
   ) {
-    strictnessSelect.value = preferences.strictness;
+    $("#settings-default-strictness").value =
+      prefs.strictness;
   }
 
   if (
-    gradingStrictness &&
-    ["lenient", "balanced", "strict"].includes(preferences.strictness)
+    $("#grading-strictness") &&
+    ["lenient", "balanced", "strict"].includes(
+      prefs.strictness
+    )
   ) {
-    gradingStrictness.value = preferences.strictness;
+    $("#grading-strictness").value =
+      prefs.strictness;
   }
 
-  console.info("GradeNova dashboard initialized.");
-});
+  if ($("#settings-save-history")) {
+    $("#settings-save-history").checked =
+      prefs.saveHistory !== false;
+  }
+
+  renumberCriteria();
+  renderHistory();
+  updateOverview();
+
+  const requestedPage = location.hash.slice(1);
+
+  goTo(
+    pages[requestedPage] ? requestedPage : "home",
+    false
+  );
+})();
