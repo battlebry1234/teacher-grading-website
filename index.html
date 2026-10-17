@@ -1,391 +1,483 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="cosmic">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#070b1c">
-  <meta name="description" content="GradeNova — a futuristic grading studio for teachers.">
-  <title>GradeNova — Smarter Grading</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#080b1a">
+  <title>GradeNova AI — Intelligent Grading</title>
+  <meta name="description" content="GradeNova AI — a futuristic workspace for grading and feedback.">
   <link rel="stylesheet" href="style.css">
   <script src="script.js" defer></script>
 </head>
 <body data-theme="cosmic">
-  <div class="ambient" aria-hidden="true"></div>
 
-  <header class="topbar">
-    <a class="brand" href="#home" data-page-link="home">
-      <span class="brand-logo" aria-hidden="true">
-        <svg viewBox="0 0 100 100">
-          <path d="M8 35 50 13 92 35 50 57Z" fill="#9c82ff" stroke="#d9d0ff" stroke-width="3"/>
-          <path d="M27 46v24q23 19 46 0V46L50 59Z" fill="#5534c8" stroke="#b5a4ff" stroke-width="3"/>
-          <path d="M91 36v31m-6 0h12" fill="none" stroke="#5deaff" stroke-width="3"/>
-          <circle cx="50" cy="35" r="3" fill="white"/>
-        </svg>
-      </span>
-      <span class="brand-copy">
-        <strong>Grade<span>Nova</span></strong>
-        <small>SMARTER GRADING. BRIGHTER FUTURES.</small>
-      </span>
-    </a>
-    <div class="top-actions">
-      <span class="status-pill"><i></i> Studio ready</span>
-      <button class="icon-button" id="top-settings" type="button" aria-label="Open settings">⚙</button>
-    </div>
-  </header>
+  <div class="scene scene-cosmic" aria-hidden="true">
+    <div class="stars stars-one"></div>
+    <div class="stars stars-two"></div>
+    <div class="nebula nebula-one"></div>
+    <div class="nebula nebula-two"></div>
+    <div class="planet planet-one"></div>
+    <div class="planet planet-two"></div>
+    <div class="scene-floor"></div>
+  </div>
 
-  <div class="app-layout">
-    <aside class="sidebar">
-      <div class="sidebar-title">
-        <span class="eyebrow">YOUR WORKSPACE</span>
-        <h2>Teaching Studio</h2>
-      </div>
+  <div class="scene scene-underwater" aria-hidden="true">
+    <div class="water-light"></div>
+    <div class="water-rays"></div>
+    <div class="water-plant plant-one"></div>
+    <div class="water-plant plant-two"></div>
+    <div class="water-plant plant-three"></div>
+    <div class="bubbles"></div>
+    <div class="water-floor"></div>
+  </div>
+
+  <div class="scene scene-forest" aria-hidden="true">
+    <div class="forest-mist mist-one"></div>
+    <div class="forest-mist mist-two"></div>
+    <div class="forest-moon"></div>
+    <div class="forest-tree tree-one"></div>
+    <div class="forest-tree tree-two"></div>
+    <div class="forest-tree tree-three"></div>
+    <div class="forest-ground"></div>
+  </div>
+
+  <div class="scene scene-fire" aria-hidden="true">
+    <div class="fire-glow"></div>
+    <div class="lava lava-one"></div>
+    <div class="lava lava-two"></div>
+    <div class="ember-field"></div>
+    <div class="fire-horizon"></div>
+  </div>
+
+  <div class="scene scene-ocean" aria-hidden="true">
+    <div class="ocean-glow"></div>
+    <div class="ocean-wave wave-one"></div>
+    <div class="ocean-wave wave-two"></div>
+    <div class="ocean-wave wave-three"></div>
+  </div>
+
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <a class="brand" href="#" data-go-page="dashboard" aria-label="GradeNova dashboard">
+        <span class="brand-icon">
+          <svg class="hat-logo" viewBox="0 0 64 64" role="img" aria-label="Graduation hat">
+            <defs>
+              <linearGradient id="hatGradient" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" class="hat-stop-one"/>
+                <stop offset="100%" class="hat-stop-two"/>
+              </linearGradient>
+            </defs>
+            <path class="hat-cap" d="M5 23 32 9 59 23 32 37Z" fill="url(#hatGradient)"/>
+            <path class="hat-base" d="M15 29v13c10 8 24 8 34 0V29L32 38Z"/>
+            <path class="hat-tassel" d="M58 24v17"/>
+            <circle class="hat-tassel-end" cx="58" cy="43" r="3"/>
+            <path class="hat-shine" d="m14 23 18-9 18 9"/>
+          </svg>
+        </span>
+        <span class="brand-copy">
+          <strong>Grade<span>Nova</span></strong>
+          <small>INTELLIGENCE PLATFORM</small>
+        </span>
+      </a>
+
+      <div class="workspace-label">WORKSPACE</div>
 
       <nav class="main-nav" aria-label="Main navigation">
-        <button class="nav-link active" data-page="home"><span>⌂</span> Home</button>
-        <button class="nav-link" data-page="grading"><span>▤</span> Grade a Test</button>
-        <button class="nav-link" data-page="rubric"><span>✧</span> Rubric Builder</button>
-        <button class="nav-link" data-page="answer-key"><span>▣</span> Answer Key</button>
-        <button class="nav-link" data-page="results"><span>◈</span> Results</button>
-        <button class="nav-link" data-page="history"><span>◷</span> History</button>
-        <button class="nav-link" data-page="settings"><span>⚙</span> Settings</button>
+        <button class="nav-item active" data-page="dashboard" aria-current="page">
+          <span class="nav-icon">◈</span><span>Dashboard</span>
+          <span class="nav-indicator"></span>
+        </button>
+        <button class="nav-item" data-page="grade">
+          <span class="nav-icon">✳</span><span>Grade work</span>
+        </button>
+        <button class="nav-item" data-page="history">
+          <span class="nav-icon">◷</span><span>Grade history</span>
+        </button>
+        <button class="nav-item" data-page="settings">
+          <span class="nav-icon">⚙</span><span>Settings</span>
+        </button>
       </nav>
 
-      <div class="sidebar-divider"></div>
+      <div class="sidebar-spacer"></div>
 
-      <div class="theme-heading">
-        <span class="eyebrow">CHANGE YOUR WORLD</span>
-        <h3>Atmosphere</h3>
-        <p>Choose the world of your studio.</p>
-      </div>
-
-      <div class="theme-list">
-        <button class="theme-option active" data-set-theme="cosmic" aria-pressed="true">
-          <span class="theme-preview preview-cosmic">✦</span>
-          <span><strong>Cosmic</strong><small>Deep space</small></span>
-          <span class="theme-check">✓</span>
-        </button>
-        <button class="theme-option" data-set-theme="ocean" aria-pressed="false">
-          <span class="theme-preview preview-ocean">≈</span>
-          <span><strong>Ocean</strong><small>Underwater glow</small></span>
-          <span class="theme-check">✓</span>
-        </button>
-        <button class="theme-option" data-set-theme="forest" aria-pressed="false">
-          <span class="theme-preview preview-forest">❧</span>
-          <span><strong>Forest</strong><small>Enchanted woods</small></span>
-          <span class="theme-check">✓</span>
-        </button>
-        <button class="theme-option" data-set-theme="inferno" aria-pressed="false">
-          <span class="theme-preview preview-inferno">♨</span>
-          <span><strong>Inferno</strong><small>Embers and fire</small></span>
-          <span class="theme-check">✓</span>
-        </button>
-        <button class="theme-option" data-set-theme="light" aria-pressed="false">
-          <span class="theme-preview preview-light">☼</span>
-          <span><strong>Light</strong><small>Bright and clean</small></span>
-          <span class="theme-check">✓</span>
-        </button>
-      </div>
-
-      <div class="sidebar-note">
-        <span class="note-star">✦</span>
+      <div class="sidebar-status">
+        <span class="status-orb"></span>
         <div>
-          <strong>Your teaching matters.</strong>
-          <p>AI can assist with feedback. You remain in control of final grades.</p>
+          <strong>Workspace online</strong>
+          <small id="connectionLabel">Local preview mode</small>
         </div>
       </div>
-      <div class="sidebar-footer">✦ GradeNova <span>v2.0</span></div>
+
+      <div class="sidebar-footer">
+        <span class="footer-mark">GN</span>
+        <div>
+          <strong>GradeNova AI</strong>
+          <small>Learning, upgraded.</small>
+        </div>
+        <span class="version-tag">v2.0</span>
+      </div>
     </aside>
 
-    <main class="main-content">
-      <!-- HOME -->
-      <section class="page active" id="page-home" data-view="home">
-        <section class="hero panel">
-          <div class="hero-copy">
-            <span class="eyebrow"><i class="tiny-dot"></i> YOUR TEACHING COMMAND CENTER</span>
-            <h1>Make room for <span class="gradient-text">great teaching.</span></h1>
-            <p>Organize assessments, build thoughtful rubrics, and prepare grading requests in one futuristic workspace.</p>
-            <div class="hero-actions">
-              <button class="button primary" data-go="grading">Start grading <span>→</span></button>
-              <button class="button secondary" data-go="settings">Customize studio</button>
-            </div>
-            <div class="hero-footnote">✦ Your workflow. Your criteria. Your decisions.</div>
+    <main class="main-area">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="mobile-menu icon-button" id="mobileMenu" aria-label="Toggle navigation">☰</button>
+          <div class="breadcrumb">
+            <span>GradeNova</span>
+            <span class="breadcrumb-slash">/</span>
+            <strong id="breadcrumbPage">Dashboard</strong>
           </div>
-          <div class="hero-visual" aria-hidden="true">
-            <div class="orbit orbit-one"></div>
-            <div class="orbit orbit-two"></div>
-            <div class="hero-planet"></div>
-            <div class="hero-moon"></div>
-            <div class="hero-spark spark-a">✦</div>
-            <div class="hero-spark spark-b">✧</div>
-            <div class="floating-card float-a"><span>✧</span><div><b>Flexible rubrics</b><small>Built around your criteria</small></div></div>
-            <div class="floating-card float-b"><span>✓</span><div><b>Teacher in control</b><small>Review every suggestion</small></div></div>
+        </div>
+
+        <div class="topbar-actions">
+          <span class="live-status"><span></span> SYSTEM READY</span>
+          <button class="icon-button" id="quickTheme" aria-label="Switch theme" title="Cycle themes">◐</button>
+          <button class="avatar-button" data-go-page="settings" aria-label="Open settings">G</button>
+        </div>
+      </header>
+
+      <div class="page-container">
+
+        <!-- DASHBOARD -->
+        <section class="page-view active" id="page-dashboard" data-view="dashboard">
+          <div class="hero-panel">
+            <div class="hero-grid"></div>
+            <div class="hero-content">
+              <div class="eyebrow"><span class="eyebrow-line"></span> YOUR INTELLIGENT GRADING SPACE</div>
+              <h1>Great teaching.<br><span class="gradient-text">Smarter grading.</span></h1>
+              <p>Turn piles of student work into meaningful feedback with your AI-assisted grading workspace.</p>
+              <div class="hero-actions">
+                <button class="primary-button" data-go-page="grade">
+                  <span>✳</span> Start grading <span class="button-arrow">↗</span>
+                </button>
+                <button class="secondary-button" data-go-page="history">Explore history <span>→</span></button>
+              </div>
+            </div>
+            <div class="hero-art" aria-hidden="true">
+              <div class="orbit orbit-one"></div>
+              <div class="orbit orbit-two"></div>
+              <div class="orbit orbit-three"></div>
+              <div class="hero-core">
+                <svg class="hero-hat" viewBox="0 0 64 64">
+                  <path d="M5 23 32 9 59 23 32 37Z" fill="currentColor"/>
+                  <path d="M15 29v13c10 8 24 8 34 0V29L32 38Z" fill="currentColor" opacity=".72"/>
+                  <path d="M58 24v17" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+                  <circle cx="58" cy="43" r="3" fill="currentColor"/>
+                </svg>
+              </div>
+              <span class="floating-chip chip-one">AI ASSISTED</span>
+              <span class="floating-chip chip-two">FEEDBACK ENGINE</span>
+              <span class="floating-dot dot-one"></span>
+              <span class="floating-dot dot-two"></span>
+              <span class="floating-dot dot-three"></span>
+            </div>
+            <div class="hero-bottom-line"><span></span> DESIGNED FOR EDUCATORS <span></span> BUILT FOR CLARITY</div>
+          </div>
+
+          <div class="section-heading">
+            <div>
+              <div class="eyebrow">OVERVIEW</div>
+              <h2>Your workspace at a glance</h2>
+            </div>
+            <span class="subtle-label">YOUR LOCAL ACTIVITY</span>
+          </div>
+
+          <div class="stats-grid">
+            <article class="stat-card">
+              <div class="stat-top"><span class="stat-icon purple">✳</span><span class="stat-caption">ALL TIME</span></div>
+              <div class="stat-value" id="statTotal">0</div>
+              <div class="stat-label">Grading sessions</div>
+              <div class="stat-bottom"><span class="stat-dot purple-dot"></span> Saved in this browser</div>
+            </article>
+            <article class="stat-card">
+              <div class="stat-top"><span class="stat-icon cyan">◈</span><span class="stat-caption">AVERAGE</span></div>
+              <div class="stat-value" id="statAverage">—</div>
+              <div class="stat-label">Recorded score</div>
+              <div class="stat-bottom"><span class="stat-dot cyan-dot"></span> From saved results</div>
+            </article>
+            <article class="stat-card">
+              <div class="stat-top"><span class="stat-icon green">✓</span><span class="stat-caption">RECENT</span></div>
+              <div class="stat-value" id="statRecent">—</div>
+              <div class="stat-label">Latest recorded result</div>
+              <div class="stat-bottom"><span class="stat-dot green-dot"></span> Your latest session</div>
+            </article>
+          </div>
+
+          <div class="dashboard-columns">
+            <section class="panel recent-panel">
+              <div class="panel-heading">
+                <div><div class="eyebrow">ACTIVITY FEED</div><h3>Recent grading</h3></div>
+                <button class="text-button" data-go-page="history">View all <span>→</span></button>
+              </div>
+              <div id="recentList" class="recent-list">
+                <div class="empty-state">
+                  <span class="empty-icon">◷</span>
+                  <strong>Your activity starts here</strong>
+                  <p>Grading sessions you save will appear here.</p>
+                  <button class="secondary-button small-button" data-go-page="grade">Grade your first work</button>
+                </div>
+              </div>
+            </section>
+
+            <section class="panel theme-panel">
+              <div class="panel-heading">
+                <div><div class="eyebrow">MAKE IT YOURS</div><h3>Choose your universe</h3></div>
+                <span class="theme-sparkle">✦</span>
+              </div>
+              <p class="panel-description">Switch between immersive environments. The entire scene changes with your choice.</p>
+              <div class="theme-grid">
+                <button class="theme-choice selected" data-theme-choice="cosmic">
+                  <span class="theme-preview preview-cosmic"><i></i><b></b></span>
+                  <span><strong>Cosmic</strong><small>Deep space</small></span><span class="theme-check">✓</span>
+                </button>
+                <button class="theme-choice" data-theme-choice="underwater">
+                  <span class="theme-preview preview-underwater"><i></i><b></b></span>
+                  <span><strong>Underwater</strong><small>Ocean depths</small></span><span class="theme-check">✓</span>
+                </button>
+                <button class="theme-choice" data-theme-choice="forest">
+                  <span class="theme-preview preview-forest"><i></i><b></b></span>
+                  <span><strong>Forest</strong><small>Emerald wilds</small></span><span class="theme-check">✓</span>
+                </button>
+                <button class="theme-choice" data-theme-choice="fire">
+                  <span class="theme-preview preview-fire"><i></i><b></b></span>
+                  <span><strong>Fire</strong><small>Solar flare</small></span><span class="theme-check">✓</span>
+                </button>
+                <button class="theme-choice" data-theme-choice="ocean">
+                  <span class="theme-preview preview-ocean"><i></i><b></b></span>
+                  <span><strong>Open water</strong><small>Blue horizon</small></span><span class="theme-check">✓</span>
+                </button>
+              </div>
+              <button class="text-button full-width-button" data-go-page="settings">More appearance settings <span>↗</span></button>
+            </section>
           </div>
         </section>
 
-        <div class="section-title-row">
-          <div><span class="eyebrow">YOUR WORKSPACE</span><h2>Everything in one place</h2></div>
-          <span class="subtle-pill">One studio. Multiple tools.</span>
-        </div>
+        <!-- GRADE WORK -->
+        <section class="page-view" id="page-grade" data-view="grade">
+          <div class="page-title-row">
+            <div>
+              <div class="eyebrow">ASSESSMENT STUDIO</div>
+              <h1>Grade <span class="gradient-text">student work.</span></h1>
+              <p class="page-intro">Add the assignment, student response, answer key, and rubric to prepare a grading request.</p>
+            </div>
+            <div class="title-decoration">✳</div>
+          </div>
 
-        <div class="feature-grid">
-          <button class="feature-card feature-purple" data-go="grading">
-            <span class="feature-icon">▤</span>
-            <h3>Grade a Test</h3>
-            <p>Prepare a test, student answers, and optional answer key.</p>
-            <span class="feature-link">Open grading →</span>
-          </button>
-          <button class="feature-card feature-cyan" data-go="rubric">
-            <span class="feature-icon">✧</span>
-            <h3>Custom Rubrics</h3>
-            <p>Set your own criteria, point values, and instructions.</p>
-            <span class="feature-link">Build a rubric →</span>
-          </button>
-          <button class="feature-card feature-pink" data-go="history">
-            <span class="feature-icon">◷</span>
-            <h3>Session History</h3>
-            <p>Review requests saved in this browser.</p>
-            <span class="feature-link">View history →</span>
-          </button>
-        </div>
+          <div class="grading-layout">
+            <form class="panel grading-form" id="gradingForm">
+              <div class="panel-heading">
+                <div><div class="eyebrow">01 / ASSIGNMENT</div><h3>Assessment details</h3></div>
+                <span class="step-badge">STEP 01</span>
+              </div>
 
-        <div class="notice">
-          <span class="notice-icon">i</span>
-          <div><strong>AI connection status</strong><p>The interface works locally. Actual AI grading requires a connected backend.</p></div>
-          <button class="button small secondary" data-go="settings">Configure →</button>
-        </div>
+              <label class="field-label" for="assignmentName">Assignment name <span>*</span></label>
+              <input id="assignmentName" name="test" class="text-input" required maxlength="160" placeholder="e.g. Biology — Cell Structure Quiz">
 
-        <div class="bottom-grid">
-          <section class="panel quick-panel">
-            <h3>Quick actions <span>Get started fast</span></h3>
-            <div class="quick-links">
-              <button class="button secondary" data-go="grading">▤ Grade a Test →</button>
-              <button class="button secondary" data-go="rubric">✧ Build a Rubric →</button>
-              <button class="button secondary" data-go="history">◷ View History →</button>
+              <label class="field-label" for="studentName">Student name or ID <span class="optional-label">OPTIONAL</span></label>
+              <input id="studentName" name="student" class="text-input" maxlength="120" placeholder="e.g. Student 001">
+
+              <div class="field-divider"></div>
+
+              <div class="panel-heading compact-heading">
+                <div><div class="eyebrow">02 / SUBMISSION</div><h3>Student response</h3></div>
+              </div>
+
+              <label class="field-label" for="studentAnswer">Paste student work <span>*</span></label>
+              <textarea id="studentAnswer" name="answers" class="text-input text-area" required rows="7" placeholder="Paste the student's answers or written response here..."></textarea>
+              <div class="field-meta"><span>Keep student information private.</span><span id="answerCount">0 characters</span></div>
+
+              <label class="field-label" for="answerKey">Answer key / expected response <span class="optional-label">OPTIONAL</span></label>
+              <textarea id="answerKey" name="answer_key" class="text-input text-area" rows="5" placeholder="Paste the correct answers, expected response, or model solution..."></textarea>
+
+              <div class="field-divider"></div>
+
+              <div class="panel-heading compact-heading">
+                <div><div class="eyebrow">03 / SCORING</div><h3>Grading rubric</h3></div>
+                <span class="step-badge">CUSTOM</span>
+              </div>
+
+              <label class="field-label" for="rubricName">Rubric title</label>
+              <input id="rubricName" class="text-input" maxlength="120" value="Standard rubric" placeholder="e.g. Essay rubric">
+
+              <div class="rubric-heading">
+                <span>CRITERION</span><span>POINTS</span><span></span>
+              </div>
+              <div id="criteriaList" class="criteria-list">
+                <div class="criterion-row">
+                  <input class="text-input criterion-name" aria-label="Criterion name" value="Accuracy" maxlength="100">
+                  <input class="text-input criterion-points" aria-label="Criterion points" type="number" min="0" max="1000" step="1" value="40">
+                  <button class="remove-criterion" type="button" aria-label="Remove criterion">×</button>
+                </div>
+                <div class="criterion-row">
+                  <input class="text-input criterion-name" aria-label="Criterion name" value="Completeness" maxlength="100">
+                  <input class="text-input criterion-points" aria-label="Criterion points" type="number" min="0" max="1000" step="1" value="30">
+                  <button class="remove-criterion" type="button" aria-label="Remove criterion">×</button>
+                </div>
+                <div class="criterion-row">
+                  <input class="text-input criterion-name" aria-label="Criterion name" value="Reasoning and explanation" maxlength="100">
+                  <input class="text-input criterion-points" aria-label="Criterion points" type="number" min="0" max="1000" step="1" value="30">
+                  <button class="remove-criterion" type="button" aria-label="Remove criterion">×</button>
+                </div>
+              </div>
+
+              <div class="rubric-footer">
+                <button class="text-button" type="button" id="addCriterion">＋ Add criterion</button>
+                <div>Total possible <strong id="rubricTotal">100 pts</strong></div>
+              </div>
+
+              <div class="field-divider"></div>
+
+              <div class="form-actions">
+                <button type="reset" class="secondary-button">Reset form</button>
+                <button type="submit" class="primary-button" id="gradeButton"><span>✳</span> Analyze work <span class="button-arrow">↗</span></button>
+              </div>
+              <p class="privacy-note">◈ Results should be reviewed by a teacher. AI-assisted feedback can be imperfect.</p>
+            </form>
+
+            <aside class="grading-side">
+              <section class="panel grading-info">
+                <div class="mini-orb">✳</div>
+                <div class="eyebrow">GRADENOVA ENGINE</div>
+                <h3>Thoughtful feedback.<br><span class="gradient-text">Less busywork.</span></h3>
+                <p>Use your rubric and answer key to support consistent grading and clear feedback.</p>
+                <div class="info-divider"></div>
+                <div class="info-line"><span class="info-check">✓</span><span><strong>Rubric-aware</strong><small>Use your own criteria and point values.</small></span></div>
+                <div class="info-line"><span class="info-check">✓</span><span><strong>Clear feedback</strong><small>Explain strengths and areas to improve.</small></span></div>
+                <div class="info-line"><span class="info-check">✓</span><span><strong>Teacher review</strong><small>Keep the final decision in human hands.</small></span></div>
+              </section>
+              <section class="panel result-panel" id="resultPanel" aria-live="polite">
+                <div class="result-placeholder">
+                  <span class="result-placeholder-icon">◈</span>
+                  <h3>Your report will appear here</h3>
+                  <p>Complete the assessment details and submit the work to begin.</p>
+                </div>
+              </section>
+            </aside>
+          </div>
+        </section>
+
+        <!-- HISTORY -->
+        <section class="page-view" id="page-history" data-view="history">
+          <div class="page-title-row">
+            <div>
+              <div class="eyebrow">YOUR RECORDS</div>
+              <h1>Grading <span class="gradient-text">history.</span></h1>
+              <p class="page-intro">Review results saved in this browser.</p>
+            </div>
+            <button class="secondary-button" id="exportHistory">↓ Export JSON</button>
+          </div>
+
+          <section class="panel history-panel">
+            <div class="history-toolbar">
+              <div class="search-field"><span>⌕</span><input id="historySearch" type="search" placeholder="Search assignments..." aria-label="Search grading history"></div>
+              <span class="history-count" id="historyCount">0 records</span>
+            </div>
+            <div id="historyList" class="history-list">
+              <div class="empty-state">
+                <span class="empty-icon">◷</span>
+                <strong>No grading records yet</strong>
+                <p>Your saved grading results will appear here.</p>
+                <button class="primary-button" data-go-page="grade">Start grading <span>↗</span></button>
+              </div>
+            </div>
+            <div class="history-bottom">
+              <span>Saved locally in this browser</span>
+              <button class="text-button danger-text" id="clearHistory">Clear history</button>
             </div>
           </section>
-          <section class="panel glance-panel">
-            <h3>At a glance <span>Your studio, your way.</span></h3>
-            <div class="glance-items"><span>✦ 5 themes</span><span>◈ Custom criteria</span><span>✓ Local history</span></div>
+        </section>
+
+        <!-- SETTINGS -->
+        <section class="page-view" id="page-settings" data-view="settings">
+          <div class="page-title-row">
+            <div>
+              <div class="eyebrow">CONTROL CENTER</div>
+              <h1>Your <span class="gradient-text">environment.</span></h1>
+              <p class="page-intro">Customize the atmosphere and manage your local workspace.</p>
+            </div>
+            <div class="settings-symbol">⚙</div>
+          </div>
+
+          <section class="panel settings-panel">
+            <div class="settings-section-heading">
+              <div class="settings-heading-icon">◉</div>
+              <div><h3>Visual environment</h3><p>Choose an entirely different animated background.</p></div>
+            </div>
+            <div class="theme-settings-grid">
+              <button class="theme-large-choice selected" data-theme-choice="cosmic">
+                <span class="large-preview large-cosmic"><i></i><b></b></span>
+                <span class="large-choice-label"><strong>Cosmic</strong><small>Stars, nebulae and planets</small></span><span class="theme-check">✓</span>
+              </button>
+              <button class="theme-large-choice" data-theme-choice="underwater">
+                <span class="large-preview large-underwater"><i></i><b></b></span>
+                <span class="large-choice-label"><strong>Underwater</strong><small>Deep blue water and bubbles</small></span><span class="theme-check">✓</span>
+              </button>
+              <button class="theme-large-choice" data-theme-choice="forest">
+                <span class="large-preview large-forest"><i></i><b></b></span>
+                <span class="large-choice-label"><strong>Forest</strong><small>Emerald mist and moonlight</small></span><span class="theme-check">✓</span>
+              </button>
+              <button class="theme-large-choice" data-theme-choice="fire">
+                <span class="large-preview large-fire"><i></i><b></b></span>
+                <span class="large-choice-label"><strong>Fire</strong><small>Embers and molten glow</small></span><span class="theme-check">✓</span>
+              </button>
+              <button class="theme-large-choice" data-theme-choice="ocean">
+                <span class="large-preview large-ocean"><i></i><b></b></span>
+                <span class="large-choice-label"><strong>Open water</strong><small>Blue waves and horizon light</small></span><span class="theme-check">✓</span>
+              </button>
+            </div>
+
+            <div class="settings-divider"></div>
+
+            <div class="settings-section-heading">
+              <div class="settings-heading-icon">✧</div>
+              <div><h3>Interface preferences</h3><p>Adjust the movement and visual effects.</p></div>
+            </div>
+            <div class="preference-row">
+              <div><strong>Ambient animation</strong><p>Animate the background environment.</p></div>
+              <label class="toggle-switch"><input id="animationToggle" type="checkbox" checked><span></span></label>
+            </div>
+            <div class="preference-row">
+              <div><strong>Glass interface</strong><p>Use translucent panels and blur effects.</p></div>
+              <label class="toggle-switch"><input id="glassToggle" type="checkbox" checked><span></span></label>
+            </div>
+
+            <div class="settings-divider"></div>
+
+            <div class="settings-section-heading">
+              <div class="settings-heading-icon">⌘</div>
+              <div><h3>Grading service</h3><p>Check whether your backend is configured and reachable.</p></div>
+            </div>
+            <div class="service-status-row">
+              <div><strong id="serviceStatusTitle">Local preview mode</strong><p id="serviceStatusText">No grading server has been configured in this browser.</p></div>
+              <button class="secondary-button" id="testConnection">Test connection</button>
+            </div>
+            <p class="settings-note">To enable actual AI grading, set the API_BASE_URL in script.js to your deployed backend URL and ensure its API route matches the request format.</p>
           </section>
-        </div>
-      </section>
 
-      <!-- GRADING -->
-      <section class="page" id="page-grading" data-view="grading" hidden>
-        <div class="page-heading">
-          <span class="eyebrow">GRADING WORKSPACE / 01</span>
-          <h1>Grade a Test</h1>
-          <p>Prepare your assessment and student responses for grading.</p>
-        </div>
-        <form id="grading-form" class="panel form-panel">
-          <div class="form-grid">
-            <div class="field full">
-              <label for="test-input">Test or assignment <span class="required">*</span></label>
-              <textarea id="test-input" name="test" required placeholder="Paste the full test or assignment here…"></textarea>
-              <label class="file-label" for="test-file">Or choose a text file (optional)</label>
-              <input id="test-file" type="file" accept=".txt,.md,text/plain">
+          <section class="panel about-panel">
+            <div class="about-brand">
+              <span class="about-logo">
+                <svg class="hat-logo" viewBox="0 0 64 64" aria-hidden="true">
+                  <path class="hat-cap" d="M5 23 32 9 59 23 32 37Z"/>
+                  <path class="hat-base" d="M15 29v13c10 8 24 8 34 0V29L32 38Z"/>
+                  <path class="hat-tassel" d="M58 24v17"/>
+                  <circle class="hat-tassel-end" cx="58" cy="43" r="3"/>
+                </svg>
+              </span>
+              <div><h3>GradeNova AI</h3><p>Intelligent grading workspace · Interface v2.0</p></div>
             </div>
-            <div class="field full">
-              <label for="answers-input">Student's answers <span class="required">*</span></label>
-              <textarea id="answers-input" name="answers" required placeholder="Paste the student's answers here…"></textarea>
-              <label class="file-label" for="answers-file">Or choose a text file (optional)</label>
-              <input id="answers-file" type="file" accept=".txt,.md,text/plain">
-            </div>
-            <div class="field full">
-              <label for="grading-answer-key">Answer key <span class="muted">(optional)</span></label>
-              <textarea id="grading-answer-key" placeholder="Paste the correct answers or marking guide…"></textarea>
-            </div>
-          </div>
-
-          <div class="form-section">
-            <div><h3>Grading preferences</h3><p>Choose how you want the request prepared.</p></div>
-            <div class="field">
-              <label for="grading-strictness">Grading approach</label>
-              <select id="grading-strictness">
-                <option value="balanced">Balanced</option>
-                <option value="lenient">Lenient</option>
-                <option value="strict">Strict</option>
-              </select>
-            </div>
-            <div class="check-grid">
-              <label class="check-option"><input id="option-feedback" type="checkbox" checked> Written feedback</label>
-              <label class="check-option"><input id="option-breakdown" type="checkbox" checked> Points breakdown</label>
-              <label class="check-option"><input id="option-history" type="checkbox" checked> Save to history</label>
-              <label class="check-option"><input id="option-explanations" type="checkbox" checked> Explain deductions</label>
-            </div>
-          </div>
-
-          <div class="form-actions">
-            <button class="button primary" type="submit">Prepare grading request →</button>
-            <button class="button secondary" type="reset" id="reset-grading">Clear form</button>
-          </div>
-          <p id="grading-status" class="status-message" role="status" aria-live="polite"></p>
-        </form>
-      </section>
-
-      <!-- RUBRIC -->
-      <section class="page" id="page-rubric" data-view="rubric" hidden>
-        <div class="page-heading">
-          <span class="eyebrow">ASSESSMENT DESIGN / 02</span>
-          <h1>Rubric Builder</h1>
-          <p>Create grading criteria that reflect your expectations.</p>
-        </div>
-        <section class="panel form-panel">
-          <div class="field">
-            <label for="rubric-name">Rubric name</label>
-            <input id="rubric-name" type="text" placeholder="e.g. Science unit assessment">
-          </div>
-          <div class="field">
-            <label for="total-points">Total possible points</label>
-            <input id="total-points" type="number" min="1" value="100">
-          </div>
-          <div class="rubric-header">
-            <div><h2>Criteria</h2><p class="muted">Name each criterion and assign its points.</p></div>
-            <button class="button secondary" id="add-criterion" type="button">＋ Add criterion</button>
-          </div>
-          <div id="rubric-criteria">
-            <div class="rubric-row">
-              <div class="field"><label for="criterion-1">Criterion 1</label><input id="criterion-1" name="criterion-name" value="Accuracy" placeholder="Criterion name"></div>
-              <div class="field"><label for="criterion-points-1">Points</label><input id="criterion-points-1" name="criterion-points" type="number" min="0" value="40"></div>
-              <button type="button" class="button danger remove-criterion">Remove</button>
-            </div>
-            <div class="rubric-row">
-              <div class="field"><label for="criterion-2">Criterion 2</label><input id="criterion-2" name="criterion-name" value="Reasoning" placeholder="Criterion name"></div>
-              <div class="field"><label for="criterion-points-2">Points</label><input id="criterion-points-2" name="criterion-points" type="number" min="0" value="35"></div>
-              <button type="button" class="button danger remove-criterion">Remove</button>
-            </div>
-            <div class="rubric-row">
-              <div class="field"><label for="criterion-3">Criterion 3</label><input id="criterion-3" name="criterion-name" value="Communication" placeholder="Criterion name"></div>
-              <div class="field"><label for="criterion-points-3">Points</label><input id="criterion-points-3" name="criterion-points" type="number" min="0" value="25"></div>
-              <button type="button" class="button danger remove-criterion">Remove</button>
-            </div>
-          </div>
-          <div class="rubric-total">
-            <span>Assigned points</span>
-            <strong id="criterion-total">100 / 100</strong>
-          </div>
-          <div class="field">
-            <label for="rubric-instructions">Additional grading instructions</label>
-            <textarea id="rubric-instructions" placeholder="Explain special rules or what strong work should demonstrate…"></textarea>
-          </div>
-          <div class="form-actions">
-            <button class="button primary" id="save-rubric" type="button">Save rubric →</button>
-            <button class="button secondary" id="use-rubric" type="button">Use in grading</button>
-          </div>
-          <p id="rubric-status" class="status-message" role="status"></p>
+            <span class="about-tag">BUILT FOR LEARNING</span>
+          </section>
         </section>
-      </section>
 
-      <!-- ANSWER KEY -->
-      <section class="page" id="page-answer-key" data-view="answer-key" hidden>
-        <div class="page-heading">
-          <span class="eyebrow">REFERENCE MATERIAL / 03</span>
-          <h1>Answer Key</h1>
-          <p>Keep a reference key ready to use with a grading request.</p>
-        </div>
-        <section class="panel form-panel">
-          <div class="field">
-            <label for="answer-key-input">Answer key or marking guide</label>
-            <textarea id="answer-key-input" placeholder="Enter correct answers, acceptable alternatives, and partial-credit rules…"></textarea>
-          </div>
-          <div class="form-actions">
-            <button class="button primary" id="save-answer-key" type="button">Save answer key</button>
-            <button class="button secondary" id="send-answer-key" type="button">Use for grading</button>
-          </div>
-          <p id="answer-key-status" class="status-message" role="status"></p>
-        </section>
-      </section>
-
-      <!-- RESULTS -->
-      <section class="page" id="page-results" data-view="results" hidden>
-        <div class="page-heading">
-          <span class="eyebrow">REVIEW CENTER / 04</span>
-          <h1>Results</h1>
-          <p>Review the status of your latest grading request.</p>
-        </div>
-        <section class="panel form-panel" id="results-content">
-          <div class="empty-state">
-            <span class="empty-icon">◈</span>
-            <h2>No grading report yet</h2>
-            <p>Prepare a request first. A real score and feedback report require the AI backend to be connected.</p>
-            <button class="button primary" data-go="grading">Go to grading →</button>
-          </div>
-        </section>
-      </section>
-
-      <!-- HISTORY -->
-      <section class="page" id="page-history" data-view="history" hidden>
-        <div class="page-heading">
-          <span class="eyebrow">LOCAL ARCHIVE / 05</span>
-          <h1>Session History</h1>
-          <p>See grading requests saved in this browser on this device.</p>
-        </div>
-        <section class="panel form-panel">
-          <div class="history-toolbar">
-            <h2>Saved requests</h2>
-            <div class="inline-actions">
-              <button class="button secondary" id="export-history" type="button">Export JSON</button>
-              <button class="button danger" id="clear-history" type="button">Clear history</button>
-            </div>
-          </div>
-          <div id="history-list"></div>
-        </section>
-      </section>
-
-      <!-- SETTINGS -->
-      <section class="page" id="page-settings" data-view="settings" hidden>
-        <div class="page-heading">
-          <span class="eyebrow">STUDIO CONTROL / 06</span>
-          <h1>Customize your studio</h1>
-          <p>Change the atmosphere and manage your preferences.</p>
-        </div>
-        <section class="panel form-panel">
-          <div class="field">
-            <label for="theme-select">Atmosphere theme</label>
-            <select id="theme-select">
-              <option value="cosmic">Cosmic — deep space</option>
-              <option value="ocean">Ocean — underwater glow</option>
-              <option value="forest">Forest — enchanted woods</option>
-              <option value="inferno">Inferno — fire and embers</option>
-              <option value="light">Light — bright and clean</option>
-            </select>
-          </div>
-          <div class="field">
-            <label for="accent-select">Accent color</label>
-            <select id="accent-select">
-              <option value="violet">Violet</option>
-              <option value="cyan">Cyan</option>
-              <option value="pink">Pink</option>
-              <option value="green">Green</option>
-              <option value="amber">Amber</option>
-            </select>
-          </div>
-          <label class="check-option"><input id="motion-toggle" type="checkbox" checked> Enable background motion</label>
-          <div class="field">
-            <label for="settings-strictness">Default grading approach</label>
-            <select id="settings-strictness">
-              <option value="balanced">Balanced</option>
-              <option value="lenient">Lenient</option>
-              <option value="strict">Strict</option>
-            </select>
-          </div>
-          <div class="form-actions">
-            <button class="button primary" id="save-settings" type="button">Save preferences →</button>
-            <button class="button secondary" id="reset-settings" type="button">Reset preferences</button>
-          </div>
-          <p id="settings-status" class="status-message" role="status"></p>
-          <div class="backend-note">
-            <h3>AI backend</h3>
-            <p>The visual interface does not perform AI grading by itself. Connect your backend before sending real grading requests. Avoid entering sensitive student information until your service is configured appropriately.</p>
-          </div>
-        </section>
-      </section>
-
-      <footer class="main-footer">
-        <span>✦ GradeNova</span>
-        <span>AI-assisted grading. Human-reviewed decisions.</span>
-      </footer>
+        <footer class="app-footer">
+          <span>© <span id="currentYear"></span> GradeNova AI</span>
+          <span><i></i> Designed for thoughtful teaching</span>
+        </footer>
+      </div>
     </main>
   </div>
+
+  <div class="toast-region" id="toastRegion" aria-live="polite"></div>
 </body>
 </html>
