@@ -1,637 +1,537 @@
 
-/* =========================================================
-   GradeNova — Theme Controls, Rubric Builder, Settings, History
-   Actual AI grading will require the hosted Python backend.
-   ========================================================= */
 "use strict";
+
+/*
+  IMPORTANT:
+  After deploying server.py on Render, replace this URL with your
+  actual Render service URL. Never put your Gemini API key here.
+*/
+const API_BASE_URL = "https://YOUR-SERVICE.onrender.com";
 
 document.addEventListener("DOMContentLoaded", () => {
   const $ = (selector, root = document) => root.querySelector(selector);
   const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 
-  const PREFS_KEY = "gradenova-preferences";
-  const HISTORY_KEY = "gradenova-history";
+  const PREFS_KEY = "gradenova-preferences-v2";
+  const HISTORY_KEY = "gradenova-reports-v2";
+  const THEMES = ["cosmic", "inferno", "forest", "ocean", "light"];
 
-  const THEMES = {
-    cosmic: {
-      name: "Cosmic Space",
-      description: "A deep-space scene filled with stars, planets, and glowing nebulae."
-    },
-    inferno: {
-      name: "Inferno Fire",
-      description: "A fiery atmosphere with glowing flames, heat, and drifting embers."
-    },
-    forest: {
-      name: "Enchanted Forest",
-      description: "Ancient tree silhouettes, moonlit mist, green vines, and fireflies."
-    },
-    ocean: {
-      name: "Ocean Depths",
-      description: "Underwater light rays, swimming fish, seaweed, and rising bubbles."
-    },
-    light: {
-      name: "Light",
-      description: "A clean, bright workspace with a soft, calm background."
-    }
-  };
+  const form = $("#grading-form");
+  const gradeButton = $("#grade-button");
+  const status = $("#grading-status");
+  const results = $("#results-content");
+  const criteriaList = $("#rubric-criteria");
+  const connectionLabel = $("#connection-label");
+  let latestReport = null;
 
-  const body = document.body;
-  const themeSelect = $("#settings-theme");
-  const motionCheckbox = $("#settings-motion");
-  const strictnessSelect = $("#settings-default-strictness");
-  const gradingStrictness = $("#grading-strictness");
-  const settingsStatus = $("#settings-status");
-  const gradingStatus = $("#grading-status");
-  const gradingForm = $("#grading-form");
-  const rubricCriteria = $("#rubric-criteria");
-  const historyList = $("#history-list");
-
-  let nextCriterionId = 4;
-
-  /* ---------- Safe local storage ---------- */
-
-  function safeRead(key, fallback) {
+  function readStorage(key, fallback) {
     try {
-      const raw = localStorage.getItem(key);
-      return raw ? JSON.parse(raw) : fallback;
-    } catch (error) {
-      console.warn(`Could not read ${key}.`, error);
+      const value = localStorage.getItem(key);
+      return value ? JSON.parse(value) : fallback;
+    } catch {
       return fallback;
     }
   }
 
-  function safeWrite(key, value) {
+  function writeStorage(key, value) {
     try {
       localStorage.setItem(key, JSON.stringify(value));
       return true;
-    } catch (error) {
-      console.warn(`Could not save ${key}.`, error);
+    } catch {
       return false;
     }
   }
 
-  /* ---------- Theme controls ---------- */
+  function setMessage(element, message, kind = "") {
+    if (!element) return;
+    element.textContent = message;
+    element.classList.remove("success", "error");
+    if (kind) element.classList.add(kind);
+  }
 
-  function updateThemeButtons(theme) {
-    $$("[data-set-theme]").forEach((button) => {
-      const selected = button.dataset.setTheme === theme;
+  function setTheme(theme, save = true) {
+    if (!THEMES.includes(theme)) theme = "cosmic";
+    document.body.dataset.theme = theme;
 
+    $$("[data-theme-choice]").forEach(button => {
+      const selected = button.dataset.themeChoice === theme;
       button.classList.toggle("active", selected);
       button.setAttribute("aria-pressed", String(selected));
     });
-  }
 
-  function applyTheme(theme, persist = true) {
-    if (!Object.hasOwn(THEMES, theme)) {
-      theme = "cosmic";
-    }
+    const selector = $("#settings-theme");
+    if (selector) selector.value = theme;
 
-    // The stylesheet uses this attribute to activate the scene,
-    // palette, and theme-specific logo effects.
-    body.dataset.theme = theme;
+    const colors = {
+      cosmic: "#080b18",
+      inferno: "#170b08",
+      forest: "#07150f",
+      ocean: "#061622",
+      light: "#edf1fa"
+    };
+    const meta = $('meta[name="theme-color"]');
+    if (meta) meta.content = colors[theme];
 
-    if (themeSelect) {
-      themeSelect.value = theme;
-    }
-
-    updateThemeButtons(theme);
-
-    const name = $("#current-theme-name");
-    const description = $("#current-theme-description");
-
-    if (name) {
-      name.textContent = THEMES[theme].name;
-    }
-
-    if (description) {
-      description.textContent = THEMES[theme].description;
-    }
-
-    if (persist) {
-      const previous = safeRead(PREFS_KEY, {});
-      safeWrite(PREFS_KEY, {
-        ...previous,
-        theme
-      });
+    if (save) {
+      const prefs = readStorage(PREFS_KEY, {});
+      writeStorage(PREFS_KEY, { ...prefs, theme });
     }
   }
 
-  $$("[data-set-theme]").forEach((button) => {
-    button.addEventListener("click", () => {
-      applyTheme(button.dataset.setTheme);
-    });
+  $$("[data-theme-choice]").forEach(button => {
+    button.addEventListener("click", () => setTheme(button.dataset.themeChoice));
   });
 
-  themeSelect?.addEventListener("change", () => {
-    applyTheme(themeSelect.value);
-  });
+  function setFileLabel(inputId, labelId) {
+    const input = $("#" + inputId);
+    const label = $("#" + labelId);
+    if (!input || !label) return;
 
-  /* ---------- Background motion ---------- */
-
-  function applyMotion(enabled) {
-    body.classList.toggle("motion-off", !enabled);
-
-    if (motionCheckbox) {
-      motionCheckbox.checked = enabled;
-    }
-
-    const particles = $("#ambient-particles");
-
-    if (particles) {
-      particles.hidden = !enabled;
-    }
-  }
-
-  motionCheckbox?.addEventListener("change", () => {
-    applyMotion(motionCheckbox.checked);
-
-    const previous = safeRead(PREFS_KEY, {});
-    safeWrite(PREFS_KEY, {
-      ...previous,
-      motion: motionCheckbox.checked
+    input.addEventListener("change", () => {
+      const file = input.files?.[0];
+      label.textContent = file
+        ? `${file.name} · ${(file.size / 1024).toFixed(0)} KB`
+        : "No file selected";
     });
-  });
-
-  function createAmbientParticles() {
-    const container = $("#ambient-particles");
-
-    if (!container || container.childElementCount > 0) {
-      return;
-    }
-
-    const fragment = document.createDocumentFragment();
-
-    for (let i = 0; i < 24; i += 1) {
-      const particle = document.createElement("span");
-
-      particle.className = "ambient-particle";
-      particle.style.left = `${(i * 37 + 11) % 100}%`;
-      particle.style.top = `${(i * 23 + 17) % 100}%`;
-      particle.style.animationDuration = `${14 + (i % 9) * 2}s`;
-      particle.style.animationDelay = `${-(i % 13) * 1.7}s`;
-      particle.style.opacity = `${0.18 + (i % 5) * 0.1}`;
-
-      const size = 1 + (i % 3);
-
-      particle.style.width = `${size}px`;
-      particle.style.height = `${size}px`;
-
-      fragment.appendChild(particle);
-    }
-
-    container.appendChild(fragment);
   }
 
-  /* ---------- Rubric builder ---------- */
+  setFileLabel("test-file", "test-file-name");
+  setFileLabel("answers-file", "answers-file-name");
 
-  function createCriterion(id) {
-    const row = document.createElement("div");
-    row.className = "field-group rubric-row";
-
-    const nameLabel = document.createElement("label");
-    nameLabel.htmlFor = `criterion-${id}`;
-    nameLabel.textContent = `Criterion ${id}`;
-
-    const nameInput = document.createElement("input");
-    nameInput.id = `criterion-${id}`;
-    nameInput.name = "criterion-name";
-    nameInput.type = "text";
-    nameInput.placeholder = "e.g. Evidence and reasoning";
-    nameInput.maxLength = 150;
-
-    const pointsLabel = document.createElement("label");
-    pointsLabel.htmlFor = `criterion-points-${id}`;
-    pointsLabel.textContent = "Points";
-
-    const pointsInput = document.createElement("input");
-    pointsInput.id = `criterion-points-${id}`;
-    pointsInput.name = "criterion-points";
-    pointsInput.type = "number";
-    pointsInput.min = "0";
-    pointsInput.max = "10000";
-    pointsInput.step = "1";
-    pointsInput.value = "0";
-
-    const removeButton = document.createElement("button");
-    removeButton.type = "button";
-    removeButton.className = "btn btn-secondary remove-criterion";
-    removeButton.textContent = "Remove";
-    removeButton.setAttribute("aria-label", `Remove criterion ${id}`);
-
-    removeButton.addEventListener("click", () => {
-      row.remove();
-      updateCriterionLabels();
-    });
-
-    row.append(
-      nameLabel,
-      nameInput,
-      pointsLabel,
-      pointsInput,
-      removeButton
-    );
-
-    return row;
-  }
-
-  function updateCriterionLabels() {
-    if (!rubricCriteria) {
-      return;
-    }
-
-    $$(".rubric-row", rubricCriteria).forEach((row, index) => {
+  function updateCriteria() {
+    const rows = $$(".criterion-row", criteriaList);
+    rows.forEach((row, index) => {
       const number = index + 1;
-      const nameInput = $('input[name="criterion-name"]', row);
-      const pointsInput = $('input[name="criterion-points"]', row);
-      const labels = $$("label", row);
-
-      if (!nameInput || !pointsInput) {
-        return;
-      }
-
-      nameInput.id = `criterion-${number}`;
-      pointsInput.id = `criterion-points-${number}`;
-
-      if (labels[0]) {
-        labels[0].htmlFor = nameInput.id;
-        labels[0].textContent = `Criterion ${number}`;
-      }
-
-      if (labels[1]) {
-        labels[1].htmlFor = pointsInput.id;
-        labels[1].textContent = "Points";
-      }
-
+      const name = $(".criterion-name", row);
+      const points = $(".criterion-points", row);
       const remove = $(".remove-criterion", row);
 
+      name.id = `criterion-name-${number}`;
+      points.id = `criterion-points-${number}`;
+      $("label[for^='criterion-name-']", row)?.setAttribute("for", name.id);
+      $("label[for^='criterion-points-']", row)?.setAttribute("for", points.id);
+
       if (remove) {
-        remove.setAttribute(
-          "aria-label",
-          `Remove criterion ${number}`
-        );
+        remove.disabled = rows.length === 1;
+        remove.setAttribute("aria-label", `Remove criterion ${number}`);
       }
     });
-
-    nextCriterionId = $$(".rubric-row", rubricCriteria).length + 1;
   }
 
   $("#add-criterion")?.addEventListener("click", () => {
-    if (!rubricCriteria) {
+    if ($$(".criterion-row", criteriaList).length >= 20) {
+      setMessage(status, "You can add up to 20 criteria.", "error");
       return;
     }
 
-    const row = createCriterion(nextCriterionId++);
+    const row = document.createElement("div");
+    row.className = "criterion-row";
 
-    rubricCriteria.appendChild(row);
-    updateCriterionLabels();
+    const nameLabel = document.createElement("label");
+    nameLabel.className = "sr-only";
+    nameLabel.textContent = "Criterion name";
 
-    $('input[name="criterion-name"]', row)?.focus();
+    const nameInput = document.createElement("input");
+    nameInput.className = "criterion-name";
+    nameInput.type = "text";
+    nameInput.maxLength = 120;
+    nameInput.placeholder = "Criterion name";
+
+    const pointsLabel = document.createElement("label");
+    pointsLabel.className = "sr-only";
+    pointsLabel.textContent = "Criterion points";
+
+    const pointsInput = document.createElement("input");
+    pointsInput.className = "criterion-points";
+    pointsInput.type = "number";
+    pointsInput.min = "0";
+    pointsInput.max = "10000";
+    pointsInput.value = "0";
+    pointsInput.setAttribute("aria-label", "Criterion points");
+
+    const pts = document.createElement("span");
+    pts.className = "points-label";
+    pts.textContent = "pts";
+
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "remove-criterion";
+    remove.textContent = "×";
+    remove.setAttribute("aria-label", "Remove criterion");
+    remove.addEventListener("click", () => {
+      row.remove();
+      updateCriteria();
+    });
+
+    row.append(nameLabel, nameInput, pointsLabel, pointsInput, pts, remove);
+    criteriaList.appendChild(row);
+    updateCriteria();
+    nameInput.focus();
+  });
+
+  criteriaList.addEventListener("click", event => {
+    const button = event.target.closest(".remove-criterion");
+    if (!button || button.disabled) return;
+    button.closest(".criterion-row")?.remove();
+    updateCriteria();
   });
 
   function collectRubric() {
-    const criteria = $$(".rubric-row", rubricCriteria || document)
-      .map((row) => ({
-        name:
-          $('input[name="criterion-name"]', row)?.value.trim() || "",
-        points: Number(
-          $('input[name="criterion-points"]', row)?.value || 0
-        )
-      }))
-      .filter((item) => item.name.length > 0);
+    const totalPoints = Number($("#total-points").value);
+    const criteria = $$(".criterion-row", criteriaList).map(row => ({
+      name: $(".criterion-name", row).value.trim(),
+      points: Number($(".criterion-points", row).value)
+    }));
+
+    if (!Number.isFinite(totalPoints) || totalPoints < 1 || totalPoints > 10000) {
+      throw new Error("Total possible points must be between 1 and 10,000.");
+    }
+
+    if (criteria.some(c => !c.name || !Number.isFinite(c.points) || c.points < 0 || c.points > 10000)) {
+      throw new Error("Give each criterion a name and a valid non-negative point value.");
+    }
+
+    const criteriaTotal = criteria.reduce((sum, item) => sum + item.points, 0);
+    if (criteriaTotal !== totalPoints) {
+      throw new Error(`Your criteria total ${criteriaTotal} points, but the assignment total is ${totalPoints}. Make those totals match.`);
+    }
 
     return {
-      name: $("#rubric-name")?.value.trim() || "",
-      totalPoints: Number($("#total-points")?.value || 100),
-      strictness: gradingStrictness?.value || "balanced",
-      instructions: $("#rubric-instructions")?.value.trim() || "",
+      name: $("#rubric-name").value.trim(),
+      totalPoints,
+      strictness: $("#grading-strictness").value,
+      instructions: $("#rubric-instructions").value.trim(),
       criteria
     };
   }
 
-  /* ---------- Status messages ---------- */
+  async function checkBackend() {
+    const dot = $(".connection-pill .status-dot");
 
-  function setStatus(message, type = "") {
-    if (!gradingStatus) {
-      return;
+    if (API_BASE_URL.includes("YOUR-SERVICE")) {
+      if (connectionLabel) connectionLabel.textContent = "Backend URL needed";
+      dot?.classList.remove("online");
+      dot?.classList.add("offline");
+      return false;
     }
 
-    gradingStatus.textContent = message;
-    gradingStatus.classList.remove("success", "error");
+    try {
+      const response = await fetch(`${API_BASE_URL}/health`, {
+        method: "GET",
+        headers: { "Accept": "application/json" },
+        signal: AbortSignal.timeout(12000)
+      });
+      if (!response.ok) throw new Error("Backend health check failed.");
 
-    if (type) {
-      gradingStatus.classList.add(type);
+      const data = await response.json();
+      const online = data.status === "ok";
+
+      if (connectionLabel) {
+        connectionLabel.textContent = online ? "Backend connected" : "Backend unavailable";
+      }
+      dot?.classList.toggle("online", online);
+      dot?.classList.toggle("offline", !online);
+      return online;
+    } catch {
+      if (connectionLabel) connectionLabel.textContent = "Backend offline";
+      dot?.classList.remove("online");
+      dot?.classList.add("offline");
+      return false;
     }
   }
 
-  /* ---------- History ---------- */
+  $("#test-connection")?.addEventListener("click", async () => {
+    const button = $("#test-connection");
+    button.disabled = true;
+    setMessage($("#connection-status"), "Checking the backend…");
+    const online = await checkBackend();
+    setMessage(
+      $("#connection-status"),
+      online
+        ? "Connection successful. The backend health endpoint responded."
+        : "Could not reach the backend. Check the Render URL, deployment status, and CORS settings.",
+      online ? "success" : "error"
+    );
+    button.disabled = false;
+  });
 
-  function renderHistory() {
-    if (!historyList) {
-      return;
-    }
-
-    const history = safeRead(HISTORY_KEY, []);
-
-    historyList.replaceChildren();
-
-    if (!Array.isArray(history) || history.length === 0) {
-      const empty = document.createElement("div");
-      empty.className = "empty-state";
-
-      const icon = document.createElement("span");
-      icon.className = "empty-icon";
-      icon.textContent = "◷";
-
-      const strong = document.createElement("strong");
-      strong.textContent = "No saved sessions yet";
-
-      const p = document.createElement("p");
-      p.textContent =
-        "Prepared grading requests can be saved here on this device.";
-
-      empty.append(icon, strong, p);
-      historyList.appendChild(empty);
-      return;
-    }
-
-    history.slice().reverse().forEach((entry) => {
-      const item = document.createElement("div");
-      item.className = "history-entry";
-
-      const info = document.createElement("div");
-
-      const title = document.createElement("strong");
-      title.textContent =
-        entry.rubricName || "Untitled grading session";
-
-      const details = document.createElement("small");
-      const date = new Date(entry.createdAt);
-
-      details.textContent =
-        `${Number.isNaN(date.getTime()) ? "Saved session" : date.toLocaleString()} · ` +
-        `${entry.totalPoints} possible points`;
-
-      info.append(title, details);
-
-      const chip = document.createElement("span");
-      chip.className = "history-chip";
-      chip.textContent = "Prepared";
-
-      item.append(info, chip);
-      historyList.appendChild(item);
-    });
+  function addText(parent, tag, className, text) {
+    const element = document.createElement(tag);
+    if (className) element.className = className;
+    element.textContent = text ?? "";
+    parent.appendChild(element);
+    return element;
   }
 
-  /* ---------- Grading form validation ---------- */
+  function renderReport(report) {
+    results.replaceChildren();
+    results.className = "results-report";
 
-  if (gradingForm) {
-    gradingForm.addEventListener("submit", (event) => {
-      event.preventDefault();
+    const overview = document.createElement("div");
+    overview.className = "result-overview";
 
-      const test = $("#test-input")?.value.trim() || "";
-      const answers = $("#answers-input")?.value.trim() || "";
-      const answerKey = $("#answer-key-input")?.value.trim() || "";
-      const rubric = collectRubric();
+    const scoreCard = document.createElement("div");
+    scoreCard.className = "score-card";
+    const score = Number(report.score) || 0;
+    const total = Number(report.total_points) || 100;
+    const percentage = Math.max(0, Math.min(100, Number(report.percentage) || 0));
 
-      if (!test || !answers) {
-        setStatus(
-          "Please enter both the test and the student's answers.",
-          "error"
+    const scoreNumber = document.createElement("div");
+    scoreNumber.className = "score-number";
+    scoreNumber.append(document.createTextNode(String(score)));
+    const slash = document.createElement("small");
+    slash.textContent = ` / ${total}`;
+    scoreNumber.appendChild(slash);
+    scoreCard.appendChild(scoreNumber);
+    addText(scoreCard, "div", "score-percent", `${percentage.toFixed(1)}%`);
+    overview.appendChild(scoreCard);
+
+    const details = document.createElement("div");
+    details.className = "score-details";
+    addText(details, "h3", "", report.assignment_name || "Grading report");
+    addText(details, "p", "", report.summary || "Review the scoring details below.");
+    overview.appendChild(details);
+    results.appendChild(overview);
+
+    if (report.feedback) {
+      const block = document.createElement("div");
+      block.className = "result-block";
+      addText(block, "h3", "", "Overall feedback");
+      addText(block, "p", "", report.feedback);
+      results.appendChild(block);
+    }
+
+    if (Array.isArray(report.criteria) && report.criteria.length) {
+      const block = document.createElement("div");
+      block.className = "result-block";
+      addText(block, "h3", "", "Score breakdown");
+      const list = document.createElement("div");
+      list.className = "result-criteria";
+
+      report.criteria.forEach(item => {
+        const card = document.createElement("div");
+        card.className = "result-criterion";
+        addText(
+          card, "div", "result-criterion-head",
+          `${item.name || "Criterion"} — ${Number(item.points_awarded) || 0} / ${Number(item.points_possible) || 0}`
         );
-
-        (!test ? $("#test-input") : $("#answers-input"))?.focus();
-        return;
-      }
-
-      if (
-        !Number.isFinite(rubric.totalPoints) ||
-        rubric.totalPoints <= 0
-      ) {
-        setStatus(
-          "Enter a total possible score greater than zero.",
-          "error"
-        );
-
-        $("#total-points")?.focus();
-        return;
-      }
-
-      if (
-        rubric.criteria.some(
-          (item) =>
-            !Number.isFinite(item.points) || item.points < 0
-        )
-      ) {
-        setStatus(
-          "Please check the point values in your rubric.",
-          "error"
-        );
-        return;
-      }
-
-      const criterionTotal = rubric.criteria.reduce(
-        (sum, item) => sum + item.points,
-        0
-      );
-
-      if (
-        rubric.criteria.length &&
-        criterionTotal > rubric.totalPoints
-      ) {
-        setStatus(
-          `Your criteria add up to ${criterionTotal} points, which is more than the ${rubric.totalPoints} possible points. Adjust them or continue after reviewing the rubric.`,
-          "error"
-        );
-        return;
-      }
-
-      const gradingRequest = {
-        test,
-        answers,
-        answerKey: answerKey || null,
-        rubric,
-        options: {
-          feedback: $("#option-feedback")?.checked ?? true,
-          breakdown: $("#option-breakdown")?.checked ?? true,
-          history: $("#option-history")?.checked ?? true,
-          explanations: $("#option-explanations")?.checked ?? true
-        }
-      };
-
-      // Never log the test, student answers, or answer-key contents.
-      console.info("GradeNova request prepared.", {
-        hasTest: Boolean(gradingRequest.test),
-        hasAnswers: Boolean(gradingRequest.answers),
-        hasAnswerKey: Boolean(gradingRequest.answerKey),
-        rubricCriteria: rubric.criteria.length,
-        strictness: rubric.strictness
+        addText(card, "p", "", item.feedback || "No additional comments.");
+        list.appendChild(card);
       });
 
-      if ($("#option-history")?.checked) {
-        const history = safeRead(HISTORY_KEY, []);
+      block.appendChild(list);
+      results.appendChild(block);
+    }
 
-        const entry = {
-          id: `${Date.now()}`,
-          createdAt: new Date().toISOString(),
-          rubricName: rubric.name || "Untitled grading session",
-          totalPoints: rubric.totalPoints,
-          criterionCount: rubric.criteria.length,
-          strictness: rubric.strictness,
-          hasAnswerKey: Boolean(answerKey)
-        };
-
-        const next = Array.isArray(history)
-          ? [...history, entry].slice(-30)
-          : [entry];
-
-        safeWrite(HISTORY_KEY, next);
-        renderHistory();
+    for (const [heading, values] of [
+      ["Strengths", report.strengths],
+      ["Areas to improve", report.improvements]
+    ]) {
+      if (Array.isArray(values) && values.length) {
+        const block = document.createElement("div");
+        block.className = "result-block";
+        addText(block, "h3", "", heading);
+        const ul = document.createElement("ul");
+        values.forEach(value => addText(ul, "li", "", String(value)));
+        block.appendChild(ul);
+        results.appendChild(block);
       }
+    }
 
-      setStatus(
-        "✓ Your test, answers, and grading rules are prepared. Actual AI grading will work after the Python backend is hosted and connected.",
-        "success"
-      );
+    addText(
+      results, "p", "status-message",
+      "AI-generated suggestions can be wrong. Review the assignment, criteria, and scores before using this report as a final grade."
+    );
 
-      const results = $("#results-content");
+    const actions = document.createElement("div");
+    actions.className = "result-actions";
+    const exportButton = document.createElement("button");
+    exportButton.type = "button";
+    exportButton.className = "button button-quiet";
+    exportButton.textContent = "Export report";
+    exportButton.addEventListener("click", () => exportReport(report));
+    actions.appendChild(exportButton);
+    results.appendChild(actions);
+  }
 
-      if (results) {
-        results.replaceChildren();
+  function exportReport(report) {
+    const blob = new Blob([JSON.stringify(report, null, 2)], {
+      type: "application/json"
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "gradenova-report.json";
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
 
-        const empty = document.createElement("div");
-        empty.className = "empty-state";
+  function readHistory() {
+    const history = readStorage(HISTORY_KEY, []);
+    return Array.isArray(history) ? history : [];
+  }
 
-        const icon = document.createElement("span");
-        icon.className = "empty-icon";
-        icon.textContent = "⌁";
+  function renderHistory() {
+    const list = $("#history-list");
+    const history = readHistory();
+    list.replaceChildren();
+    $("#history-count").textContent = `${history.length} report${history.length === 1 ? "" : "s"}`;
 
-        const strong = document.createElement("strong");
-        strong.textContent = "Request prepared — not graded yet";
+    if (!history.length) {
+      addText(list, "p", "empty-history", "No saved reports yet. Your reports will appear here if local saving is enabled.");
+      return;
+    }
 
-        const p = document.createElement("p");
-        p.textContent =
-          "The front-end has validated your inputs. Connect the hosted backend to receive an actual AI score and feedback report.";
-
-        empty.append(icon, strong, p);
-        results.appendChild(empty);
-      }
+    history.slice().reverse().forEach(entry => {
+      const row = document.createElement("div");
+      row.className = "history-entry";
+      const info = document.createElement("div");
+      addText(info, "strong", "", entry.name || "Grading report");
+      addText(info, "small", "", `${new Date(entry.date).toLocaleString()} · ${entry.total} possible points`);
+      row.appendChild(info);
+      addText(row, "span", "history-score", `${entry.score} / ${entry.total}`);
+      list.appendChild(row);
     });
   }
 
-  /* ---------- Export and clear history ---------- */
+  form.addEventListener("submit", async event => {
+    event.preventDefault();
+    setMessage(status, "");
+
+    let rubric;
+    try {
+      rubric = collectRubric();
+    } catch (error) {
+      setMessage(status, error.message, "error");
+      return;
+    }
+
+    const testText = $("#test-input").value.trim();
+    const answersText = $("#answers-input").value.trim();
+    const testFile = $("#test-file").files?.[0];
+    const answersFile = $("#answers-file").files?.[0];
+
+    if ((!testText && !testFile) || (!answersText && !answersFile)) {
+      setMessage(status, "Enter the assignment and student answers, or attach a file for each.", "error");
+      return;
+    }
+
+    if (API_BASE_URL.includes("YOUR-SERVICE")) {
+      setMessage(status, "The frontend still needs your Render backend URL. Deploy server.py, then update API_BASE_URL in script.js.", "error");
+      return;
+    }
+
+    const formData = new FormData(form);
+    formData.set("rubric", JSON.stringify(rubric));
+    formData.set("options", JSON.stringify({
+      feedback: $("#option-feedback").checked,
+      breakdown: $("#option-breakdown").checked
+    }));
+
+    gradeButton.disabled = true;
+    gradeButton.textContent = "Grading… please wait";
+    setMessage(status, "Sending the assignment securely to your configured backend…");
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/grade`, {
+        method: "POST",
+        body: formData,
+        signal: AbortSignal.timeout(120000)
+      });
+
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data.error || `The backend returned HTTP ${response.status}.`);
+      }
+      if (data.error) throw new Error(data.error);
+
+      latestReport = data;
+      renderReport(data);
+      $("#results").scrollIntoView({ behavior: "smooth", block: "start" });
+      setMessage(status, "Grading report received. Review the suggested score before using it.", "success");
+
+      if ($("#option-history").checked) {
+        const history = readHistory();
+        history.push({
+          name: data.assignment_name || rubric.name || "Grading report",
+          date: new Date().toISOString(),
+          score: data.score,
+          total: data.total_points
+        });
+        writeStorage(HISTORY_KEY, history.slice(-50));
+        renderHistory();
+      }
+    } catch (error) {
+      const message = error.name === "TimeoutError"
+        ? "The grading request took too long. Check the backend and try again."
+        : error.message || "Something went wrong while grading.";
+      setMessage(status, `${message} Check the Render logs if the problem continues.`, "error");
+    } finally {
+      gradeButton.disabled = false;
+      gradeButton.innerHTML = "<span>✦</span> Grade assignment <span aria-hidden='true'>→</span>";
+    }
+  });
+
+  $("#reset-form")?.addEventListener("click", () => {
+    setTimeout(() => {
+      $("#test-file-name").textContent = "No file selected";
+      $("#answers-file-name").textContent = "No file selected";
+      setMessage(status, "");
+      updateCriteria();
+    }, 0);
+  });
 
   $("#export-history")?.addEventListener("click", () => {
-    const history = safeRead(HISTORY_KEY, []);
-
-    const blob = new Blob(
-      [JSON.stringify(Array.isArray(history) ? history : [], null, 2)],
-      { type: "application/json" }
-    );
-
+    const blob = new Blob([JSON.stringify(readHistory(), null, 2)], {
+      type: "application/json"
+    });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-
     link.href = url;
     link.download = "gradenova-history.json";
-
-    document.body.appendChild(link);
     link.click();
-    link.remove();
-
-    URL.revokeObjectURL(url);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   });
 
   $("#clear-history")?.addEventListener("click", () => {
-    if (
-      !window.confirm(
-        "Clear the saved GradeNova session history from this browser?"
-      )
-    ) {
-      return;
-    }
-
-    safeWrite(HISTORY_KEY, []);
+    if (!confirm("Clear saved report summaries from this browser?")) return;
+    writeStorage(HISTORY_KEY, []);
     renderHistory();
   });
 
-  /* ---------- Navigation ---------- */
+  $("#save-settings")?.addEventListener("click", () => {
+    const prefs = {
+      theme: $("#settings-theme").value,
+      strictness: $("#settings-default-strictness").value,
+      motion: $("#settings-motion").checked
+    };
+    setTheme(prefs.theme, false);
+    document.body.classList.toggle("motion-off", !prefs.motion);
+    $("#grading-strictness").value = prefs.strictness;
+    const saved = writeStorage(PREFS_KEY, prefs);
+    setMessage(
+      $("#settings-status"),
+      saved ? "Preferences saved in this browser." : "Could not save preferences. Check browser storage settings.",
+      saved ? "success" : "error"
+    );
+  });
 
-  $$(
-    'nav a[href^="#"], .quick-links a, .hero-actions a, .header-settings'
-  ).forEach((link) => {
+  $("#settings-theme")?.addEventListener("change", event => setTheme(event.target.value));
+
+  $$('nav a[href^="#"]').forEach(link => {
     link.addEventListener("click", () => {
-      const target = link.getAttribute("href");
-
-      if (!target) {
-        return;
-      }
-
-      $$('nav a[href^="#"]').forEach((item) => {
-        item.classList.toggle(
-          "active",
-          item.getAttribute("href") === target
-        );
-      });
+      $$("nav .nav-link").forEach(item => item.classList.toggle("active", item === link));
     });
   });
 
-  /* ---------- Save settings ---------- */
+  const prefs = readStorage(PREFS_KEY, {});
+  setTheme(prefs.theme || "cosmic", false);
+  if (prefs.strictness) $("#settings-default-strictness").value = prefs.strictness;
+  if (prefs.strictness) $("#grading-strictness").value = prefs.strictness;
+  $("#settings-motion").checked = prefs.motion !== false;
+  document.body.classList.toggle("motion-off", prefs.motion === false);
 
-  $("#save-settings")?.addEventListener("click", () => {
-    const prefs = {
-      theme: themeSelect?.value || "cosmic",
-      motion: motionCheckbox?.checked ?? true,
-      strictness: strictnessSelect?.value || "balanced"
-    };
-
-    applyTheme(prefs.theme, false);
-    applyMotion(prefs.motion);
-
-    if (gradingStrictness) {
-      gradingStrictness.value = prefs.strictness;
-    }
-
-    const saved = safeWrite(PREFS_KEY, prefs);
-
-    if (settingsStatus) {
-      settingsStatus.textContent = saved
-        ? "✓ Preferences saved on this device."
-        : "Could not save preferences. Check your browser storage settings.";
-
-      settingsStatus.classList.toggle("success", saved);
-      settingsStatus.classList.toggle("error", !saved);
-    }
-  });
-
-  /* ---------- Restore saved preferences ---------- */
-
-  const prefs = safeRead(PREFS_KEY, {});
-
-  applyTheme(
-    Object.hasOwn(THEMES, prefs.theme) ? prefs.theme : "cosmic",
-    false
-  );
-
-  applyMotion(
-    typeof prefs.motion === "boolean" ? prefs.motion : true
-  );
-
-  if (
-    strictnessSelect &&
-    ["lenient", "balanced", "strict"].includes(prefs.strictness)
-  ) {
-    strictnessSelect.value = prefs.strictness;
-  }
-
-  if (
-    gradingStrictness &&
-    ["lenient", "balanced", "strict"].includes(prefs.strictness)
-  ) {
-    gradingStrictness.value = prefs.strictness;
-  }
-
-  createAmbientParticles();
+  updateCriteria();
   renderHistory();
-
-  console.info("GradeNova dashboard initialized.");
+  checkBackend();
 });
