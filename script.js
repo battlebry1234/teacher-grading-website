@@ -1,478 +1,1112 @@
 "use strict";
 
-document.addEventListener("DOMContentLoaded", () => {
-  const $ = (selector, root = document) => root.querySelector(selector);
-  const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
+/*
+ * GradeNova AI — frontend controller
+ *
+ * IMPORTANT:
+ * Set API_BASE_URL to your deployed grading backend to enable real grading.
+ * Until then, the grading page displays an honest demo-mode notice.
+ */
 
-  const KEYS = {
-    preferences: "gradenova.preferences.v2",
-    history: "gradenova.history.v2",
-    rubric: "gradenova.rubric.v2",
-    answerKey: "gradenova.answerKey.v2"
-  };
+const API_BASE_URL = "https://YOUR-SERVICE.onrender.com";
 
-  const THEMES = ["cosmic", "ocean", "forest", "inferno", "light"];
-  const ACCENTS = ["violet", "cyan", "pink", "green", "amber"];
+const THEMES = ["cosmic", "underwater", "forest", "fire", "ocean"];
 
-  function readStorage(key, fallback) {
-    try {
-      const value = localStorage.getItem(key);
-      return value === null ? fallback : JSON.parse(value);
-    } catch {
-      return fallback;
+const THEME_NAMES = {
+  cosmic: "Cosmic",
+  underwater: "Underwater",
+  forest: "Forest",
+  fire: "Fire",
+  ocean: "Open water"
+};
+
+const STORAGE_KEYS = {
+  theme: "gradenova-theme",
+  history: "gradenova-history",
+  animation: "gradenova-animation",
+  glass: "gradenova-glass"
+};
+
+const $ = (selector, root = document) => root.querySelector(selector);
+const $$ = (selector, root = document) =>
+  Array.from(root.querySelectorAll(selector));
+
+const state = {
+  currentPage: "dashboard",
+  currentResult: null,
+  busy: false
+};
+
+document.addEventListener("DOMContentLoaded", init);
+
+function init() {
+  $("#currentYear").textContent = new Date().getFullYear();
+
+  initializeTheme();
+  initializeNavigation();
+  initializeThemeButtons();
+  initializeAppearanceSettings();
+  initializeGradingForm();
+  initializeHistory();
+  initializeConnectionTest();
+  initializeMobileMenu();
+
+  renderHistory();
+  updateDashboardStats();
+  updateRubricTotal();
+  updateConnectionStatus();
+  updateCharacterCount();
+
+  window.addEventListener("keydown", handleKeyboardShortcuts);
+}
+
+/* -------------------------------------------------------
+   NAVIGATION
+------------------------------------------------------- */
+
+function initializeNavigation() {
+  $$("[data-page]").forEach(button => {
+    button.addEventListener("click", () => {
+      showPage(button.dataset.page);
+    });
+  });
+
+  $$("[data-go-page]").forEach(button => {
+    button.addEventListener("click", () => {
+      showPage(button.dataset.goPage);
+    });
+  });
+}
+
+function showPage(pageName) {
+  const validPages = ["dashboard", "grade", "history", "settings"];
+
+  if (!validPages.includes(pageName)) {
+    return;
+  }
+
+  state.currentPage = pageName;
+
+  $$(".page-view").forEach(section => {
+    const active = section.dataset.view === pageName;
+    section.classList.toggle("active", active);
+    section.setAttribute("aria-hidden", String(!active));
+  });
+
+  $$("[data-page]").forEach(button => {
+    const active = button.dataset.page === pageName;
+
+    button.classList.toggle("active", active);
+
+    if (active) {
+      button.setAttribute("aria-current", "page");
+    } else {
+      button.removeAttribute("aria-current");
     }
-  }
-
-  function writeStorage(key, value) {
-    try {
-      localStorage.setItem(key, JSON.stringify(value));
-      return true;
-    } catch {
-      return false;
-    }
-  }
-
-  function showStatus(element, message, type = "") {
-    if (!element) return;
-    element.textContent = message;
-    element.classList.remove("success", "error");
-    if (type) element.classList.add(type);
-  }
-
-  // PAGE NAVIGATION
-  function navigate(pageName) {
-    const target = $(`[data-view="${pageName}"]`);
-    if (!target) return;
-
-    $$("[data-view]").forEach((page) => {
-      const active = page.dataset.view === pageName;
-      page.hidden = !active;
-      page.classList.toggle("active", active);
-    });
-
-    $$("[data-page]").forEach((button) => {
-      const active = button.dataset.page === pageName;
-      button.classList.toggle("active", active);
-      button.setAttribute("aria-current", active ? "page" : "false");
-    });
-
-    window.scrollTo({ top: 0, behavior: document.body.classList.contains("reduce-motion") ? "auto" : "smooth" });
-  }
-
-  $$("[data-page]").forEach((button) => {
-    button.addEventListener("click", () => navigate(button.dataset.page));
   });
 
-  $$("[data-go]").forEach((button) => {
-    button.addEventListener("click", () => navigate(button.dataset.go));
-  });
-
-  $$("[data-page-link]").forEach((link) => {
-    link.addEventListener("click", (event) => {
-      event.preventDefault();
-      navigate(link.dataset.pageLink);
-    });
-  });
-
-  $("#top-settings")?.addEventListener("click", () => navigate("settings"));
-
-  // ATMOSPHERE AND APPEARANCE
-  const themeSelect = $("#theme-select");
-  const accentSelect = $("#accent-select");
-  const motionToggle = $("#motion-toggle");
-
-  function applyTheme(theme, save = true) {
-    if (!THEMES.includes(theme)) theme = "cosmic";
-
-    document.body.dataset.theme = theme;
-
-    $$("[data-set-theme]").forEach((button) => {
-      const active = button.dataset.setTheme === theme;
-      button.classList.toggle("active", active);
-      button.setAttribute("aria-pressed", String(active));
-    });
-
-    if (themeSelect) themeSelect.value = theme;
-
-    if (save) savePreferences();
-  }
-
-  function applyAccent(accent, save = true) {
-    if (!ACCENTS.includes(accent)) accent = "violet";
-
-    document.body.classList.remove(...ACCENTS.map((item) => `accent-${item}`));
-    if (accent !== "violet") document.body.classList.add(`accent-${accent}`);
-
-    if (accentSelect) accentSelect.value = accent;
-    if (save) savePreferences();
-  }
-
-  function applyMotion(enabled, save = true) {
-    document.body.classList.toggle("reduce-motion", !enabled);
-    if (motionToggle) motionToggle.checked = enabled;
-    if (save) savePreferences();
-  }
-
-  function savePreferences() {
-    const preferences = {
-      theme: document.body.dataset.theme || "cosmic",
-      accent: ACCENTS.find((item) => document.body.classList.contains(`accent-${item}`)) || "violet",
-      motion: !document.body.classList.contains("reduce-motion"),
-      strictness: $("#settings-strictness")?.value || "balanced"
+  const breadcrumb = $("#breadcrumbPage");
+  if (breadcrumb) {
+    const labels = {
+      dashboard: "Dashboard",
+      grade: "Grade work",
+      history: "Grade history",
+      settings: "Settings"
     };
 
-    return writeStorage(KEYS.preferences, preferences);
+    breadcrumb.textContent = labels[pageName];
   }
 
-  $$("[data-set-theme]").forEach((button) => {
-    button.addEventListener("click", () => applyTheme(button.dataset.setTheme));
-  });
+  document.body.classList.remove("sidebar-open");
+  window.scrollTo({ top: 0, behavior: "smooth" });
 
-  themeSelect?.addEventListener("change", () => applyTheme(themeSelect.value));
-  accentSelect?.addEventListener("change", () => applyAccent(accentSelect.value));
-  motionToggle?.addEventListener("change", () => applyMotion(motionToggle.checked));
-
-  $("#save-settings")?.addEventListener("click", () => {
-    const success = savePreferences();
-    showStatus(
-      $("#settings-status"),
-      success ? "✓ Your studio preferences have been saved on this device." :
-        "Could not save preferences. Check your browser storage settings.",
-      success ? "success" : "error"
-    );
-  });
-
-  $("#reset-settings")?.addEventListener("click", () => {
-    applyTheme("cosmic", false);
-    applyAccent("violet", false);
-    applyMotion(true, false);
-    if ($("#settings-strictness")) $("#settings-strictness").value = "balanced";
-
-    const success = savePreferences();
-    showStatus(
-      $("#settings-status"),
-      success ? "Studio preferences reset to their defaults." : "Preferences could not be saved.",
-      success ? "success" : "error"
-    );
-  });
-
-  // TEXT FILE IMPORT
-  async function loadTextFile(inputSelector, targetSelector, statusSelector) {
-    const input = $(inputSelector);
-    const target = $(targetSelector);
-    const file = input?.files?.[0];
-
-    if (!file || !target) return;
-
-    if (file.size > 2 * 1024 * 1024) {
-      showStatus($(statusSelector), "Please choose a text file smaller than 2 MB.", "error");
-      input.value = "";
-      return;
-    }
-
-    try {
-      target.value = await file.text();
-      target.dispatchEvent(new Event("input", { bubbles: true }));
-      showStatus($(statusSelector), `Loaded "${file.name}". Review its contents before continuing.`, "success");
-    } catch {
-      showStatus($(statusSelector), "This file could not be read as text.", "error");
-    }
+  if (pageName === "history") {
+    renderHistory();
   }
 
-  // Use a small message area for imported file feedback.
-  const testFile = $("#test-file");
-  const answersFile = $("#answers-file");
+  if (pageName === "dashboard") {
+    updateDashboardStats();
+  }
+}
 
-  function fileMessage(input, text) {
-    if (!input) return;
-    let message = input.parentElement.querySelector(".file-status");
-    if (!message) {
-      message = document.createElement("p");
-      message.className = "file-status status-message";
-      input.insertAdjacentElement("afterend", message);
-    }
-    message.textContent = text;
+/* -------------------------------------------------------
+   THEMES AND GRADUATION HAT
+------------------------------------------------------- */
+
+function initializeTheme() {
+  let savedTheme = "cosmic";
+
+  try {
+    savedTheme = localStorage.getItem(STORAGE_KEYS.theme) || "cosmic";
+  } catch (error) {
+    console.warn("Theme preference could not be loaded.", error);
   }
 
-  testFile?.addEventListener("change", async () => {
-    if (!testFile.files?.[0]) return;
-    const file = testFile.files[0];
+  setTheme(THEMES.includes(savedTheme) ? savedTheme : "cosmic", false);
+}
 
-    if (!/\.(txt|md)$/i.test(file.name)) {
-      fileMessage(testFile, "Only TXT and MD files are read directly by this page. PDF and Word files need additional processing.");
-      testFile.value = "";
-      return;
-    }
-
-    if (file.size > 2 * 1024 * 1024) {
-      fileMessage(testFile, "Choose a text file smaller than 2 MB.");
-      testFile.value = "";
-      return;
-    }
-
-    try {
-      $("#test-input").value = await file.text();
-      fileMessage(testFile, `Loaded ${file.name}. Please review the text.`);
-    } catch {
-      fileMessage(testFile, "Could not read this file.");
-    }
-  });
-
-  answersFile?.addEventListener("change", async () => {
-    if (!answersFile.files?.[0]) return;
-    const file = answersFile.files[0];
-
-    if (!/\.(txt|md)$/i.test(file.name)) {
-      fileMessage(answersFile, "Only TXT and MD files are read directly by this page. PDF and Word files need additional processing.");
-      answersFile.value = "";
-      return;
-    }
-
-    if (file.size > 2 * 1024 * 1024) {
-      fileMessage(answersFile, "Choose a text file smaller than 2 MB.");
-      answersFile.value = "";
-      return;
-    }
-
-    try {
-      $("#answers-input").value = await file.text();
-      fileMessage(answersFile, `Loaded ${file.name}. Please review the text.`);
-    } catch {
-      fileMessage(answersFile, "Could not read this file.");
-    }
-  });
-
-  // RUBRIC BUILDER
-  const rubricCriteria = $("#rubric-criteria");
-  let nextCriterionId = 4;
-
-  function updateCriterionLabels() {
-    if (!rubricCriteria) return;
-
-    $$(".rubric-row", rubricCriteria).forEach((row, index) => {
-      const number = index + 1;
-      const nameInput = $('input[name="criterion-name"]', row);
-      const pointsInput = $('input[name="criterion-points"]', row);
-      const labels = $$("label", row);
-
-      if (nameInput) {
-        nameInput.id = `criterion-${number}`;
-        if (labels[0]) {
-          labels[0].htmlFor = nameInput.id;
-          labels[0].textContent = `Criterion ${number}`;
-        }
-      }
-
-      if (pointsInput) {
-        pointsInput.id = `criterion-points-${number}`;
-        if (labels[1]) {
-          labels[1].htmlFor = pointsInput.id;
-          labels[1].textContent = "Points";
-        }
-      }
-
-      const remove = $(".remove-criterion", row);
-      if (remove) remove.setAttribute("aria-label", `Remove criterion ${number}`);
+function initializeThemeButtons() {
+  $$("[data-theme-choice]").forEach(button => {
+    button.addEventListener("click", () => {
+      setTheme(button.dataset.themeChoice);
     });
-
-    nextCriterionId = $$(".rubric-row", rubricCriteria).length + 1;
-    updateCriterionTotal();
-  }
-
-  function updateCriterionTotal() {
-    const rows = $$(".rubric-row", rubricCriteria || document);
-    const assigned = rows.reduce((sum, row) => {
-      return sum + Math.max(0, Number($('input[name="criterion-points"]', row)?.value || 0));
-    }, 0);
-
-    const maximum = Math.max(1, Number($("#total-points")?.value || 100));
-    const totalElement = $("#criterion-total");
-
-    if (totalElement) {
-      totalElement.textContent = `${assigned} / ${maximum}`;
-      totalElement.style.color = assigned > maximum ? "var(--danger)" : "var(--accent-2)";
-    }
-  }
-
-  function createCriterion() {
-    const row = document.createElement("div");
-    row.className = "rubric-row";
-
-    const nameField = document.createElement("div");
-    nameField.className = "field";
-    const nameLabel = document.createElement("label");
-    const nameInput = document.createElement("input");
-    nameInput.type = "text";
-    nameInput.name = "criterion-name";
-    nameInput.placeholder = "Criterion name";
-    nameLabel.append("Criterion");
-    nameField.append(nameLabel, nameInput);
-
-    const pointsField = document.createElement("div");
-    pointsField.className = "field";
-    const pointsLabel = document.createElement("label");
-    const pointsInput = document.createElement("input");
-    pointsInput.type = "number";
-    pointsInput.name = "criterion-points";
-    pointsInput.min = "0";
-    pointsInput.value = "0";
-    pointsLabel.textContent = "Points";
-    pointsField.append(pointsLabel, pointsInput);
-
-    const removeButton = document.createElement("button");
-    removeButton.type = "button";
-    removeButton.className = "button danger remove-criterion";
-    removeButton.textContent = "Remove";
-
-    row.append(nameField, pointsField, removeButton);
-    return row;
-  }
-
-  $("#add-criterion")?.addEventListener("click", () => {
-    if (!rubricCriteria) return;
-    const row = createCriterion();
-    rubricCriteria.appendChild(row);
-    updateCriterionLabels();
-    $('input[name="criterion-name"]', row)?.focus();
   });
 
-  rubricCriteria?.addEventListener("click", (event) => {
+  const quickTheme = $("#quickTheme");
+
+  if (quickTheme) {
+    quickTheme.addEventListener("click", () => {
+      const currentIndex = THEMES.indexOf(document.body.dataset.theme);
+      const nextTheme = THEMES[(currentIndex + 1) % THEMES.length];
+
+      setTheme(nextTheme);
+      showToast(`${THEME_NAMES[nextTheme]} environment activated.`);
+    });
+  }
+}
+
+function setTheme(theme, save = true) {
+  if (!THEMES.includes(theme)) {
+    theme = "cosmic";
+  }
+
+  document.body.dataset.theme = theme;
+  document.documentElement.dataset.theme = theme;
+
+  $$("[data-theme-choice]").forEach(button => {
+    const selected = button.dataset.themeChoice === theme;
+
+    button.classList.toggle("selected", selected);
+
+    if (selected) {
+      button.setAttribute("aria-pressed", "true");
+    } else {
+      button.setAttribute("aria-pressed", "false");
+    }
+  });
+
+  // The logo uses CSS variables, so the hat colors update automatically.
+  const themeColor = getComputedStyle(document.body)
+    .getPropertyValue("--bg")
+    .trim();
+
+  const themeMeta = $('meta[name="theme-color"]');
+
+  if (themeMeta && themeColor) {
+    themeMeta.setAttribute("content", themeColor);
+  }
+
+  if (save) {
+    try {
+      localStorage.setItem(STORAGE_KEYS.theme, theme);
+    } catch (error) {
+      console.warn("Theme preference could not be saved.", error);
+    }
+  }
+}
+
+/* -------------------------------------------------------
+   APPEARANCE SETTINGS
+------------------------------------------------------- */
+
+function initializeAppearanceSettings() {
+  const animationToggle = $("#animationToggle");
+  const glassToggle = $("#glassToggle");
+
+  let animationEnabled = true;
+  let glassEnabled = true;
+
+  try {
+    animationEnabled =
+      localStorage.getItem(STORAGE_KEYS.animation) !== "false";
+
+    glassEnabled =
+      localStorage.getItem(STORAGE_KEYS.glass) !== "false";
+  } catch (error) {
+    console.warn("Appearance preferences could not be loaded.", error);
+  }
+
+  if (animationToggle) {
+    animationToggle.checked = animationEnabled;
+    applyAnimationPreference(animationEnabled);
+
+    animationToggle.addEventListener("change", () => {
+      applyAnimationPreference(animationToggle.checked);
+
+      try {
+        localStorage.setItem(
+          STORAGE_KEYS.animation,
+          String(animationToggle.checked)
+        );
+      } catch (error) {
+        console.warn("Animation preference could not be saved.", error);
+      }
+    });
+  }
+
+  if (glassToggle) {
+    glassToggle.checked = glassEnabled;
+    applyGlassPreference(glassEnabled);
+
+    glassToggle.addEventListener("change", () => {
+      applyGlassPreference(glassToggle.checked);
+
+      try {
+        localStorage.setItem(
+          STORAGE_KEYS.glass,
+          String(glassToggle.checked)
+        );
+      } catch (error) {
+        console.warn("Glass preference could not be saved.", error);
+      }
+    });
+  }
+}
+
+function applyAnimationPreference(enabled) {
+  document.body.classList.toggle("no-ambient", !enabled);
+}
+
+function applyGlassPreference(enabled) {
+  document.body.classList.toggle("no-glass", !enabled);
+}
+
+/* -------------------------------------------------------
+   MOBILE NAVIGATION
+------------------------------------------------------- */
+
+function initializeMobileMenu() {
+  const menuButton = $("#mobileMenu");
+
+  if (!menuButton) return;
+
+  menuButton.addEventListener("click", () => {
+    const isOpen = document.body.classList.toggle("sidebar-open");
+
+    menuButton.setAttribute("aria-expanded", String(isOpen));
+  });
+
+  document.addEventListener("click", event => {
+    const sidebar = $("#sidebar");
+
+    if (!sidebar || !document.body.classList.contains("sidebar-open")) {
+      return;
+    }
+
+    const clickedInsideSidebar = sidebar.contains(event.target);
+    const clickedMenu = menuButton.contains(event.target);
+
+    if (!clickedInsideSidebar && !clickedMenu) {
+      document.body.classList.remove("sidebar-open");
+      menuButton.setAttribute("aria-expanded", "false");
+    }
+  });
+}
+
+/* -------------------------------------------------------
+   RUBRIC EDITOR
+------------------------------------------------------- */
+
+function initializeGradingForm() {
+  const form = $("#gradingForm");
+  const addButton = $("#addCriterion");
+  const criteriaList = $("#criteriaList");
+  const studentAnswer = $("#studentAnswer");
+
+  if (!form || !criteriaList) return;
+
+  addButton.addEventListener("click", addCriterion);
+
+  criteriaList.addEventListener("click", event => {
     const removeButton = event.target.closest(".remove-criterion");
+
     if (!removeButton) return;
 
-    const rows = $$(".rubric-row", rubricCriteria);
+    const rows = $$(".criterion-row", criteriaList);
+
     if (rows.length <= 1) {
-      showStatus($("#rubric-status"), "Keep at least one criterion in your rubric.", "error");
+      showToast("Keep at least one rubric criterion.", "error");
       return;
     }
 
-    removeButton.closest(".rubric-row")?.remove();
-    updateCriterionLabels();
+    removeButton.closest(".criterion-row").remove();
+    updateRubricTotal();
   });
 
-  rubricCriteria?.addEventListener("input", updateCriterionTotal);
-  $("#total-points")?.addEventListener("input", updateCriterionTotal);
+  criteriaList.addEventListener("input", event => {
+    if (event.target.matches(".criterion-points")) {
+      updateRubricTotal();
+    }
+  });
 
-  function collectRubric() {
-    const criteria = $$(".rubric-row", rubricCriteria || document).map((row) => ({
-      name: $('input[name="criterion-name"]', row)?.value.trim() || "",
-      points: Number($('input[name="criterion-points"]', row)?.value || 0)
-    })).filter((criterion) => criterion.name);
+  studentAnswer.addEventListener("input", updateCharacterCount);
+
+  form.addEventListener("reset", () => {
+    window.setTimeout(() => {
+      updateRubricTotal();
+      updateCharacterCount();
+
+      state.currentResult = null;
+      renderResultPlaceholder();
+    }, 0);
+  });
+
+  form.addEventListener("submit", handleGradingSubmit);
+}
+
+function addCriterion() {
+  const criteriaList = $("#criteriaList");
+  if (!criteriaList) return;
+
+  const rows = $$(".criterion-row", criteriaList);
+
+  if (rows.length >= 20) {
+    showToast("You can add up to 20 criteria.", "error");
+    return;
+  }
+
+  const row = document.createElement("div");
+  row.className = "criterion-row";
+
+  const nameInput = document.createElement("input");
+  nameInput.className = "text-input criterion-name";
+  nameInput.type = "text";
+  nameInput.maxLength = 100;
+  nameInput.value = "";
+  nameInput.placeholder = "New criterion";
+  nameInput.setAttribute("aria-label", "Criterion name");
+
+  const pointsInput = document.createElement("input");
+  pointsInput.className = "text-input criterion-points";
+  pointsInput.type = "number";
+  pointsInput.min = "0";
+  pointsInput.max = "1000";
+  pointsInput.step = "1";
+  pointsInput.value = "10";
+  pointsInput.setAttribute("aria-label", "Criterion points");
+
+  const removeButton = document.createElement("button");
+  removeButton.className = "remove-criterion";
+  removeButton.type = "button";
+  removeButton.setAttribute("aria-label", "Remove criterion");
+  removeButton.textContent = "×";
+
+  row.append(nameInput, pointsInput, removeButton);
+  criteriaList.appendChild(row);
+
+  updateRubricTotal();
+  nameInput.focus();
+}
+
+function getRubric() {
+  const criteria = $$(".criterion-row", $("#criteriaList")).map(row => {
+    const name = $(".criterion-name", row).value.trim();
+    const rawPoints = Number($(".criterion-points", row).value);
 
     return {
-      name: $("#rubric-name")?.value.trim() || "Untitled rubric",
-      totalPoints: Number($("#total-points")?.value || 100),
-      instructions: $("#rubric-instructions")?.value.trim() || "",
-      criteria
+      name,
+      points: Number.isFinite(rawPoints)
+        ? Math.max(0, Math.min(1000, rawPoints))
+        : 0
     };
+  }).filter(item => item.name);
+
+  const totalPoints = criteria.reduce((sum, item) => {
+    return sum + item.points;
+  }, 0);
+
+  return {
+    name: $("#rubricName").value.trim() || "Custom rubric",
+    total_points: totalPoints,
+    criteria
+  };
+}
+
+function updateRubricTotal() {
+  const totalElement = $("#rubricTotal");
+  if (!totalElement) return;
+
+  const rubric = getRubric();
+  totalElement.textContent = `${rubric.total_points} pts`;
+}
+
+function updateCharacterCount() {
+  const answer = $("#studentAnswer");
+  const counter = $("#answerCount");
+
+  if (!answer || !counter) return;
+
+  const count = answer.value.length;
+  counter.textContent = `${count.toLocaleString()} character${count === 1 ? "" : "s"}`;
+}
+
+/* -------------------------------------------------------
+   GRADING REQUEST
+------------------------------------------------------- */
+
+async function handleGradingSubmit(event) {
+  event.preventDefault();
+
+  if (state.busy) return;
+
+  const assignment = $("#assignmentName").value.trim();
+  const answer = $("#studentAnswer").value.trim();
+  const answerKey = $("#answerKey").value.trim();
+  const student = $("#studentName").value.trim();
+  const rubric = getRubric();
+
+  if (!assignment || !answer) {
+    showToast("Enter an assignment name and student response.", "error");
+    return;
   }
 
-  function validateRubric(rubric) {
-    if (!Number.isFinite(rubric.totalPoints) || rubric.totalPoints <= 0) {
-      return "Total possible points must be greater than zero.";
-    }
-
-    if (!rubric.criteria.length) {
-      return "Add at least one named grading criterion.";
-    }
-
-    if (rubric.criteria.some((item) => !Number.isFinite(item.points) || item.points < 0)) {
-      return "Every criterion must have a valid non-negative point value.";
-    }
-
-    const sum = rubric.criteria.reduce((total, item) => total + item.points, 0);
-    if (sum > rubric.totalPoints) {
-      return `Your criteria add up to ${sum} points, exceeding the ${rubric.totalPoints} available.`;
-    }
-
-    return "";
+  if (!rubric.criteria.length) {
+    showToast("Add at least one named rubric criterion.", "error");
+    return;
   }
 
-  $("#save-rubric")?.addEventListener("click", () => {
-    const rubric = collectRubric();
-    const error = validateRubric(rubric);
+  if (rubric.total_points <= 0) {
+    showToast("Your rubric must have a total above zero points.", "error");
+    return;
+  }
 
-    if (error) {
-      showStatus($("#rubric-status"), error, "error");
-      return;
+  if (!isBackendConfigured()) {
+    showDemoModeNotice();
+    return;
+  }
+
+  setGradingBusy(true);
+
+  try {
+    const formData = new FormData();
+
+    formData.append("test", assignment);
+    formData.append("answers", answer);
+    formData.append("answer_key", answerKey);
+    formData.append("rubric_name", rubric.name);
+    formData.append("rubric", JSON.stringify(rubric));
+
+    if (student) {
+      formData.append("student", student);
     }
 
-    const success = writeStorage(KEYS.rubric, rubric);
-    showStatus(
-      $("#rubric-status"),
-      success ? "✓ Rubric saved on this device." : "Could not save the rubric. Check browser storage.",
-      success ? "success" : "error"
+    const response = await fetch(
+      `${API_BASE_URL.replace(/\/+$/, "")}/api/grade`,
+      {
+        method: "POST",
+        body: formData
+      }
     );
-  });
 
-  $("#use-rubric")?.addEventListener("click", () => {
-    const rubric = collectRubric();
-    const error = validateRubric(rubric);
+    const responseData = await readResponse(response);
 
-    if (error) {
-      showStatus($("#rubric-status"), error, "error");
-      return;
+    if (!response.ok) {
+      throw new Error(
+        responseData.error ||
+        responseData.message ||
+        `The grading server returned HTTP ${response.status}.`
+      );
     }
 
-    writeStorage(KEYS.rubric, rubric);
-    navigate("grading");
-    showStatus($("#grading-status"), `Rubric "${rubric.name}" is ready to use. The rubric is saved locally; connect a backend to apply it during real AI grading.`, "success");
-  });
-
-  function loadSavedRubric() {
-    const rubric = readStorage(KEYS.rubric, null);
-    if (!rubric || !rubricCriteria) return;
-
-    if ($("#rubric-name")) $("#rubric-name").value = rubric.name || "";
-    if ($("#total-points")) $("#total-points").value = rubric.totalPoints || 100;
-    if ($("#rubric-instructions")) $("#rubric-instructions").value = rubric.instructions || "";
-
-    rubricCriteria.replaceChildren();
-
-    (Array.isArray(rubric.criteria) && rubric.criteria.length ? rubric.criteria : [{ name: "", points: 0 }])
-      .forEach((criterion) => {
-        const row = createCriterion();
-        $('input[name="criterion-name"]', row).value = criterion.name || "";
-        $('input[name="criterion-points"]', row).value = Number(criterion.points || 0);
-        rubricCriteria.appendChild(row);
-      });
-
-    updateCriterionLabels();
-  }
-
-  // ANSWER KEY
-  const answerKeyField = $("#answer-key-input");
-  const gradingAnswerKey = $("#grading-answer-key");
-
-  function saveAnswerKey() {
-    const value = answerKeyField?.value || "";
-    const success = writeStorage(KEYS.answerKey, value);
-
-    showStatus(
-      $("#answer-key-status"),
-      success ? "✓ Answer key saved on this device." : "Could not save the answer key.",
-      success ? "success" : "error"
+    const normalized = normalizeGradeResponse(
+      responseData,
+      assignment,
+      student,
+      rubric
     );
+
+    state.currentResult = normalized;
+    renderGradeReport(normalized);
+
+    showToast("Grading response received.", "success");
+  } catch (error) {
+    console.error("Grading request failed:", error);
+
+    showResultError(error.message || "Unable to reach the grading server.");
+
+    showToast(
+      "The grading request failed. Check your backend connection.",
+      "error"
+    );
+  } finally {
+    setGradingBusy(false);
+  }
+}
+
+function isBackendConfigured() {
+  return Boolean(
+    API_BASE_URL &&
+    !API_BASE_URL.includes("YOUR-SERVICE") &&
+    /^https?:\/\//i.test(API_BASE_URL)
+  );
+}
+
+function showDemoModeNotice() {
+  const panel = $("#resultPanel");
+
+  panel.replaceChildren();
+
+  const wrapper = document.createElement("div");
+  wrapper.className = "result-report";
+
+  const label = document.createElement("div");
+  label.className = "report-label";
+  label.textContent = "DEMO MODE";
+
+  const heading = document.createElement("h3");
+  heading.style.marginTop = "10px";
+  heading.textContent = "Your workspace is ready.";
+
+  const message = document.createElement("p");
+  message.className = "report-message";
+  message.textContent =
+    "The interface is working, but no grading server is connected. No AI grade has been generated and no score has been assigned.";
+
+  const warning = document.createElement("div");
+  warning.className = "report-warning";
+  warning.textContent =
+    "To grade actual work, configure API_BASE_URL in script.js and connect a compatible backend at /api/grade.";
+
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "secondary-button report-save";
+  button.textContent = "Open connection settings";
+  button.addEventListener("click", () => showPage("settings"));
+
+  wrapper.append(label, heading, message, warning, button);
+  panel.appendChild(wrapper);
+
+  showToast("Demo mode: no AI grade was generated.");
+}
+
+function setGradingBusy(isBusy) {
+  state.busy = isBusy;
+
+  const button = $("#gradeButton");
+  if (!button) return;
+
+  button.disabled = isBusy;
+  button.textContent = isBusy ? "Analyzing..." : "✳ Analyze work ↗";
+}
+
+async function readResponse(response) {
+  const text = await response.text();
+
+  if (!text) return {};
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error("The server response was not valid JSON.");
+  }
+}
+
+function normalizeGradeResponse(data, assignment, student, rubric) {
+  /*
+   * Adapt the most common response formats.
+   * Check your backend's actual response structure if its names differ.
+   */
+  const result = data.result && typeof data.result === "object"
+    ? data.result
+    : data;
+
+  const rawScore = result.score ?? result.points_earned ?? result.points;
+  const rawTotal = result.total_points ?? result.max_points ?? rubric.total_points;
+
+  const score = Number(rawScore);
+  const total = Number(rawTotal);
+
+  const hasValidScore =
+    Number.isFinite(score) &&
+    Number.isFinite(total) &&
+    total > 0;
+
+  const feedback = result.feedback ??
+    result.overall_feedback ??
+    result.comments ??
+    result.explanation ??
+    "";
+
+  const criteriaResults =
+    Array.isArray(result.criteria_results) ? result.criteria_results :
+    Array.isArray(result.breakdown) ? result.breakdown :
+    Array.isArray(result.criteria) ? result.criteria :
+    [];
+
+  return {
+    id: makeId(),
+    assignment,
+    student,
+    date: new Date().toISOString(),
+    score: hasValidScore ? score : null,
+    total: hasValidScore ? total : null,
+    percentage: hasValidScore ? (score / total) * 100 : null,
+    feedback: typeof feedback === "string"
+      ? feedback
+      : JSON.stringify(feedback, null, 2),
+    criteriaResults,
+    rubricName: rubric.name,
+    source: "backend"
+  };
+}
+
+function renderGradeReport(result) {
+  const panel = $("#resultPanel");
+  panel.replaceChildren();
+
+  const wrapper = document.createElement("div");
+  wrapper.className = "result-report";
+
+  const label = document.createElement("div");
+  label.className = "report-label";
+  label.textContent = "GRADING RESPONSE";
+
+  const heading = document.createElement("h3");
+  heading.style.marginTop = "8px";
+  heading.textContent = result.assignment;
+
+  const feedback = document.createElement("div");
+  feedback.className = "report-feedback";
+
+  if (result.feedback) {
+    feedback.textContent = result.feedback;
+  } else {
+    feedback.textContent =
+      "The server responded, but did not return a feedback summary.";
   }
 
-  $("#save-answer-key")?.addEventListener("click", saveAnswerKey);
+  wrapper.append(label, heading);
 
-  $("#send-answer-key")?.addEventListener("click", () => {
-    if (gradingAnswerKey && answerKeyField) gradingAnswerKey.value = answerKeyField.value;
-    navigate("grading");
-    showStatus($("#grading-status"), "Answer key copied into the grading form. Review it before preparing your request.", "success");
+  if (result.score !== null) {
+    const score = document.createElement("div");
+    score.className = "report-score";
+
+    const percent = document.createElement("div");
+    percent.textContent = `${result.percentage.toFixed(1)}%`;
+
+    const points = document.createElement("small");
+    points.textContent = ` ${formatNumber(result.score)} / ${formatNumber(result.total)} pts`;
+
+    score.append(percent, points);
+    wrapper.appendChild(score);
+  } else {
+    const noScore = document.createElement("p");
+    noScore.className = "report-message";
+    noScore.textContent =
+      "The server did not return a recognizable numeric score. Review its response format.";
+    wrapper.appendChild(noScore);
+  }
+
+  if (result.criteriaResults.length) {
+    const breakdownHeading = document.createElement("h4");
+    breakdownHeading.style.margin = "15px 0 7px";
+    breakdownHeading.textContent = "Criteria breakdown";
+    wrapper.appendChild(breakdownHeading);
+
+    result.criteriaResults.forEach(item => {
+      const row = document.createElement("div");
+      row.className = "report-feedback";
+
+      if (typeof item === "string") {
+        row.textContent = item;
+      } else {
+        const criterionName =
+          item.name ?? item.criterion ?? item.title ?? "Criterion";
+
+        const criterionScore =
+          item.score ?? item.points_earned ?? item.points_awarded;
+
+        const criterionTotal =
+          item.total_points ?? item.max_points ?? item.possible_points;
+
+        const criterionFeedback =
+          item.feedback ?? item.comment ?? item.explanation ?? "";
+
+        const title = document.createElement("strong");
+        title.textContent = String(criterionName);
+        row.appendChild(title);
+
+        if (criterionScore !== undefined) {
+          const scoreLine = document.createElement("div");
+          scoreLine.style.marginTop = "4px";
+
+          scoreLine.textContent =
+            `${criterionScore}` +
+            (criterionTotal !== undefined ? ` / ${criterionTotal} pts` : " pts");
+
+          row.appendChild(scoreLine);
+        }
+
+        if (criterionFeedback) {
+          const comment = document.createElement("p");
+          comment.style.margin = "5px 0 0";
+          comment.textContent = String(criterionFeedback);
+          row.appendChild(comment);
+        }
+      }
+
+      wrapper.appendChild(row);
+    });
+  }
+
+  const warning = document.createElement("div");
+  warning.className = "report-warning";
+  warning.textContent =
+    "Review this result before using it for an official grade.";
+
+  const saveButton = document.createElement("button");
+  saveButton.type = "button";
+  saveButton.className = "primary-button report-save";
+  saveButton.textContent = "Save grading result";
+
+  saveButton.addEventListener("click", () => {
+    saveGradeResult(result);
+    saveButton.disabled = true;
+    saveButton.textContent = "✓ Result saved";
   });
 
-  // SESSION HISTORY
-  const historyList = $("#history-list");
+  wrapper.append(feedback, warning, saveButton);
+  panel.appendChild(wrapper);
+}
 
-  function renderHistory() {
-    if (!historyList) return;
+function showResultError(message) {
+  const panel = $("#resultPanel");
+  panel.replaceChildren();
 
-    const history = readStorage(KEYS.history, []);
-    historyList.replaceChildren();
+  const wrapper = document.createElement("div");
+  wrapper.className = "result-report";
 
-    if (!Array.isArray(history) || history.length === 0) {
+  const heading = document.createElement("h3");
+  heading.textContent = "Unable to complete grading";
+
+  const description = document.createElement("p");
+  description.className = "report-message";
+  description.textContent = message;
+
+  const button = document.createElement("button");
+  button.className = "secondary-button report-save";
+  button.type = "button";
+  button.textContent = "Review connection settings";
+  button.addEventListener("click", () => showPage("settings"));
+
+  wrapper.append(heading, description, button);
+  panel.appendChild(wrapper);
+}
+
+function renderResultPlaceholder() {
+  const panel = $("#resultPanel");
+  if (!panel) return;
+
+  panel.replaceChildren();
+
+  const wrapper = document.createElement("div");
+  wrapper.className = "result-placeholder";
+
+  const icon = document.createElement("span");
+  icon.className = "result-placeholder-icon";
+  icon.textContent = "◈";
+
+  const heading = document.createElement("h3");
+  heading.textContent = "Your report will appear here";
+
+  const description = document.createElement("p");
+  description.textContent =
+    "Complete the assessment details and submit the work to begin.";
+
+  wrapper.append(icon, heading, description);
+  panel.appendChild(wrapper);
+}
+
+/* -------------------------------------------------------
+   LOCAL GRADING HISTORY
+------------------------------------------------------- */
+
+function initializeHistory() {
+  const search = $("#historySearch");
+  const clearButton = $("#clearHistory");
+  const exportButton = $("#exportHistory");
+
+  if (search) {
+    search.addEventListener("input", renderHistory);
+  }
+
+  if (clearButton) {
+    clearButton.addEventListener("click", clearHistory);
+  }
+
+  if (exportButton) {
+    exportButton.addEventListener("click", exportHistory);
+  }
+}
+
+function readHistory() {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEYS.history);
+    const records = stored ? JSON.parse(stored) : [];
+
+    return Array.isArray(records) ? records : [];
+  } catch (error) {
+    console.warn("History could not be read.", error);
+    return [];
+  }
+}
+
+function writeHistory(records) {
+  try {
+    localStorage.setItem(STORAGE_KEYS.history, JSON.stringify(records));
+    return true;
+  } catch (error) {
+    console.error("History could not be saved.", error);
+    showToast(
+      "Could not save history. Browser storage may be full or disabled.",
+      "error"
+    );
+    return false;
+  }
+}
+
+function saveGradeResult(result) {
+  const records = readHistory();
+
+  // Prevent saving the same result more than once.
+  if (records.some(record => record.id === result.id)) {
+    showToast("This result is already saved.");
+    return;
+  }
+
+  records.unshift(result);
+
+  if (!writeHistory(records)) return;
+
+  renderHistory();
+  updateDashboardStats();
+
+  showToast("Grading result saved to local history.", "success");
+}
+
+function renderHistory() {
+  const list = $("#historyList");
+  const count = $("#historyCount");
+
+  if (!list) return;
+
+  const records = readHistory();
+  const query = ($("#historySearch")?.value || "").trim().toLowerCase();
+
+  const filtered = records.filter(record => {
+    const searchable = [
+      record.assignment,
+      record.student,
+      record.rubricName,
+      record.feedback
+    ].join(" ").toLowerCase();
+
+    return searchable.includes(query);
+  });
+
+  if (count) {
+    count.textContent = `${filtered.length} record${filtered.length === 1 ? "" : "s"}`;
+  }
+
+  list.replaceChildren();
+
+  if (filtered.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "empty-state";
+
+    const icon = document.createElement("span");
+    icon.className = "empty-icon";
+    icon.textContent = "◷";
+
+    const heading = document.createElement("strong");
+    heading.textContent = query ? "No matching records" : "No grading records yet";
+
+    const description = document.createElement("p");
+    description.textContent = query
+      ? "Try another search term."
+      : "Save a grading result to see it here.";
+
+    empty.append(icon, heading, description);
+
+    if (!query) {
+      const button = document.createElement("button");
+      button.className = "primary-button";
+      button.type = "button";
+      button.textContent = "Start grading ↗";
+      button.addEventListener("click", () => showPage("grade"));
+      empty.appendChild(button);
+    }
+
+    list.appendChild(empty);
+    updateDashboardStats();
+    return;
+  }
+
+  filtered.forEach(record => {
+    const row = document.createElement("article");
+    row.className = "history-row";
+
+    const main = document.createElement("div");
+    main.className = "history-main";
+
+    const name = document.createElement("strong");
+    name.textContent = record.assignment || "Untitled assignment";
+
+    const meta = document.createElement("small");
+
+    const parts = [];
+
+    if (record.student) {
+      parts.push(`Student: ${record.student}`);
+    }
+
+    if (record.rubricName) {
+      parts.push(record.rubricName);
+    }
+
+    parts.push(formatDate(record.date));
+
+    meta.textContent = parts.join(" · ");
+    main.append(name, meta);
+
+    const score = document.createElement("div");
+    score.className = "history-score";
+
+    if (
+      Number.isFinite(Number(record.percentage)) &&
+      record.percentage !== null
+    ) {
+      score.textContent = `${Number(record.percentage).toFixed(1)}%`;
+    } else {
+      score.textContent = "—";
+    }
+
+    const actions = document.createElement("div");
+    actions.className = "history-actions";
+
+    const viewButton = document.createElement("button");
+    viewButton.className = "small-icon-button";
+    viewButton.type = "button";
+    viewButton.textContent = "↗";
+    viewButton.title = "View saved result";
+    viewButton.setAttribute("aria-label", `View ${record.assignment || "saved result"}`);
+
+    viewButton.addEventListener("click", () => {
+      state.currentResult = record;
+      showPage("grade");
+      renderGradeReport(record);
+    });
+
+    const deleteButton = document.createElement("button");
+    deleteButton.className = "small-icon-button";
+    deleteButton.type = "button";
+    deleteButton.textContent = "×";
+    deleteButton.title = "Delete record";
+    deleteButton.setAttribute("aria-label", `Delete ${record.assignment || "saved result"}`);
+
+    deleteButton.addEventListener("click", () => {
+      deleteHistoryRecord(record.id);
+    });
+
+    actions.append(viewButton, deleteButton);
+    row.append(main, score, actions);
+    list.appendChild(row);
+  });
+
+  updateDashboardStats();
+}
+
+function deleteHistoryRecord(id) {
+  const records = readHistory();
+  const updated = records.filter(record => record.id !== id);
+
+  if (!writeHistory(updated)) return;
+
+  renderHistory();
+  showToast("History record deleted.");
+}
+
+function clearHistory() {
+  const records = readHistory();
+
+  if (!records.length) {
+    showToast("There are no records to clear.");
+    return;
+  }
+
+  const confirmed = window.confirm(
+    "Delete all saved grading records from this browser? This cannot be undone."
+  );
+
+  if (!confirmed) return;
+
+  if (!writeHistory([])) return;
+
+  renderHistory();
+  updateDashboardStats();
+
+  showToast("Grading history cleared.");
+}
+
+function exportHistory() {
+  const records = readHistory();
+
+  if (!records.length) {
+    showToast("There are no records to export.", "error");
+    return;
+  }
+
+  const exportData = JSON.stringify(records, null, 2);
+  downloadTextFile(
+    exportData,
+    `gradenova-history-${dateForFilename()}.json`,
+    "application/json;charset=utf-8"
+  );
+
+  showToast("History export prepared.", "success");
+}
+
+function updateDashboardStats() {
+  const records = readHistory();
+
+  const totalElement = $("#statTotal");
+  const averageElement = $("#statAverage");
+  const recentElement = $("#statRecent");
+  const recentList = $("#recentList");
+
+  if (totalElement) {
+    totalElement.textContent = String(records.length);
+  }
+
+  const scoredRecords = records.filter(record => {
+    return record.percentage !== null &&
+      record.percentage !== undefined &&
+      Number.isFinite(Number(record.percentage));
+  });
+
+  if (averageElement) {
+    if (scoredRecords.length) {
+      const average = scoredRecords.reduce(
+        (sum, record) => sum + Number(record.percentage),
+        0
+      ) / scoredRecords.length;
+
+      averageElement.textContent = `${average.toFixed(1)}%`;
+    } else {
+      averageElement.textContent = "—";
+    }
+  }
+
+  if (recentElement) {
+    recentElement.textContent = records.length
+      ? formatDate(records[0].date, true)
+      : "—";
+  }
+
+  if (recentList) {
+    recentList.replaceChildren();
+
+    if (!records.length) {
       const empty = document.createElement("div");
       empty.className = "empty-state";
 
@@ -480,185 +1114,235 @@ document.addEventListener("DOMContentLoaded", () => {
       icon.className = "empty-icon";
       icon.textContent = "◷";
 
-      const title = document.createElement("h2");
-      title.textContent = "No saved sessions yet";
+      const heading = document.createElement("strong");
+      heading.textContent = "Your activity starts here";
 
-      const text = document.createElement("p");
-      text.textContent = "Requests you prepare with history enabled will appear here. Student answers are not saved in the history list.";
+      const description = document.createElement("p");
+      description.textContent =
+        "Grading sessions you save will appear here.";
 
-      empty.append(icon, title, text);
-      historyList.appendChild(empty);
+      const button = document.createElement("button");
+      button.className = "secondary-button small-button";
+      button.type = "button";
+      button.textContent = "Grade your first work";
+      button.addEventListener("click", () => showPage("grade"));
+
+      empty.append(icon, heading, description, button);
+      recentList.appendChild(empty);
       return;
     }
 
-    history.slice().reverse().forEach((entry) => {
+    records.slice(0, 4).forEach(record => {
       const item = document.createElement("div");
-      item.className = "history-entry";
+      item.className = "history-row";
 
-      const info = document.createElement("div");
+      const main = document.createElement("div");
+      main.className = "history-main";
+
       const title = document.createElement("strong");
-      title.textContent = entry.rubricName || "Untitled grading request";
+      title.textContent = record.assignment || "Untitled assignment";
 
-      const details = document.createElement("small");
-      const date = new Date(entry.createdAt);
-      details.textContent = `${Number.isNaN(date.getTime()) ? "Saved request" : date.toLocaleString()} · ${entry.totalPoints} possible points · ${entry.criterionCount} criteria`;
+      const date = document.createElement("small");
+      date.textContent = formatDate(record.date);
 
-      info.append(title, details);
+      main.append(title, date);
 
-      const chip = document.createElement("span");
-      chip.className = "history-chip";
-      chip.textContent = "Prepared";
+      const score = document.createElement("div");
+      score.className = "history-score";
+      score.style.fontSize = "14px";
 
-      item.append(info, chip);
-      historyList.appendChild(item);
+      score.textContent =
+        record.percentage !== null &&
+        record.percentage !== undefined &&
+        Number.isFinite(Number(record.percentage))
+          ? `${Number(record.percentage).toFixed(1)}%`
+          : "Saved";
+
+      item.append(main, score);
+
+      item.style.gridTemplateColumns = "minmax(0, 1fr) auto";
+      recentList.appendChild(item);
     });
   }
+}
 
-  $("#export-history")?.addEventListener("click", () => {
-    const history = readStorage(KEYS.history, []);
-    const blob = new Blob(
-      [JSON.stringify(Array.isArray(history) ? history : [], null, 2)],
-      { type: "application/json" }
+/* -------------------------------------------------------
+   BACKEND CONNECTION STATUS
+------------------------------------------------------- */
+
+function initializeConnectionTest() {
+  const button = $("#testConnection");
+
+  if (!button) return;
+
+  button.addEventListener("click", testConnection);
+}
+
+function updateConnectionStatus(connected = false, message = "") {
+  const sidebarLabel = $("#connectionLabel");
+  const title = $("#serviceStatusTitle");
+  const description = $("#serviceStatusText");
+
+  const configured = isBackendConfigured();
+
+  if (sidebarLabel) {
+    sidebarLabel.textContent = connected
+      ? "Grading service connected"
+      : "Local preview mode";
+  }
+
+  if (title) {
+    title.textContent = connected
+      ? "Grading service reachable"
+      : configured
+        ? "Backend configured"
+        : "Local preview mode";
+  }
+
+  if (description) {
+    description.textContent = message || (
+      configured
+        ? "A backend URL is configured. Test the connection to check availability."
+        : "No grading server has been configured in script.js."
     );
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "gradenova-history.json";
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(url);
-  });
+  }
+}
 
-  $("#clear-history")?.addEventListener("click", () => {
-    if (!window.confirm("Clear the saved GradeNova history from this browser?")) return;
+async function testConnection() {
+  const button = $("#testConnection");
 
-    const success = writeStorage(KEYS.history, []);
-    renderHistory();
-    if (!success) window.alert("History could not be cleared. Check your browser storage settings.");
-  });
+  if (!isBackendConfigured()) {
+    updateConnectionStatus(
+      false,
+      "Set API_BASE_URL in script.js to your deployed backend address first."
+    );
 
-  // GRADING REQUEST PREPARATION
-  const gradingForm = $("#grading-form");
+    showToast("Configure API_BASE_URL before testing.", "error");
+    return;
+  }
 
-  gradingForm?.addEventListener("submit", (event) => {
-    event.preventDefault();
+  const originalText = button.textContent;
+  button.disabled = true;
+  button.textContent = "Testing...";
 
-    const test = $("#test-input")?.value.trim() || "";
-    const answers = $("#answers-input")?.value.trim() || "";
-    const answerKey = gradingAnswerKey?.value.trim() || "";
-    const rubric = readStorage(KEYS.rubric, null);
-    const strictness = $("#grading-strictness")?.value || "balanced";
+  try {
+    const base = API_BASE_URL.replace(/\/+$/, "");
 
-    if (!test || !answers) {
-      showStatus($("#grading-status"), "Enter both the test or assignment and the student's answers.", "error");
-      (!test ? $("#test-input") : $("#answers-input"))?.focus();
-      return;
+    // This assumes your backend exposes a GET /health endpoint.
+    const response = await fetch(`${base}/health`, {
+      method: "GET",
+      headers: { Accept: "application/json" }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Health check returned HTTP ${response.status}.`);
     }
 
-    const gradingRequest = {
-      test,
-      answers,
-      answerKey: answerKey || null,
-      rubric,
-      strictness,
-      options: {
-        feedback: $("#option-feedback")?.checked ?? true,
-        breakdown: $("#option-breakdown")?.checked ?? true,
-        history: $("#option-history")?.checked ?? true,
-        explanations: $("#option-explanations")?.checked ?? true
+    updateConnectionStatus(
+      true,
+      "The health endpoint responded successfully."
+    );
+
+    showToast("Backend connection successful.", "success");
+  } catch (error) {
+    updateConnectionStatus(
+      false,
+      `Connection failed: ${error.message}. Check the URL, server status, and CORS settings.`
+    );
+
+    showToast("Could not reach the backend.", "error");
+  } finally {
+    button.disabled = false;
+    button.textContent = originalText;
+  }
+}
+
+/* -------------------------------------------------------
+   UTILITIES
+------------------------------------------------------- */
+
+function showToast(message, type = "") {
+  const region = $("#toastRegion");
+  if (!region) return;
+
+  const toast = document.createElement("div");
+  toast.className = `toast ${type}`.trim();
+  toast.textContent = message;
+  region.appendChild(toast);
+
+  window.setTimeout(() => {
+    toast.remove();
+  }, 4200);
+}
+
+function makeId() {
+  if (window.crypto && typeof window.crypto.randomUUID === "function") {
+    return window.crypto.randomUUID();
+  }
+
+  return `gn-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+function formatNumber(value) {
+  return Number(value).toLocaleString(undefined, {
+    maximumFractionDigits: 2
+  });
+}
+
+function formatDate(value, compact = false) {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "Unknown date";
+  }
+
+  return date.toLocaleString(undefined, compact
+    ? { month: "short", day: "numeric" }
+    : {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit"
       }
-    };
+  );
+}
 
-    // Intentionally do not send data to an unconfigured service.
-    // Connect a trusted backend before adding real AI grading.
-    const results = $("#results-content");
+function dateForFilename() {
+  return new Date().toISOString().slice(0, 10);
+}
 
-    if (results) {
-      results.replaceChildren();
+function downloadTextFile(contents, filename, mimeType) {
+  const blob = new Blob([contents], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
 
-      const empty = document.createElement("div");
-      empty.className = "empty-state";
+  link.href = url;
+  link.download = filename;
+  link.style.display = "none";
 
-      const icon = document.createElement("span");
-      icon.className = "empty-icon";
-      icon.textContent = "⌁";
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
 
-      const title = document.createElement("h2");
-      title.textContent = "Request prepared — not graded yet";
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
 
-      const text = document.createElement("p");
-      text.textContent = "Your input has been checked by the interface. This page has not calculated a grade or generated AI feedback. Connect your backend to receive an actual grading report.";
+function handleKeyboardShortcuts(event) {
+  if (event.altKey || event.ctrlKey || event.metaKey) return;
 
-      const details = document.createElement("p");
-      const rubricName = gradingRequest.rubric?.name || "No saved rubric";
-      details.textContent = `Rubric: ${rubricName} · Approach: ${strictness} · Answer key: ${answerKey ? "provided" : "not provided"}`;
+  const target = event.target;
 
-      const goButton = document.createElement("button");
-      goButton.type = "button";
-      goButton.className = "button secondary";
-      goButton.textContent = "Back to grading";
-      goButton.addEventListener("click", () => navigate("grading"));
-
-      empty.append(icon, title, text, details, goButton);
-      results.appendChild(empty);
-    }
-
-    if (gradingRequest.options.history) {
-      const history = readStorage(KEYS.history, []);
-      const entry = {
-        id: String(Date.now()),
-        createdAt: new Date().toISOString(),
-        rubricName: gradingRequest.rubric?.name || "Untitled grading request",
-        totalPoints: gradingRequest.rubric?.totalPoints || 100,
-        criterionCount: gradingRequest.rubric?.criteria?.length || 0,
-        strictness,
-        hasAnswerKey: Boolean(answerKey)
-      };
-
-      const next = Array.isArray(history) ? [...history, entry].slice(-50) : [entry];
-      writeStorage(KEYS.history, next);
-      renderHistory();
-    }
-
-    showStatus(
-      $("#grading-status"),
-      "✓ Request prepared. No grade was generated because an AI backend is not connected yet.",
-      "success"
-    );
-
-    navigate("results");
-  });
-
-  $("#reset-grading")?.addEventListener("click", () => {
-    window.setTimeout(() => {
-      showStatus($("#grading-status"), "Form cleared.", "");
-    }, 0);
-  });
-
-  // INITIALIZE PREFERENCES AND SAVED DATA
-  const preferences = readStorage(KEYS.preferences, {});
-
-  applyTheme(THEMES.includes(preferences.theme) ? preferences.theme : "cosmic", false);
-  applyAccent(ACCENTS.includes(preferences.accent) ? preferences.accent : "violet", false);
-  applyMotion(typeof preferences.motion === "boolean" ? preferences.motion : true, false);
-
-  if ($("#settings-strictness") && ["lenient", "balanced", "strict"].includes(preferences.strictness)) {
-    $("#settings-strictness").value = preferences.strictness;
-  }
-  if ($("#grading-strictness") && ["lenient", "balanced", "strict"].includes(preferences.strictness)) {
-    $("#grading-strictness").value = preferences.strictness;
+  if (
+    target instanceof HTMLInputElement ||
+    target instanceof HTMLTextAreaElement ||
+    target instanceof HTMLSelectElement ||
+    target.isContentEditable
+  ) {
+    return;
   }
 
-  const savedAnswerKey = readStorage(KEYS.answerKey, "");
-  if (typeof savedAnswerKey === "string") {
-    if (answerKeyField) answerKeyField.value = savedAnswerKey;
-    if (gradingAnswerKey) gradingAnswerKey.value = savedAnswerKey;
+  if (event.key === "Escape") {
+    document.body.classList.remove("sidebar-open");
   }
-
-  loadSavedRubric();
-  updateCriterionTotal();
-  renderHistory();
-
-  console.info("GradeNova initialized. Real AI grading requires a configured backend.");
-});
+}
