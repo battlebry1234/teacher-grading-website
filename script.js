@@ -1,9 +1,8 @@
-/* =========================================================
-   GradeNova — theme controls, rubric builder, settings, history
-   The frontend prepares requests; it does not claim to grade
-   until a real backend endpoint is configured.
-   ========================================================= */
 
+/* =========================================================
+   GradeNova — Theme Controls, Rubric Builder, Settings, History
+   Actual AI grading will require the hosted Python backend.
+   ========================================================= */
 "use strict";
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -16,19 +15,19 @@ document.addEventListener("DOMContentLoaded", () => {
   const THEMES = {
     cosmic: {
       name: "Cosmic Space",
-      description: "A cinematic deep-space atmosphere with layered stars, distant planets, and violet nebula light."
+      description: "A deep-space scene filled with stars, planets, and glowing nebulae."
     },
     inferno: {
       name: "Inferno Fire",
-      description: "A dark volcanic atmosphere with rising flames, molten light, and drifting embers."
+      description: "A fiery atmosphere with glowing flames, heat, and drifting embers."
     },
     forest: {
       name: "Enchanted Forest",
-      description: "A moonlit woodland with deep tree silhouettes, low mist, and subtle fireflies."
+      description: "Ancient tree silhouettes, moonlit mist, green vines, and fireflies."
     },
     ocean: {
       name: "Ocean Depths",
-      description: "A deep underwater scene with blue light shafts, distant sea life, and drifting bubbles."
+      description: "Underwater light rays, swimming fish, seaweed, and rising bubbles."
     },
     light: {
       name: "Light",
@@ -48,6 +47,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const historyList = $("#history-list");
 
   let nextCriterionId = 4;
+
+  /* ---------- Safe local storage ---------- */
 
   function safeRead(key, fallback) {
     try {
@@ -69,9 +70,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  /* ---------- Theme controls ---------- */
+
   function updateThemeButtons(theme) {
     $$("[data-set-theme]").forEach((button) => {
       const selected = button.dataset.setTheme === theme;
+
       button.classList.toggle("active", selected);
       button.setAttribute("aria-pressed", String(selected));
     });
@@ -82,20 +86,9 @@ document.addEventListener("DOMContentLoaded", () => {
       theme = "cosmic";
     }
 
+    // The stylesheet uses this attribute to activate the scene,
+    // palette, and theme-specific logo effects.
     body.dataset.theme = theme;
-
-    const themeColor = $('meta[name="theme-color"]');
-    const colors = {
-      cosmic: "#07091d",
-      inferno: "#170603",
-      forest: "#03140d",
-      ocean: "#031421",
-      light: "#eef2ff"
-    };
-
-    if (themeColor) {
-      themeColor.content = colors[theme];
-    }
 
     if (themeSelect) {
       themeSelect.value = theme;
@@ -115,8 +108,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (persist) {
+      const previous = safeRead(PREFS_KEY, {});
       safeWrite(PREFS_KEY, {
-        ...safeRead(PREFS_KEY, {}),
+        ...previous,
         theme
       });
     }
@@ -131,6 +125,8 @@ document.addEventListener("DOMContentLoaded", () => {
   themeSelect?.addEventListener("change", () => {
     applyTheme(themeSelect.value);
   });
+
+  /* ---------- Background motion ---------- */
 
   function applyMotion(enabled) {
     body.classList.toggle("motion-off", !enabled);
@@ -148,9 +144,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   motionCheckbox?.addEventListener("change", () => {
     applyMotion(motionCheckbox.checked);
+
+    const previous = safeRead(PREFS_KEY, {});
+    safeWrite(PREFS_KEY, {
+      ...previous,
+      motion: motionCheckbox.checked
+    });
   });
 
-  /* Decorative particles. They do not block buttons or forms. */
   function createAmbientParticles() {
     const container = $("#ambient-particles");
 
@@ -171,6 +172,7 @@ document.addEventListener("DOMContentLoaded", () => {
       particle.style.opacity = `${0.18 + (i % 5) * 0.1}`;
 
       const size = 1 + (i % 3);
+
       particle.style.width = `${size}px`;
       particle.style.height = `${size}px`;
 
@@ -179,6 +181,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     container.appendChild(fragment);
   }
+
+  /* ---------- Rubric builder ---------- */
 
   function createCriterion(id) {
     const row = document.createElement("div");
@@ -261,7 +265,10 @@ document.addEventListener("DOMContentLoaded", () => {
       const remove = $(".remove-criterion", row);
 
       if (remove) {
-        remove.setAttribute("aria-label", `Remove criterion ${number}`);
+        remove.setAttribute(
+          "aria-label",
+          `Remove criterion ${number}`
+        );
       }
     });
 
@@ -274,6 +281,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const row = createCriterion(nextCriterionId++);
+
     rubricCriteria.appendChild(row);
     updateCriterionLabels();
 
@@ -283,7 +291,8 @@ document.addEventListener("DOMContentLoaded", () => {
   function collectRubric() {
     const criteria = $$(".rubric-row", rubricCriteria || document)
       .map((row) => ({
-        name: $('input[name="criterion-name"]', row)?.value.trim() || "",
+        name:
+          $('input[name="criterion-name"]', row)?.value.trim() || "",
         points: Number(
           $('input[name="criterion-points"]', row)?.value || 0
         )
@@ -299,6 +308,8 @@ document.addEventListener("DOMContentLoaded", () => {
     };
   }
 
+  /* ---------- Status messages ---------- */
+
   function setStatus(message, type = "") {
     if (!gradingStatus) {
       return;
@@ -312,12 +323,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  /* ---------- History ---------- */
+
   function renderHistory() {
     if (!historyList) {
       return;
     }
 
     const history = safeRead(HISTORY_KEY, []);
+
     historyList.replaceChildren();
 
     if (!Array.isArray(history) || history.length === 0) {
@@ -368,6 +382,8 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  /* ---------- Grading form validation ---------- */
+
   if (gradingForm) {
     gradingForm.addEventListener("submit", (event) => {
       event.preventDefault();
@@ -391,17 +407,25 @@ document.addEventListener("DOMContentLoaded", () => {
         !Number.isFinite(rubric.totalPoints) ||
         rubric.totalPoints <= 0
       ) {
-        setStatus("Enter a total possible score greater than zero.", "error");
+        setStatus(
+          "Enter a total possible score greater than zero.",
+          "error"
+        );
+
         $("#total-points")?.focus();
         return;
       }
 
       if (
         rubric.criteria.some(
-          (item) => !Number.isFinite(item.points) || item.points < 0
+          (item) =>
+            !Number.isFinite(item.points) || item.points < 0
         )
       ) {
-        setStatus("Please check the point values in your rubric.", "error");
+        setStatus(
+          "Please check the point values in your rubric.",
+          "error"
+        );
         return;
       }
 
@@ -415,7 +439,7 @@ document.addEventListener("DOMContentLoaded", () => {
         criterionTotal > rubric.totalPoints
       ) {
         setStatus(
-          `Your criteria add up to ${criterionTotal} points, which is more than the ${rubric.totalPoints} possible points. Adjust them before continuing.`,
+          `Your criteria add up to ${criterionTotal} points, which is more than the ${rubric.totalPoints} possible points. Adjust them or continue after reviewing the rubric.`,
           "error"
         );
         return;
@@ -434,10 +458,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       };
 
-      /*
-       * Do not log student work, answers, or answer-key contents.
-       * The frontend currently prepares a request only.
-       */
+      // Never log the test, student answers, or answer-key contents.
       console.info("GradeNova request prepared.", {
         hasTest: Boolean(gradingRequest.test),
         hasAnswers: Boolean(gradingRequest.answers),
@@ -497,8 +518,11 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  /* ---------- Export and clear history ---------- */
+
   $("#export-history")?.addEventListener("click", () => {
     const history = safeRead(HISTORY_KEY, []);
+
     const blob = new Blob(
       [JSON.stringify(Array.isArray(history) ? history : [], null, 2)],
       { type: "application/json" }
@@ -530,23 +554,28 @@ document.addEventListener("DOMContentLoaded", () => {
     renderHistory();
   });
 
-  $$('nav a[href^="#"], .quick-links a, .hero-actions a, .header-settings')
-    .forEach((link) => {
-      link.addEventListener("click", () => {
-        const target = link.getAttribute("href");
+  /* ---------- Navigation ---------- */
 
-        if (!target) {
-          return;
-        }
+  $$(
+    'nav a[href^="#"], .quick-links a, .hero-actions a, .header-settings'
+  ).forEach((link) => {
+    link.addEventListener("click", () => {
+      const target = link.getAttribute("href");
 
-        $$('nav a[href^="#"]').forEach((item) => {
-          item.classList.toggle(
-            "active",
-            item.getAttribute("href") === target
-          );
-        });
+      if (!target) {
+        return;
+      }
+
+      $$('nav a[href^="#"]').forEach((item) => {
+        item.classList.toggle(
+          "active",
+          item.getAttribute("href") === target
+        );
       });
     });
+  });
+
+  /* ---------- Save settings ---------- */
 
   $("#save-settings")?.addEventListener("click", () => {
     const prefs = {
@@ -574,7 +603,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  /* Restore settings from this browser. */
+  /* ---------- Restore saved preferences ---------- */
+
   const prefs = safeRead(PREFS_KEY, {});
 
   applyTheme(
