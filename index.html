@@ -1,404 +1,447 @@
 
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#6d5dfc">
-  <meta name="description" content="GradeNova — thoughtful, consistent AI-assisted grading for educators.">
-  <title>GradeNova — Teacher Grading Studio</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#050719">
+  <meta name="description" content="GradeNova — your AI-powered grading studio.">
+  <title>GradeNova — AI Grading Studio</title>
   <link rel="stylesheet" href="style.css">
-  <script defer src="script.js"></script>
+  <script src="script.js" defer></script>
 </head>
-<body>
-  <div class="app-shell">
-    <aside class="sidebar" id="sidebar">
-      <a class="brand" href="#" data-page="dashboard">
-        <span class="brand-mark">✦</span>
-        <span>Grade<span class="brand-light">Nova</span>
-          <small>TEACHER STUDIO</small>
-        </span>
-      </a>
 
-      <div class="school-chip">
-        <span class="school-dot"></span>
-        <span><b>My classroom</b><small>Educator workspace</small></span>
+<body data-theme="cosmic">
+
+  <!-- HEADER -->
+  <header class="app-header app">
+    <a href="#home" class="brand" style="text-decoration:none">
+      <span class="logo-icon" aria-hidden="true">
+        <svg viewBox="0 0 64 64" fill="none">
+          <ellipse cx="32" cy="32" rx="29" ry="11"
+                   stroke="currentColor" stroke-width="1.5"
+                   transform="rotate(-35 32 32)"/>
+          <ellipse cx="32" cy="32" rx="29" ry="11"
+                   stroke="#8B5CF6" stroke-width="1.5"
+                   transform="rotate(35 32 32)"/>
+          <path d="M10 24 L32 12 L54 24 L32 36 Z"
+                fill="#8B5CF6" stroke="#C4B5FD" stroke-width="1.5"/>
+          <path d="M19 30 V40 Q32 51 45 40 V30 L32 38 Z"
+                fill="#22D3EE" stroke="#BAE6FD" stroke-width="1.5"/>
+          <path d="M53 25 V37" stroke="#F0ABFC" stroke-width="2"/>
+          <circle cx="32" cy="24" r="2" fill="white"/>
+          <circle cx="8" cy="18" r="2" fill="#22D3EE"/>
+          <circle cx="53" cy="48" r="2" fill="#C084FC"/>
+        </svg>
+      </span>
+
+      <span>
+        <span class="brand-name">Grade<span>Nova</span></span>
+        <span class="brand-tagline" style="display:block">
+          Smarter Grading. Brighter Futures.
+        </span>
+      </span>
+    </a>
+
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <span class="muted">AI Grading Studio</span>
+      <a class="btn btn-secondary" href="#settings">⚙ Settings</a>
+    </div>
+  </header>
+
+  <!-- MAIN LAYOUT -->
+  <div class="app dashboard-layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar-panel">
+      <nav aria-label="Main navigation">
+        <a class="nav-link active" href="#home">⌂ Home</a>
+        <a class="nav-link" href="#grading">▤ Grade a Test</a>
+        <a class="nav-link" href="#rubric">✧ Rubric Builder</a>
+        <a class="nav-link" href="#answer-key">🔑 Answer Key</a>
+        <a class="nav-link" href="#history">◷ History</a>
+        <a class="nav-link" href="#settings">⚙ Settings</a>
+      </nav>
+
+      <hr style="border:0;border-top:1px solid var(--border);margin:20px 0">
+
+      <h3>Choose Your Theme</h3>
+      <p class="muted">Transform your grading studio.</p>
+
+      <div class="theme-grid" style="grid-template-columns:1fr">
+        <button type="button" class="theme-option"
+                data-set-theme="cosmic" aria-pressed="true">
+          <span class="theme-swatch"></span>
+          <span>🌌 Cosmic</span>
+        </button>
+
+        <button type="button" class="theme-option"
+                data-set-theme="inferno" aria-pressed="false">
+          <span class="theme-swatch inferno"></span>
+          <span>🔥 Inferno</span>
+        </button>
+
+        <button type="button" class="theme-option"
+                data-set-theme="forest" aria-pressed="false">
+          <span class="theme-swatch forest"></span>
+          <span>🌿 Forest</span>
+        </button>
+
+        <button type="button" class="theme-option"
+                data-set-theme="ocean" aria-pressed="false">
+          <span class="theme-swatch ocean"></span>
+          <span>🌊 Ocean</span>
+        </button>
+
+        <button type="button" class="theme-option"
+                data-set-theme="light" aria-pressed="false">
+          <span class="theme-swatch light"></span>
+          <span>☀️ Light</span>
+        </button>
       </div>
 
-      <p class="nav-label">WORKSPACE</p>
-      <nav class="nav">
-        <button class="nav-item active" data-page="dashboard">⌂ Overview</button>
-        <button class="nav-item" data-page="grader">✎ AI Grading</button>
-        <button class="nav-item" data-page="history">◷ Grade History</button>
-        <button class="nav-item" data-page="rubrics">▤ Rubric Builder</button>
-      </nav>
-
-      <p class="nav-label">PERSONALIZE</p>
-      <nav class="nav">
-        <button class="nav-item" data-page="settings">⚙ Settings</button>
-      </nav>
-
-      <div class="sidebar-bottom">
-        <div class="help-card">
-          <span class="help-spark">✦</span>
-          <b>Your teaching, amplified.</b>
-          <p>Use AI as a second set of eyes. Your judgment always comes first.</p>
-          <button data-page="grader" class="text-button">Start grading →</button>
-        </div>
-        <div class="profile">
-          <div class="avatar">T</div>
-          <span><b>Teacher account</b><small>Local workspace</small></span>
-        </div>
+      <div class="card" style="margin-top:22px">
+        <h3>✨ GradeNova</h3>
+        <p class="muted">
+          Your workspace for smarter grading and helpful feedback.
+        </p>
       </div>
     </aside>
 
-    <main class="main">
-      <header class="topbar">
-        <button class="mobile-menu" id="mobileMenu" aria-label="Toggle menu">☰</button>
-        <div class="breadcrumbs">GradeNova <span>/</span> <b id="crumb">Overview</b></div>
-        <div class="top-actions">
-          <span class="connection" id="connection"><i></i> Checking backend…</span>
-          <button class="icon-btn" id="themeQuick" aria-label="Toggle theme">☼</button>
-        </div>
-      </header>
+    <!-- MAIN CONTENT -->
+    <main class="dashboard-main" id="home">
 
-      <!-- DASHBOARD -->
-      <section class="page active" id="page-dashboard">
-        <div class="hero">
-          <div class="hero-copy">
-            <div class="eyebrow">✦ YOUR TEACHING COMMAND CENTER</div>
-            <h1>Make room for<br><span>the moments that matter.</span></h1>
-            <p>Less time buried in papers. More time helping students find their spark.</p>
-            <div class="hero-buttons">
-              <button class="btn btn-white" data-page="grader">✦ Start grading →</button>
-              <button class="btn btn-glass" data-page="rubrics">Build a rubric</button>
-            </div>
-          </div>
-          <div class="hero-art" aria-hidden="true">
-            <div class="orbit orbit-one"></div>
-            <div class="orbit orbit-two"></div>
-            <div class="floating-paper paper-back">A+</div>
-            <div class="floating-paper paper-front">
-              <span>✦</span>
-              <b>Great thinking!</b>
-              <small>Feedback that helps students grow.</small>
-              <div class="mini-lines"><i></i><i></i><i></i></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="section-heading">
-          <div><p class="eyebrow muted">THE BIG PICTURE</p><h2>Your classroom at a glance</h2></div>
-          <span class="date-pill" id="todayDate">Your workspace</span>
-        </div>
-
-        <div class="stats-grid">
-          <article class="stat-card">
-            <div class="stat-icon violet">✎</div>
-            <div class="stat-value" id="statGraded">0</div>
-            <div class="stat-label">Submissions graded</div>
-            <div class="stat-foot">Saved in this browser</div>
-          </article>
-          <article class="stat-card">
-            <div class="stat-icon mint">◉</div>
-            <div class="stat-value" id="statAverage">—</div>
-            <div class="stat-label">Average score</div>
-            <div class="stat-foot">Across saved reports</div>
-          </article>
-          <article class="stat-card">
-            <div class="stat-icon amber">☷</div>
-            <div class="stat-value" id="statRubrics">1</div>
-            <div class="stat-label">Available rubrics</div>
-            <div class="stat-foot">Reusable scoring guides</div>
-          </article>
-          <article class="stat-card">
-            <div class="stat-icon blue">✦</div>
-            <div class="stat-value">100%</div>
-            <div class="stat-label">Teacher in control</div>
-            <div class="stat-foot">Review before recording grades</div>
-          </article>
-        </div>
-
-        <div class="dashboard-grid">
-          <article class="panel">
-            <div class="panel-heading">
-              <div><h3>Recent grading</h3><p>Your latest reviewed reports</p></div>
-              <button class="text-button" data-page="history">View history →</button>
-            </div>
-            <div id="recentList" class="recent-list">
-              <div class="empty-state">
-                <span>✦</span>
-                <b>Your next great lesson starts here.</b>
-                <p>Grade a submission to see reports here.</p>
-                <button class="btn btn-primary" data-page="grader">Grade first submission</button>
-              </div>
-            </div>
-          </article>
-
-          <article class="panel">
-            <div class="panel-heading"><div><h3>Quick launch</h3><p>Jump into your workflow</p></div></div>
-            <button class="launch-row" data-page="grader">
-              <span class="launch-icon violet">✎</span>
-              <span><b>Grade a submission</b><small>Get a score and actionable feedback</small></span>
-              <span>↗</span>
-            </button>
-            <button class="launch-row" data-page="rubrics">
-              <span class="launch-icon mint">▤</span>
-              <span><b>Create a rubric</b><small>Make expectations clear</small></span>
-              <span>↗</span>
-            </button>
-            <button class="launch-row" data-page="settings">
-              <span class="launch-icon amber">⚙</span>
-              <span><b>Configure GradeNova</b><small>Connect your backend</small></span>
-              <span>↗</span>
-            </button>
-            <div class="quote-card">
-              <span>“</span>
-              <p>Feedback is a bridge between where a learner is and where they can go.</p>
-              <small>THE GRADENOVA APPROACH</small>
-            </div>
-          </article>
-        </div>
-      </section>
-
-      <!-- GRADING STUDIO -->
-      <section class="page" id="page-grader">
-        <div class="page-intro">
+      <!-- WELCOME -->
+      <section class="card" style="margin-bottom:22px">
+        <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+          <span class="logo-icon" aria-hidden="true">
+            <svg viewBox="0 0 64 64" fill="none">
+              <ellipse cx="32" cy="32" rx="29" ry="11"
+                       stroke="currentColor" stroke-width="1.5"
+                       transform="rotate(-35 32 32)"/>
+              <ellipse cx="32" cy="32" rx="29" ry="11"
+                       stroke="#8B5CF6" stroke-width="1.5"
+                       transform="rotate(35 32 32)"/>
+              <path d="M10 24 L32 12 L54 24 L32 36 Z"
+                    fill="#8B5CF6" stroke="#C4B5FD" stroke-width="1.5"/>
+              <path d="M19 30 V40 Q32 51 45 40 V30 L32 38 Z"
+                    fill="#22D3EE" stroke="#BAE6FD" stroke-width="1.5"/>
+              <circle cx="8" cy="18" r="2" fill="#22D3EE"/>
+              <circle cx="53" cy="48" r="2" fill="#C084FC"/>
+            </svg>
+          </span>
           <div>
-            <p class="eyebrow muted">THE GRADING STUDIO</p>
-            <h1>Every answer has a next step.</h1>
-            <p>Prepare a grading draft for your review.</p>
+            <h1 style="margin:0">Welcome to GradeNova ✨</h1>
+            <p style="margin-bottom:0">
+              Your AI-powered grading assistant.
+            </p>
           </div>
-          <div class="step-badge">✦ AI-assisted · Teacher-reviewed</div>
         </div>
 
-        <div class="grader-layout">
-          <form id="gradeForm" class="panel grader-form">
-            <div class="form-section">
-              <div class="form-section-title"><span class="number">01</span><div><h3>Assignment details</h3><p>Give the grader context.</p></div></div>
-
-              <label>Assignment title
-                <input id="assignmentTitle" maxlength="160" placeholder="e.g. The American Revolution" required>
-              </label>
-
-              <div class="form-two">
-                <label>Subject
-                  <select id="subject">
-                    <option>General</option>
-                    <option>English Language Arts</option>
-                    <option>Mathematics</option>
-                    <option>Science</option>
-                    <option>History / Social Studies</option>
-                    <option>World Languages</option>
-                    <option>Computer Science</option>
-                    <option>Art</option>
-                    <option>Other</option>
-                  </select>
-                </label>
-                <label>Grade level
-                  <select id="gradeLevel">
-                    <option>Not specified</option>
-                    <option>Elementary</option>
-                    <option>Middle school</option>
-                    <option>High school</option>
-                    <option>College</option>
-                  </select>
-                </label>
-              </div>
-
-              <div class="form-two">
-                <label>Maximum points
-                  <input id="maxPoints" type="number" min="1" max="1000" value="100" required>
-                </label>
-                <label>Feedback tone
-                  <select id="feedbackTone">
-                    <option>Encouraging and constructive</option>
-                    <option>Concise and direct</option>
-                    <option>Detailed and coaching-focused</option>
-                    <option>Formal and academic</option>
-                  </select>
-                </label>
-              </div>
-            </div>
-
-            <div class="form-section">
-              <div class="form-section-title"><span class="number">02</span><div><h3>Assessment criteria</h3><p>Set clear expectations.</p></div></div>
-              <label>Assignment instructions
-                <textarea id="instructions" rows="3" placeholder="Paste the assignment prompt or learning goals (optional)."></textarea>
-              </label>
-              <label>Rubric / scoring criteria
-                <textarea id="rubric" rows="4" placeholder="Accuracy: 40 points; evidence: 30; reasoning: 20; clarity: 10."></textarea>
-              </label>
-              <div class="inline-note">✦ AI can make mistakes. Review every suggested score and comment.</div>
-            </div>
-
-            <div class="form-section">
-              <div class="form-section-title"><span class="number">03</span><div><h3>Student submission</h3><p>Remove names and sensitive details when possible.</p></div></div>
-              <label>Student work
-                <textarea id="studentWork" rows="9" maxlength="30000" placeholder="Paste the student's response here…" required></textarea>
-                <div class="field-meta"><span>Text only · 30,000 characters maximum</span><span id="charCount">0 / 30,000</span></div>
-              </label>
-            </div>
-
-            <div class="form-footer">
-              <span class="privacy-note">🔒 Your API key belongs on your backend.</span>
-              <button class="btn btn-primary" id="gradeButton" type="submit">✦ Generate grading draft →</button>
-            </div>
-            <div class="form-error" id="gradeError" role="alert" hidden></div>
-          </form>
-
-          <aside class="grader-aside">
-            <div class="panel aside-card">
-              <div class="aside-illustration">✦</div>
-              <h3>A thoughtful second set of eyes.</h3>
-              <p>GradeNova can suggest a score and draft feedback. You know your students and classroom context best.</p>
-              <ul>
-                <li>✓ Criteria-based feedback</li>
-                <li>✓ Strengths and next steps</li>
-                <li>✓ Reviewable score breakdown</li>
-                <li>✓ Nothing saved until you choose</li>
-              </ul>
-            </div>
-            <div class="panel aside-card tip-card">
-              <span class="tip-icon">✧</span>
-              <b>Teacher tip</b>
-              <p>Use consistent criteria across submissions, and check suggested scores for fairness.</p>
-            </div>
-          </aside>
-        </div>
-
-        <div class="panel report-panel" id="reportPanel" hidden>
-          <div class="report-header">
-            <div><p class="eyebrow muted">DRAFT REPORT</p><h2 id="reportTitle">Grading report</h2><p id="reportSubtitle">Review this draft before saving.</p></div>
-            <div class="report-actions">
-              <button class="btn btn-outline" id="copyFeedback">Copy feedback</button>
-              <button class="btn btn-primary" id="saveReport">Save to history</button>
-            </div>
+        <div class="dashboard-grid" style="margin-top:24px">
+          <div>
+            <h3>⚡ Save Time</h3>
+            <p class="muted">Simplify the grading process.</p>
           </div>
-          <div id="reportContent"></div>
-          <p class="review-warning">Teacher review required. This draft may contain errors or unfair assumptions.</p>
+          <div>
+            <h3>🧠 Get Insights</h3>
+            <p class="muted">Generate useful feedback.</p>
+          </div>
+          <div>
+            <h3>📁 Stay Organized</h3>
+            <p class="muted">Keep your grading sessions together.</p>
+          </div>
+          <div>
+            <h3>🎨 Make It Yours</h3>
+            <p class="muted">Customize your workspace.</p>
+          </div>
         </div>
       </section>
 
-      <!-- GRADE HISTORY -->
-      <section class="page" id="page-history">
-        <div class="page-intro">
-          <div><p class="eyebrow muted">YOUR RECORDS</p><h1>Grade history.</h1><p>Reports are stored in this browser.</p></div>
-          <button class="btn btn-outline" id="exportHistory">↓ Export JSON</button>
-        </div>
-        <div class="panel history-panel">
-          <div class="history-toolbar">
-            <input id="historySearch" placeholder="Search assignment titles…" aria-label="Search history">
-            <button class="btn btn-outline" id="clearHistory">Clear history</button>
+      <!-- GRADING WORKSPACE -->
+      <section id="grading" class="card" style="margin-bottom:22px">
+        <h2>📝 Grade a Test</h2>
+        <p class="muted">
+          Paste your test and answers, choose your grading rules,
+          and prepare your grading session.
+        </p>
+
+        <form id="grading-form">
+
+          <div class="field-group">
+            <label for="test-input">1. Your Test</label>
+            <textarea id="test-input" name="test"
+              placeholder="Paste your entire test, assignment, or exam here..."
+              required></textarea>
+
+            <label for="test-file">Or upload your test</label>
+            <input id="test-file" name="test-file" type="file"
+              accept=".txt,.pdf,.doc,.docx">
+            <small class="muted">
+              File processing must be connected before uploads can be graded.
+            </small>
           </div>
-          <div id="historyList" class="history-list"></div>
+
+          <div class="field-group">
+            <label for="answers-input">2. Your Answers</label>
+            <textarea id="answers-input" name="answers"
+              placeholder="Paste all the student's answers here..."
+              required></textarea>
+
+            <label for="answers-file">Or upload the answers</label>
+            <input id="answers-file" name="answers-file" type="file"
+              accept=".txt,.pdf,.doc,.docx">
+            <small class="muted">
+              Keep student information private when uploading work.
+            </small>
+          </div>
+
+          <!-- OPTIONAL ANSWER KEY -->
+          <details id="answer-key" class="card" style="margin-bottom:22px">
+            <summary style="cursor:pointer;font-weight:700;padding:6px">
+              🔑 Optional Answer Key
+            </summary>
+            <p class="muted">
+              Have a correct-answer guide? Add it here if you want to.
+              You can grade without one.
+            </p>
+            <label for="answer-key-input">Answer key (optional)</label>
+            <textarea id="answer-key-input" name="answer-key"
+              placeholder="Paste the correct answers or reference guide here..."></textarea>
+          </details>
+
+          <!-- RUBRIC -->
+          <section id="rubric" class="card" style="margin-bottom:22px">
+            <h2>📋 3. Grading Rubric</h2>
+            <p class="muted">
+              Define how the work should be evaluated.
+            </p>
+
+            <div class="field-group">
+              <label for="rubric-name">Rubric name</label>
+              <input id="rubric-name" name="rubric-name"
+                type="text" placeholder="e.g. Science Exam Rubric">
+            </div>
+
+            <div class="field-group">
+              <label for="grading-strictness">Grading strictness</label>
+              <select id="grading-strictness" name="strictness">
+                <option value="lenient">Lenient — allow flexibility</option>
+                <option value="balanced" selected>
+                  Balanced — fair and consistent
+                </option>
+                <option value="strict">Strict — follow criteria closely</option>
+              </select>
+            </div>
+
+            <div class="field-group">
+              <label for="total-points">Total possible points</label>
+              <input id="total-points" name="total-points"
+                type="number" min="1" max="10000" value="100">
+            </div>
+
+            <h3>Custom Criteria</h3>
+            <p class="muted">
+              Add criteria such as accuracy, reasoning, completeness,
+              or use of evidence.
+            </p>
+
+            <div id="rubric-criteria">
+              <div class="field-group rubric-row">
+                <label for="criterion-1">Criterion 1</label>
+                <input id="criterion-1" name="criterion-name"
+                  type="text" placeholder="e.g. Accuracy">
+                <label for="criterion-points-1">Points</label>
+                <input id="criterion-points-1" name="criterion-points"
+                  type="number" min="0" value="50">
+              </div>
+
+              <div class="field-group rubric-row">
+                <label for="criterion-2">Criterion 2</label>
+                <input id="criterion-2" name="criterion-name"
+                  type="text" placeholder="e.g. Explanation and reasoning">
+                <label for="criterion-points-2">Points</label>
+                <input id="criterion-points-2" name="criterion-points"
+                  type="number" min="0" value="30">
+              </div>
+
+              <div class="field-group rubric-row">
+                <label for="criterion-3">Criterion 3</label>
+                <input id="criterion-3" name="criterion-name"
+                  type="text" placeholder="e.g. Completeness">
+                <label for="criterion-points-3">Points</label>
+                <input id="criterion-points-3" name="criterion-points"
+                  type="number" min="0" value="20">
+              </div>
+            </div>
+
+            <button type="button" id="add-criterion"
+                    class="btn btn-secondary">
+              + Add Criterion
+            </button>
+
+            <div class="field-group" style="margin-top:20px">
+              <label for="rubric-instructions">
+                Additional Grading Instructions
+              </label>
+              <textarea id="rubric-instructions" name="instructions"
+                placeholder="Describe partial credit, spelling rules, accepted alternatives, special requirements, or other grading criteria..."></textarea>
+            </div>
+          </section>
+
+          <!-- ADVANCED OPTIONS -->
+          <section class="card" style="margin-bottom:22px">
+            <h2>⚙ Advanced Options</h2>
+
+            <label for="option-feedback">
+              <input id="option-feedback" name="feedback"
+                type="checkbox" checked style="width:auto">
+              Include AI feedback
+            </label>
+
+            <label for="option-breakdown">
+              <input id="option-breakdown" name="breakdown"
+                type="checkbox" checked style="width:auto">
+              Show detailed grade breakdown
+            </label>
+
+            <label for="option-history">
+              <input id="option-history" name="history"
+                type="checkbox" checked style="width:auto">
+              Save results to history
+            </label>
+
+            <label for="option-explanations">
+              <input id="option-explanations" name="explanations"
+                type="checkbox" checked style="width:auto">
+              Explain deductions and partial credit
+            </label>
+          </section>
+
+          <button type="submit" id="grade-button" class="btn"
+                  style="width:100%;min-height:54px;font-size:1.05rem">
+            ✨ Grade with GradeNova AI →
+          </button>
+
+          <p id="grading-status" class="muted" role="status"
+             aria-live="polite">
+            Your workspace is ready. AI grading will work once the
+            backend and API key are configured.
+          </p>
+        </form>
+      </section>
+
+      <!-- RESULTS -->
+      <section id="results" class="card" style="margin-bottom:22px">
+        <h2>📊 Grading Results</h2>
+        <p class="muted">
+          Your score, breakdown, and feedback will appear here after
+          grading is connected.
+        </p>
+
+        <div id="results-content" aria-live="polite">
+          <p class="muted">No grading results yet.</p>
         </div>
       </section>
 
-      <!-- RUBRIC BUILDER -->
-      <section class="page" id="page-rubrics">
-        <div class="page-intro">
-          <div><p class="eyebrow muted">CONSISTENCY TOOLKIT</p><h1>Build your rubric.</h1><p>Create reusable scoring guides.</p></div>
-        </div>
-        <div class="rubric-layout">
-          <form id="rubricForm" class="panel rubric-editor">
-            <h3>Rubric builder</h3>
-            <p class="subtle">Create a scoring guide for your grading sessions.</p>
-            <label>Rubric name
-              <input id="rubricName" maxlength="100" placeholder="e.g. Evidence-based paragraph" required>
-            </label>
-            <label>Criteria and point values
-              <textarea id="rubricText" rows="8" placeholder="Main idea — 20 points&#10;Evidence — 30 points&#10;Reasoning — 30 points&#10;Clarity — 20 points" required></textarea>
-            </label>
-            <div class="form-footer">
-              <span class="privacy-note">Saved in this browser</span>
-              <button class="btn btn-primary" type="submit">Save rubric →</button>
-            </div>
-            <div class="form-error" id="rubricError" role="alert" hidden></div>
-          </form>
-          <div class="panel saved-rubrics">
-            <h3>Your saved rubrics</h3>
-            <p class="subtle">Apply a saved rubric to the grading studio.</p>
-            <div id="rubricList"></div>
-          </div>
+      <!-- HISTORY -->
+      <section id="history" class="card" style="margin-bottom:22px">
+        <h2>◷ Recent Activity</h2>
+        <p class="muted">
+          Your saved grading sessions will appear here.
+        </p>
+        <div id="history-list">
+          <p class="muted">No saved sessions yet.</p>
         </div>
       </section>
 
       <!-- SETTINGS -->
-      <section class="page" id="page-settings">
-        <div class="page-intro">
-          <div><p class="eyebrow muted">MAKE IT YOURS</p><h1>Your studio, your rules.</h1><p>Personalize the interface and connect your backend.</p></div>
+      <section id="settings" class="card">
+        <h2>⚙ Settings</h2>
+        <p class="muted">
+          Personalize the way GradeNova looks and behaves.
+        </p>
+
+        <div class="field-group">
+          <label for="settings-theme">Appearance theme</label>
+          <select id="settings-theme" name="settings-theme">
+            <option value="cosmic">🌌 Cosmic Space</option>
+            <option value="inferno">🔥 Inferno</option>
+            <option value="forest">🌿 Enchanted Forest</option>
+            <option value="ocean">🌊 Ocean</option>
+            <option value="light">☀️ Light Mode</option>
+          </select>
         </div>
 
-        <div class="settings-grid">
-          <div class="panel settings-card">
-            <div class="settings-title"><span class="setting-icon violet">⚙</span><div><h3>Backend connection</h3><p>Connect your deployed Render service.</p></div></div>
-            <label>Render backend URL
-              <input id="backendUrl" type="url" placeholder="https://your-service.onrender.com">
-              <small>Enter your service URL without /api/grade.</small>
-            </label>
-            <div class="settings-actions">
-              <button class="btn btn-primary" id="saveBackend">Save connection</button>
-              <button class="btn btn-outline" id="testBackend">Test connection</button>
-            </div>
-            <div id="backendMessage" class="settings-message" role="status"></div>
-          </div>
-
-          <div class="panel settings-card">
-            <div class="settings-title"><span class="setting-icon mint">☼</span><div><h3>Appearance</h3><p>Choose your preferred look.</p></div></div>
-            <label>Color theme
-              <select id="themeSelect">
-                <option value="light">Cloud light</option>
-                <option value="dark">Midnight</option>
-                <option value="ocean">Ocean</option>
-                <option value="forest">Forest</option>
-              </select>
-            </label>
-            <label>Interface density
-              <select id="densitySelect">
-                <option value="comfortable">Comfortable</option>
-                <option value="compact">Compact</option>
-              </select>
-            </label>
-            <label class="check-row"><input type="checkbox" id="animationsToggle" checked> Use subtle animations</label>
-          </div>
-
-          <div class="panel settings-card">
-            <div class="settings-title"><span class="setting-icon amber">✦</span><div><h3>Grading defaults</h3><p>Set your starting preferences.</p></div></div>
-            <label>Default feedback tone
-              <select id="defaultTone">
-                <option>Encouraging and constructive</option>
-                <option>Concise and direct</option>
-                <option>Detailed and coaching-focused</option>
-                <option>Formal and academic</option>
-              </select>
-            </label>
-            <label class="check-row"><input type="checkbox" id="confirmSave" checked> Confirm before clearing reports</label>
-            <label class="check-row"><input type="checkbox" id="showTips" checked> Show teacher reminders</label>
-            <button class="btn btn-primary" id="savePreferences">Save preferences</button>
-          </div>
-
-          <div class="panel settings-card">
-            <div class="settings-title"><span class="setting-icon blue">🔒</span><div><h3>Privacy & data</h3><p>Know where your information goes.</p></div></div>
-            <div class="privacy-list">
-              <p><b>On this browser</b><br>Saved reports, rubrics, and preferences may be stored locally.</p>
-              <p><b>Sent to your backend</b><br>When grading, assignment details and student work may be sent to your configured backend and AI provider.</p>
-              <p><b>Keep secrets private</b><br>Never put your Gemini API key in GitHub code or browser settings.</p>
-            </div>
-            <button class="btn btn-outline" id="clearLocalData">Clear local GradeNova data</button>
-          </div>
+        <div class="field-group">
+          <label for="settings-motion">
+            <input id="settings-motion" type="checkbox" checked
+                   style="width:auto">
+            Enable background animations
+          </label>
         </div>
-        <div class="about-line">GradeNova • Independent educator tool • Teacher judgment first</div>
+
+        <div class="field-group">
+          <label for="settings-default-strictness">
+            Default grading strictness
+          </label>
+          <select id="settings-default-strictness">
+            <option value="lenient">Lenient</option>
+            <option value="balanced" selected>Balanced</option>
+            <option value="strict">Strict</option>
+          </select>
+        </div>
+
+        <button type="button" id="save-settings" class="btn">
+          Save Preferences
+        </button>
+
+        <p id="settings-status" class="muted" role="status"
+           aria-live="polite"></p>
       </section>
 
-      <footer class="footer">
-        <span>✦ GradeNova</span>
-        <span>Thoughtful tools for thoughtful teaching.</span>
-        <span>Teacher judgment first.</span>
-      </footer>
     </main>
+
+    <!-- QUICK TOOLS -->
+    <aside class="sidebar-panel">
+      <h2>⚡ Quick Tools</h2>
+      <p class="muted">Jump to what you need.</p>
+
+      <div style="display:grid;gap:12px">
+        <a class="btn btn-secondary" href="#rubric">📋 Rubric Builder</a>
+        <a class="btn btn-secondary" href="#answer-key">🔑 Answer Key</a>
+        <a class="btn btn-secondary" href="#settings">⚙ Settings</a>
+        <a class="btn btn-secondary" href="#results">📊 Results</a>
+        <a class="btn btn-secondary" href="#history">◷ History</a>
+      </div>
+
+      <div class="card" style="margin-top:22px">
+        <h3>💡 Grading Tip</h3>
+        <p class="muted">
+          A clear rubric helps establish consistent grading criteria.
+          Review AI-generated scores before using them as final grades.
+        </p>
+      </div>
+
+      <div class="card" style="margin-top:18px">
+        <h3>🚀 What's Next?</h3>
+        <p class="muted">
+          Connect the theme controls, rubric builder, saved preferences,
+          and grading form to JavaScript and the Python backend.
+        </p>
+      </div>
+    </aside>
+
   </div>
 
-  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <!-- FOOTER -->
+  <footer>
+    <p>
+      <strong>✧ GradeNova</strong>
+      &nbsp; | &nbsp; Smarter Grading. Brighter Futures.
+    </p>
+    <p class="muted">AI-generated grades should always be reviewed.</p>
+  </footer>
+
 </body>
 </html>
