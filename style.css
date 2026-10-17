@@ -1793,3 +1793,192 @@ input[type="file"]::file-selector-button {
     transition-duration: .01ms !important;
   }
 }
+
+/* ==========================================
+   GRADENOVA — FUTURISTIC ATMOSPHERE UPGRADE
+   Enhanced lighting, depth, and logo effects
+   ========================================== */
+
+:root {
+  --gn-neon-glow: color-mix(in srgb, var(--accent) 45%, transparent);
+}
+
+/* Smooth, cinematic background transitions */
+body {
+  transition:
+    background-color 700ms ease,
+    color 350ms ease;
+}
+
+.scene {
+  transition:
+    opacity 900ms ease,
+    filter 900ms ease;
+}
+
+/* Richer cosmic atmosphere */
+body[data-theme="cosmic"] .scene-cosmic {
+  background:
+    radial-gradient(
+      ellipse at 50% 30%,
+      rgba(112, 67, 255, 0.22),
+      transparent 45%
+    ),
+    radial-gradient(
+      ellipse at 85% 70%,
+      rgba(20, 190, 255, 0.12),
+      transparent 38%
+    ),
+    linear-gradient(
+      180deg,
+      #03040f 0%,
+      #0a0b27 55%,
+      #030510 100%
+    );
+}
+
+/* More dramatic firelight */
+body[data-theme="inferno"] .scene-inferno {
+  background:
+    radial-gradient(
+      ellipse at 50% 100%,
+      rgba(255, 76, 0, 0.30),
+      transparent 58%
+    ),
+    radial-gradient(
+      ellipse at 15% 75%,
+      rgba(255, 35, 15, 0.12),
+      transparent 40%
+    ),
+    linear-gradient(
+      180deg,
+      #10060a 0%,
+      #250b0b 55%,
+      #3b1007 100%
+    );
+}
+
+/* Deep forest atmosphere */
+body[data-theme="forest"] .scene-forest {
+  background:
+    radial-gradient(
+      ellipse at 50% 35%,
+      rgba(36, 150, 88, 0.19),
+      transparent 48%
+    ),
+    linear-gradient(
+      180deg,
+      #020b09 0%,
+      #06251a 58%,
+      #020b08 100%
+    );
+}
+
+/* Underwater depth and blue light */
+body[data-theme="ocean"] .scene-ocean {
+  background:
+    radial-gradient(
+      ellipse at 50% 0%,
+      rgba(91, 229, 255, 0.19),
+      transparent 48%
+    ),
+    linear-gradient(
+      180deg,
+      #063c5a 0%,
+      #05253e 48%,
+      #010b19 100%
+    );
+}
+
+/* Premium holographic graduation-cap logo */
+.cap-mark {
+  filter:
+    drop-shadow(0 0 5px var(--accent))
+    drop-shadow(0 0 13px var(--glow));
+  transition: filter 400ms ease;
+}
+
+.logo-stage {
+  transition:
+    filter 400ms ease,
+    transform 400ms ease;
+}
+
+.logo-stage:hover {
+  filter: drop-shadow(0 0 12px var(--gn-neon-glow));
+  transform: translateY(-2px);
+}
+
+/* Fire-themed logo lighting */
+body[data-theme="inferno"] .cap-mark {
+  filter:
+    drop-shadow(0 0 5px #ff5b26)
+    drop-shadow(0 0 14px rgba(255, 92, 25, 0.65));
+}
+
+body[data-theme="inferno"] .logo-flame {
+  box-shadow: 0 0 18px rgba(255, 95, 25, 0.3);
+}
+
+/* Forest-themed logo lighting */
+body[data-theme="forest"] .cap-mark {
+  filter:
+    drop-shadow(0 0 5px #4ade80)
+    drop-shadow(0 0 14px rgba(74, 222, 128, 0.4));
+}
+
+/* Ocean-themed logo lighting */
+body[data-theme="ocean"] .cap-mark {
+  filter:
+    drop-shadow(0 0 5px #5eead4)
+    drop-shadow(0 0 14px rgba(56, 189, 248, 0.5));
+}
+
+/* Light theme stays clean and readable */
+body[data-theme="light"] .cap-mark {
+  filter: drop-shadow(0 3px 7px rgba(75, 65, 150, 0.16));
+}
+
+body[data-theme="light"] .logo-stage:hover {
+  filter: none;
+}
+
+/* More polished theme-selection cards */
+.theme-card {
+  transition:
+    transform 220ms ease,
+    border-color 250ms ease,
+    box-shadow 250ms ease,
+    background-color 250ms ease;
+}
+
+.theme-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 30px var(--gn-neon-glow);
+}
+
+.theme-card.selected {
+  box-shadow:
+    0 0 0 1px var(--accent),
+    0 0 22px var(--gn-neon-glow);
+}
+
+/* Refined glass panels */
+.panel,
+.overview-card,
+.theme-live-preview {
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+/* Respect reduced-motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
