@@ -1346,3 +1346,88 @@ function handleKeyboardShortcuts(event) {
     document.body.classList.remove("sidebar-open");
   }
 }
+
+// GradeNova page navigation
+// Add AFTER the existing script's final closing "});".
+
+(() => {
+  "use strict";
+
+  function initGradeNovaNavigation() {
+    const main = document.querySelector(".dashboard-main");
+    if (!main) return;
+
+    const hero = main.querySelector(".hero-card");
+    const stats = main.querySelector(".stats-grid");
+    const grading = document.querySelector("#grading");
+    const rubric = document.querySelector("#rubric");
+    const answerKey = document.querySelector("#answer-key");
+    const results = document.querySelector("#results");
+    const history = document.querySelector("#history");
+    const settings = document.querySelector("#settings");
+
+    const pages = {
+      home: [hero, stats],
+      grading: [grading],
+      rubric: [grading],
+      "answer-key": [grading],
+      results: [results],
+      history: [history],
+      settings: [settings]
+    };
+
+    function navigate() {
+      const requested = location.hash.replace(/^#/, "") || "home";
+      const page = Object.hasOwn(pages, requested) ? requested : "home";
+      const visible = new Set(pages[page]);
+
+      // Hide all main sections that do not belong to this page.
+      [...main.children].forEach((section) => {
+        section.hidden = !visible.has(section);
+      });
+
+      // Keep the correct sidebar item highlighted.
+      document.querySelectorAll(".nav-link").forEach((link) => {
+        const active = link.getAttribute("href") === `#${page}`;
+        link.classList.toggle("active", active);
+        if (active) {
+          link.setAttribute("aria-current", "page");
+        } else {
+          link.removeAttribute("aria-current");
+        }
+      });
+
+      // Open the relevant subsection when selected.
+      if (page === "answer-key" && answerKey) {
+        answerKey.open = true;
+      }
+
+      // On the rubric and answer-key pages, move directly to that section.
+      if (page === "rubric" && rubric) {
+        requestAnimationFrame(() => {
+          rubric.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      }
+
+      if (page === "answer-key" && answerKey) {
+        requestAnimationFrame(() => {
+          answerKey.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      }
+
+      // Keep navigation changes accessible to assistive technology.
+      main.setAttribute("aria-label", `${page.replace("-", " ")} workspace`);
+    }
+
+    window.addEventListener("hashchange", navigate);
+    navigate();
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initGradeNovaNavigation, {
+      once: true
+    });
+  } else {
+    initGradeNovaNavigation();
+  }
+})();
