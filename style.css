@@ -3355,3 +3355,329 @@ body {
 
 .nova-logo__svg {
   position:
+
+/* ==================================================
+   GRADENOVA LAYOUT REPAIR
+   Paste at the VERY BOTTOM of style.css
+   ================================================== */
+
+/* Prevent the app from being constrained to a narrow column */
+html,
+body {
+  width: 100%;
+  min-width: 320px;
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+.app-shell {
+  display: grid !important;
+  grid-template-columns: 225px minmax(0, 1fr) !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-height: 100vh;
+  margin: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box;
+}
+
+.app-shell *,
+.app-shell *::before,
+.app-shell *::after {
+  box-sizing: border-box;
+}
+
+/* Keep the sidebar in its own column */
+.sidebar {
+  position: relative;
+  width: 225px !important;
+  min-width: 0;
+  max-width: none !important;
+  min-height: 100vh;
+  grid-column: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  z-index: 5;
+}
+
+/* The main content must use all remaining screen width */
+.main-content {
+  grid-column: 2;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 24px clamp(16px, 3vw, 42px) !important;
+  overflow-x: clip;
+}
+
+/* Header stretches across the content column */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0;
+  margin: 0 0 28px !important;
+}
+
+/* All page sections use the available width */
+.page-view {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0;
+  margin: 0 auto;
+}
+
+/* IMPORTANT: hidden pages must stay hidden */
+.page-view[hidden] {
+  display: none !important;
+}
+
+.page-view.active:not([hidden]) {
+  display: block;
+}
+
+/* Widen the hero and stop it from being clipped */
+.hero-panel {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 28px;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0;
+  min-height: 340px;
+  overflow: hidden;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+  flex: 1 1 400px;
+  min-width: 0;
+  max-width: 760px;
+}
+
+.hero-content h1 {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.hero-emblem {
+  flex: 0 1 280px;
+  min-width: 100px;
+  max-width: 300px;
+}
+
+/* Dashboard cards adapt to the available width */
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  width: 100%;
+  max-width: none !important;
+}
+
+.feature-card,
+.panel,
+.notice-panel,
+.stats-grid,
+.section-heading,
+.recent-list {
+  min-width: 0;
+  max-width: none !important;
+}
+
+.feature-card {
+  overflow-wrap: anywhere;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  width: 100%;
+}
+
+.customization-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  width: 100%;
+}
+
+.theme-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 14px;
+  width: 100%;
+}
+
+.grading-layout {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 20px;
+  width: 100%;
+}
+
+.grading-layout > *,
+.customization-grid > * {
+  min-width: 0;
+}
+
+/* Inputs should never force a panel wider than its container */
+input,
+textarea,
+select {
+  max-width: 100%;
+}
+
+.grading-layout input,
+.grading-layout textarea,
+.grading-layout select,
+.customization-grid input,
+.customization-grid textarea,
+.customization-grid select {
+  width: 100%;
+  min-width: 0;
+}
+
+.criterion-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 76px 36px;
+  gap: 8px;
+  align-items: center;
+}
+
+.criterion-row .criterion-name,
+.criterion-row .criterion-points {
+  width: 100%;
+  min-width: 0;
+}
+
+/* The mobile menu should not appear as a giant gray bar on desktop */
+.mobile-menu-button {
+  display: none !important;
+}
+
+/* Keep the sidebar theme list readable */
+.sidebar-theme-list {
+  display: grid;
+  gap: 6px;
+  width: 100%;
+}
+
+.theme-choice {
+  width: 100%;
+  min-width: 0;
+  text-align: left;
+}
+
+/* Prevent footer and headings from expanding the page */
+.app-footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  margin-top: 32px;
+}
+
+/* Tablet */
+@media (max-width: 1000px) {
+  .app-shell {
+    grid-template-columns: 200px minmax(0, 1fr) !important;
+  }
+
+  .sidebar {
+    width: 200px !important;
+  }
+
+  .feature-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .hero-emblem {
+    flex-basis: 180px;
+  }
+
+  .grading-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Phone */
+@media (max-width: 680px) {
+  .app-shell {
+    display: block !important;
+    width: 100% !important;
+  }
+
+  .sidebar {
+    position: relative;
+    width: 100% !important;
+    min-height: auto;
+    max-height: none;
+  }
+
+  .mobile-menu-button {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    margin: 12px;
+    padding: 0;
+    border: 1px solid var(--nova-accent, #65f4ff);
+    border-radius: 10px;
+    background: rgba(10, 20, 45, .85);
+    color: var(--nova-accent, #65f4ff);
+    cursor: pointer;
+  }
+
+  .main-content {
+    width: 100% !important;
+    padding: 16px !important;
+  }
+
+  .topbar {
+    flex-wrap: wrap;
+    margin-bottom: 20px !important;
+  }
+
+  .hero-panel {
+    min-height: 0;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 24px !important;
+  }
+
+  .hero-emblem {
+    align-self: center;
+    flex: 0 1 auto;
+    width: 140px;
+  }
+
+  .feature-grid,
+  .stats-grid,
+  .customization-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .theme-gallery {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .notice-panel {
+    flex-wrap: wrap;
+  }
+}
