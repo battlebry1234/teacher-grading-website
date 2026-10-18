@@ -3323,3 +3323,35 @@ body[data-theme="light"] {
     transition-duration: .01ms !important;
   }
 }
+
+/* =========================================================
+   GRADENOVA: FUTURISTIC LOGO + ATMOSPHERIC THEME ENGINE
+   Append this to the bottom of style.css.
+   ========================================================= */
+
+:root {
+  --nova-accent: #65f3ff;
+  --nova-secondary: #9c68ff;
+  --nova-glow: rgba(54, 190, 255, .25);
+  --nova-bg: #050817;
+  --nova-text: #eaf5ff;
+}
+
+body {
+  background-color: var(--nova-bg);
+  color: var(--nova-text);
+}
+
+/* Animated molecular graduation-cap logo */
+.nova-logo {
+  position: relative;
+  isolation: isolate;
+  width: 88px;
+  height: 88px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+}
+
+.nova-logo__svg {
+  position:
