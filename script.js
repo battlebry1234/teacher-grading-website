@@ -1,274 +1,262 @@
-"use strict";
 
-document.addEventListener("DOMContentLoaded", () => {
+'use strict';
+
+document.addEventListener('DOMContentLoaded', () => {
   const $ = (selector, root = document) => root.querySelector(selector);
   const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 
-  const PREFS_KEY = "gradenova-preferences-v2";
-  const HISTORY_KEY = "gradenova-history-v2";
-  const RUBRIC_KEY = "gradenova-rubric-v2";
+  const PREFS_KEY = 'gradenova-preferences-v3';
+  const HISTORY_KEY = 'gradenova-history-v3';
+  const RUBRIC_KEY = 'gradenova-rubric-v3';
 
   const THEMES = {
-    cosmic: {
-      name: "Cosmic",
-      description: "A cinematic deep-space atmosphere with stars, planets, and glowing nebula light."
-    },
-    ocean: {
-      name: "Ocean",
-      description: "Deep blue currents, drifting bubbles, and underwater light."
-    },
-    forest: {
-      name: "Forest",
-      description: "A moonlit woodland with mist and subtle fireflies."
-    },
-    inferno: {
-      name: "Inferno",
-      description: "A volcanic atmosphere with warm flame light and drifting embers."
-    },
-    matrix: {
-      name: "Matrix",
-      description: "Emerald ones and zeros cascade down a digital wall."
-    },
-    cyberpunk: {
-      name: "Cyberpunk",
-      description: "A neon skyline pulses with a rhythmic equalizer and glowing grid."
-    },
-    aurora: {
-      name: "Aurora",
-      description: "Layered ribbons of green, teal, and violet northern lights flow across the sky."
-    },
-    light: {
-      name: "Light",
-      description: "A clean, bright workspace with a soft, calm background."
-    }
+    cosmic: { name: 'Cosmic', description: 'Deep space, glowing planets, and cinematic nebulae.' },
+    ocean: { name: 'Ocean', description: 'Deep blue currents and underwater light.' },
+    forest: { name: 'Forest', description: 'Moonlit woodland and drifting mist.' },
+    inferno: { name: 'Inferno', description: 'Warm volcanic light and glowing embers.' },
+    matrix: { name: 'Matrix', description: 'Emerald binary digits falling through a digital world.' },
+    cyberpunk: { name: 'Cyberpunk', description: 'A neon city with a pulsing equalizer and glowing grid.' },
+    aurora: { name: 'Aurora', description: 'Moving ribbons of green, teal, and violet northern lights.' },
+    light: { name: 'Light', description: 'A clean, bright workspace.' }
   };
 
   const THEME_COLORS = {
-    cosmic: "#05091b",
-    ocean: "#031421",
-    forest: "#03130d",
-    inferno: "#170603",
-    matrix: "#010805",
-    cyberpunk: "#10051d",
-    aurora: "#041327",
-    light: "#eaf1ff"
+    cosmic: '#05091b',
+    ocean: '#031421',
+    forest: '#03130d',
+    inferno: '#170603',
+    matrix: '#010805',
+    cyberpunk: '#10051d',
+    aurora: '#041327',
+    light: '#eaf1ff'
   };
 
   const VALID_TABS = new Set([
-    "home", "grading", "rubric", "history", "results", "settings"
+    'home', 'grading', 'rubric', 'history', 'results', 'settings'
   ]);
 
-  function readStorage(key, fallback) {
+  const DEFAULT_RUBRIC = {
+    name: 'My Grading Rubric',
+    instructions: '',
+    criteria: [
+      { name: 'Accuracy', points: 50 },
+      { name: 'Reasoning and explanation', points: 30 },
+      { name: 'Completeness', points: 20 }
+    ]
+  };
+
+  function safeRead(key, fallback) {
     try {
-      const value = localStorage.getItem(key);
-      return value ? JSON.parse(value) : fallback;
+      const raw = localStorage.getItem(key);
+      return raw ? JSON.parse(raw) : fallback;
     } catch (error) {
-      console.warn("GradeNova storage read failed:", error);
+      console.warn('GradeNova could not read saved data:', error);
       return fallback;
     }
   }
 
-  function writeStorage(key, value) {
+  function safeWrite(key, value) {
     try {
       localStorage.setItem(key, JSON.stringify(value));
       return true;
     } catch (error) {
-      console.warn("GradeNova storage write failed:", error);
+      console.warn('GradeNova could not save data:', error);
       return false;
     }
   }
 
-  function showStatus(id, message, type = "") {
-    const element = $("#" + id);
-    if (!element) return;
-
-    element.textContent = message;
-    element.classList.remove("success", "error");
-
-    if (type) element.classList.add(type);
+  function setStatus(id, message, type = '') {
+    const node = $('#' + id);
+    if (!node) return;
+    node.textContent = message;
+    node.classList.remove('success', 'error');
+    if (type) node.classList.add(type);
   }
 
-  // ----------------------------------------
-  // NAVIGATION: one panel visible at a time
-  // ----------------------------------------
+  /* -------------------------------------------------------
+     NAVIGATION
+     One panel visible at a time. This does not scroll to
+     another section; it switches the actual workspace.
+  ------------------------------------------------------- */
 
-  function openTab(tab, updateAddress = true) {
-    if (!VALID_TABS.has(tab)) tab = "home";
+  function openTab(tabName, updateAddress = true) {
+    if (!VALID_TABS.has(tabName)) tabName = 'home';
 
-    document.body.dataset.activeTab = tab;
+    document.body.dataset.activeTab = tabName;
 
-    $$("[data-panel]").forEach((panel) => {
-      panel.hidden = panel.dataset.panel !== tab;
+    $$('[data-panel]').forEach((panel) => {
+      panel.hidden = panel.dataset.panel !== tabName;
     });
 
-    $$(".main-nav a[href^='#']").forEach((link) => {
-      const active = link.getAttribute("href") === "#" + tab;
+    $$('.main-nav a[href^="#"]').forEach((link) => {
+      const selected = link.getAttribute('href') === '#' + tabName;
+      link.classList.toggle('active', selected);
 
-      link.classList.toggle("active", active);
-
-      if (active) {
-        link.setAttribute("aria-current", "page");
+      if (selected) {
+        link.setAttribute('aria-current', 'page');
       } else {
-        link.removeAttribute("aria-current");
+        link.removeAttribute('aria-current');
       }
     });
 
-    if (updateAddress && location.hash !== "#" + tab) {
-      history.replaceState(null, "", "#" + tab);
+    if (updateAddress && location.hash !== '#' + tabName) {
+      history.replaceState(null, '', '#' + tabName);
     }
 
-    window.scrollTo({ top: 0, behavior: "auto" });
+    window.scrollTo({ top: 0, behavior: 'auto' });
   }
 
-  // Intercept only links that point to a known workspace tab.
-  document.addEventListener("click", (event) => {
+  document.addEventListener('click', (event) => {
     if (!(event.target instanceof Element)) return;
 
-    const link = event.target.closest("a[href^='#']");
+    const link = event.target.closest('a[href^="#"]');
     if (!link) return;
 
-    const tab = link.getAttribute("href").slice(1);
-
-    if (!VALID_TABS.has(tab)) return;
+    const tabName = link.getAttribute('href').slice(1);
+    if (!VALID_TABS.has(tabName)) return;
 
     event.preventDefault();
-    openTab(tab);
+    openTab(tabName);
   });
 
-  window.addEventListener("hashchange", () => {
+  window.addEventListener('hashchange', () => {
     openTab(location.hash.slice(1), false);
   });
 
-  // ----------------------------------------
-  // THEMES
-  // ----------------------------------------
+  /* -------------------------------------------------------
+     THEMES
+  ------------------------------------------------------- */
 
   function updateThemeButtons(theme) {
-    $$("[data-set-theme]").forEach((button) => {
-      const active = button.dataset.setTheme === theme;
-
-      button.classList.toggle("active", active);
-      button.setAttribute("aria-pressed", String(active));
+    $$('[data-set-theme]').forEach((button) => {
+      const selected = button.dataset.setTheme === theme;
+      button.classList.toggle('active', selected);
+      button.setAttribute('aria-pressed', String(selected));
     });
   }
 
+  function getPrefs() {
+    const prefs = safeRead(PREFS_KEY, {});
+    return prefs && typeof prefs === 'object' ? prefs : {};
+  }
+
+  function savePref(name, value) {
+    safeWrite(PREFS_KEY, { ...getPrefs(), [name]: value });
+  }
+
   function applyTheme(theme, persist = true) {
-    if (!Object.hasOwn(THEMES, theme)) theme = "cosmic";
+    if (!Object.hasOwn(THEMES, theme)) theme = 'cosmic';
 
     document.body.dataset.theme = theme;
 
     const meta = $('meta[name="theme-color"]');
     if (meta) meta.content = THEME_COLORS[theme];
 
-    const select = $("#settings-theme");
+    const select = $('#settings-theme');
     if (select) select.value = theme;
 
     updateThemeButtons(theme);
 
-    $("#current-theme-name").textContent = THEMES[theme].name;
-    $("#current-theme-description").textContent =
-      THEMES[theme].description;
+    $('#current-theme-name').textContent = THEMES[theme].name;
+    $('#current-theme-description').textContent = THEMES[theme].description;
 
-    if (persist) {
-      const oldPrefs = readStorage(PREFS_KEY, {});
-      writeStorage(PREFS_KEY, { ...oldPrefs, theme });
-    }
+    if (persist) savePref('theme', theme);
   }
 
-  $$("[data-set-theme]").forEach((button) => {
-    button.addEventListener("click", () => {
+  $$('[data-set-theme]').forEach((button) => {
+    button.addEventListener('click', () => {
       applyTheme(button.dataset.setTheme);
     });
   });
 
-  $("#settings-theme").addEventListener("change", (event) => {
+  $('#settings-theme').addEventListener('change', (event) => {
     applyTheme(event.target.value);
   });
 
-  $("#quick-theme").addEventListener("click", () => {
-    const themes = Object.keys(THEMES);
-    const current = themes.indexOf(document.body.dataset.theme);
-    applyTheme(themes[(current + 1) % themes.length]);
+  $('#quick-theme').addEventListener('click', () => {
+    const names = Object.keys(THEMES);
+    const current = names.indexOf(document.body.dataset.theme);
+    applyTheme(names[(current + 1) % names.length]);
   });
 
-  // ----------------------------------------
-  // CUSTOM ACCENT COLOR AND MOTION
-  // ----------------------------------------
+  /* -------------------------------------------------------
+     ACCENT COLOR AND MOTION
+  ------------------------------------------------------- */
 
   function applyAccent(color, persist = true) {
-    if (!/^#[0-9a-f]{6}$/i.test(color)) color = "#39d7ff";
+    if (!/^#[0-9a-f]{6}$/i.test(color)) color = '#39d7ff';
 
-    document.documentElement.style.setProperty("--accent", color);
-    $("#accent-color").value = color;
+    // Set the accent on the body so it overrides theme palettes.
+    document.body.style.setProperty('--accent', color);
 
-    if (persist) {
-      const oldPrefs = readStorage(PREFS_KEY, {});
-      writeStorage(PREFS_KEY, { ...oldPrefs, accent: color });
-    }
+    const picker = $('#accent-color');
+    if (picker) picker.value = color;
+
+    if (persist) savePref('accent', color);
   }
 
-  $("#accent-color").addEventListener("input", (event) => {
+  $('#accent-color').addEventListener('input', (event) => {
     applyAccent(event.target.value);
   });
 
-  function applyMotion(enabled) {
-    document.body.classList.toggle("motion-off", !enabled);
-    $("#settings-motion").checked = enabled;
-    $("#ambient-particles").hidden = !enabled;
+  function applyMotion(enabled, persist = false) {
+    document.body.classList.toggle('motion-off', !enabled);
+    $('#settings-motion').checked = enabled;
+    $('#ambient-particles').hidden = !enabled;
+
+    if (persist) savePref('motion', enabled);
   }
 
-  $("#settings-motion").addEventListener("change", (event) => {
-    applyMotion(event.target.checked);
+  $('#settings-motion').addEventListener('change', (event) => {
+    applyMotion(event.target.checked, true);
   });
 
-  // ----------------------------------------
-  // CREATE ANIMATED BACKGROUND ELEMENTS
-  // ----------------------------------------
+  /* -------------------------------------------------------
+     BACKGROUND ANIMATION ELEMENTS
+  ------------------------------------------------------- */
 
   function createAnimations() {
-    const rain = $("#matrix-rain");
+    const rain = $('#matrix-rain');
 
-    if (rain && !rain.childElementCount) {
-      for (let i = 0; i < 28; i++) {
-        const column = document.createElement("span");
-
-        column.className = "matrix-column";
-        column.style.setProperty("--x", `${(i * 3.73) % 100}%`);
-        column.style.setProperty("--duration", `${7 + (i % 8) * 1.4}s`);
-        column.style.setProperty("--delay", `${-(i % 10) * 1.35}s`);
+    if (rain && rain.childElementCount === 0) {
+      for (let i = 0; i < 28; i += 1) {
+        const column = document.createElement('span');
+        column.className = 'matrix-column';
+        column.style.setProperty('--x', `${(i * 3.73) % 100}%`);
+        column.style.setProperty('--duration', `${7 + (i % 8) * 1.4}s`);
+        column.style.setProperty('--delay', `${-(i % 10) * 1.35}s`);
 
         column.textContent = Array.from(
           { length: 26 },
           (_, n) => (i * 7 + n * 3 + (n % 2)) % 2
-        ).join("\n");
+        ).join('\n');
 
         rain.appendChild(column);
       }
     }
 
-    const equalizer = $("#cyber-equalizer");
+    const equalizer = $('#cyber-equalizer');
 
-    if (equalizer && !equalizer.childElementCount) {
-      for (let i = 0; i < 48; i++) {
-        const bar = document.createElement("i");
+    if (equalizer && equalizer.childElementCount === 0) {
+      for (let i = 0; i < 48; i += 1) {
+        const bar = document.createElement('i');
 
-        bar.style.setProperty("--h", `${22 + ((i * 31) % 76)}%`);
-        bar.style.setProperty("--beat", `${0.38 + (i % 7) * 0.09}s`);
+        bar.style.setProperty('--h', `${22 + ((i * 31) % 76)}%`);
+        bar.style.setProperty('--beat', `${0.38 + (i % 7) * 0.09}s`);
         bar.style.animationDelay = `${-(i % 9) * 0.12}s`;
 
         equalizer.appendChild(bar);
       }
     }
 
-    const particles = $("#ambient-particles");
+    const container = $('#ambient-particles');
 
-    if (particles && !particles.childElementCount) {
+    if (container && container.childElementCount === 0) {
       const fragment = document.createDocumentFragment();
 
-      for (let i = 0; i < 25; i++) {
-        const particle = document.createElement("span");
-
-        particle.className = "ambient-particle";
+      for (let i = 0; i < 25; i += 1) {
+        const particle = document.createElement('span');
+        particle.className = 'ambient-particle';
         particle.style.left = `${(i * 37 + 11) % 100}%`;
         particle.style.top = `${(i * 23 + 17) % 100}%`;
         particle.style.animationDuration = `${14 + (i % 9) * 2}s`;
@@ -282,317 +270,294 @@ document.addEventListener("DOMContentLoaded", () => {
         fragment.appendChild(particle);
       }
 
-      particles.appendChild(fragment);
+      container.appendChild(fragment);
     }
   }
 
-  // ----------------------------------------
-  // RUBRIC BUILDER
-  // ----------------------------------------
+  /* -------------------------------------------------------
+     RUBRIC BUILDER
+  ------------------------------------------------------- */
 
-  const rubricContainer = $("#rubric-criteria");
+  const rubricContainer = $('#rubric-criteria');
 
-  function createCriterion(name = "", points = 0) {
-    const row = document.createElement("div");
-    row.className = "criterion-row";
+  function criterionRow(name = '', points = 0) {
+    const row = document.createElement('div');
+    row.className = 'criterion-row';
 
-    const nameLabel = document.createElement("label");
-    nameLabel.append("Criterion ");
+    const nameLabel = document.createElement('label');
+    nameLabel.append('Criterion ');
 
-    const nameInput = document.createElement("input");
-    nameInput.name = "criterion-name";
+    const nameInput = document.createElement('input');
+    nameInput.name = 'criterion-name';
     nameInput.value = name;
     nameInput.maxLength = 150;
-    nameInput.placeholder = "e.g. Evidence and reasoning";
+    nameInput.placeholder = 'e.g. Evidence and reasoning';
     nameLabel.appendChild(nameInput);
 
-    const pointsLabel = document.createElement("label");
-    pointsLabel.append("Points ");
+    const pointsLabel = document.createElement('label');
+    pointsLabel.append('Points ');
 
-    const pointsInput = document.createElement("input");
-    pointsInput.name = "criterion-points";
-    pointsInput.type = "number";
-    pointsInput.min = "0";
-    pointsInput.max = "10000";
-    pointsInput.step = "1";
+    const pointsInput = document.createElement('input');
+    pointsInput.name = 'criterion-points';
+    pointsInput.type = 'number';
+    pointsInput.min = '0';
+    pointsInput.max = '10000';
+    pointsInput.step = '1';
     pointsInput.value = String(points);
     pointsLabel.appendChild(pointsInput);
 
-    const removeButton = document.createElement("button");
-    removeButton.type = "button";
-    removeButton.className = "remove-criterion";
-    removeButton.textContent = "×";
-    removeButton.setAttribute("aria-label", "Remove criterion");
+    const remove = document.createElement('button');
+    remove.type = 'button';
+    remove.className = 'remove-criterion';
+    remove.textContent = '×';
+    remove.setAttribute('aria-label', 'Remove criterion');
 
-    removeButton.addEventListener("click", () => {
+    remove.addEventListener('click', () => {
       row.remove();
       updateRubricSummary();
     });
 
-    row.append(nameLabel, pointsLabel, removeButton);
+    row.append(nameLabel, pointsLabel, remove);
     return row;
   }
 
-  function getRubric() {
-    const criteria = $$(".criterion-row", rubricContainer)
-      .map((row) => ({
-        name: $('input[name="criterion-name"]', row).value.trim(),
-        points: Number(
-          $('input[name="criterion-points"]', row).value || 0
-        )
-      }))
-      .filter((item) => item.name.length > 0);
+  function collectRubric() {
+    const criteria = $$('.criterion-row', rubricContainer).map((row) => ({
+      name: $('input[name="criterion-name"]', row).value.trim(),
+      points: Number($('input[name="criterion-points"]', row).value || 0)
+    })).filter((item) => item.name.length > 0);
 
     return {
-      name: $("#rubric-name").value.trim() || "Untitled rubric",
-      instructions: $("#rubric-instructions").value.trim(),
+      name: $('#rubric-name').value.trim() || 'Untitled rubric',
+      instructions: $('#rubric-instructions').value.trim(),
       criteria,
       total: criteria.reduce((sum, item) => sum + item.points, 0)
     };
   }
 
   function updateRubricSummary() {
-    const rubric = getRubric();
+    const rubric = collectRubric();
 
-    $("#rubric-total").textContent = String(rubric.total);
-    $("#criteria-count").textContent = String(rubric.criteria.length);
+    $('#rubric-total').textContent = String(rubric.total);
+    $('#criteria-count').textContent = String(rubric.criteria.length);
 
-    const assignmentTotal = Number($("#total-points").value || 100);
-    const difference = rubric.total - assignmentTotal;
+    const assignmentTotal = Number($('#total-points').value || 100);
+    const note = $('#rubric-total-note');
 
-    $("#rubric-total-note").textContent =
-      difference === 0
-        ? "Matches the assignment total."
-        : difference > 0
-          ? `Over by ${difference} point(s) compared with the assignment total (${assignmentTotal}).`
-          : `${Math.abs(difference)} point(s) remaining compared with the assignment total (${assignmentTotal}).`;
+    if (note) {
+      if (rubric.total === assignmentTotal) {
+        note.textContent = 'Matches the assignment total.';
+      } else if (rubric.total > assignmentTotal) {
+        note.textContent = `Over by ${rubric.total - assignmentTotal} points compared with the assignment total (${assignmentTotal}).`;
+      } else {
+        note.textContent = `${assignmentTotal - rubric.total} points remaining compared with the assignment total (${assignmentTotal}).`;
+      }
+    }
   }
 
-  $("#add-criterion").addEventListener("click", () => {
-    rubricContainer.appendChild(createCriterion("", 0));
+  $('#add-criterion').addEventListener('click', () => {
+    rubricContainer.appendChild(criterionRow('', 0));
+    const newest = rubricContainer.lastElementChild;
+    $('input[name="criterion-name"]', newest).focus();
     updateRubricSummary();
-
-    $('input[name="criterion-name"]', rubricContainer.lastElementChild).focus();
   });
 
-  rubricContainer.addEventListener("input", updateRubricSummary);
-  $("#total-points").addEventListener("input", updateRubricSummary);
+  rubricContainer.addEventListener('input', updateRubricSummary);
+  $('#total-points').addEventListener('input', updateRubricSummary);
 
-  $("#save-rubric").addEventListener("click", () => {
-    const rubric = getRubric();
+  $('#save-rubric').addEventListener('click', () => {
+    const rubric = collectRubric();
 
     if (!rubric.criteria.length) {
-      showStatus(
-        "rubric-status",
-        "Add at least one named criterion before saving.",
-        "error"
-      );
+      setStatus('rubric-status', 'Add at least one named criterion before saving.', 'error');
       return;
     }
 
-    const saved = writeStorage(RUBRIC_KEY, rubric);
-
-    showStatus(
-      "rubric-status",
-      saved
-        ? "✓ Rubric saved in this browser."
-        : "Could not save the rubric in browser storage.",
-      saved ? "success" : "error"
-    );
-  });
-
-  $("#reset-rubric").addEventListener("click", () => {
-    rubricContainer.replaceChildren(
-      createCriterion("Accuracy", 50),
-      createCriterion("Reasoning and explanation", 30),
-      createCriterion("Completeness", 20)
+    const validPoints = rubric.criteria.every((item) =>
+      Number.isFinite(item.points) && item.points >= 0
     );
 
-    $("#rubric-name").value = "My Grading Rubric";
-    $("#rubric-instructions").value = "";
+    if (!validPoints) {
+      setStatus('rubric-status', 'Check the rubric point values.', 'error');
+      return;
+    }
+
+    const saved = safeWrite(RUBRIC_KEY, rubric);
+
+    setStatus(
+      'rubric-status',
+      saved ? '✓ Rubric saved in this browser.' : 'Could not save the rubric. Check browser storage settings.',
+      saved ? 'success' : 'error'
+    );
 
     updateRubricSummary();
-
-    showStatus(
-      "rubric-status",
-      "Default rubric restored. Save it to keep the changes.",
-      "success"
-    );
   });
 
-  // ----------------------------------------
-  // SESSION HISTORY
-  // ----------------------------------------
+  $('#reset-rubric').addEventListener('click', () => {
+    rubricContainer.replaceChildren(
+      ...DEFAULT_RUBRIC.criteria.map((item) => criterionRow(item.name, item.points))
+    );
 
-  function getHistory() {
-    const value = readStorage(HISTORY_KEY, []);
-    return Array.isArray(value) ? value : [];
+    $('#rubric-name').value = DEFAULT_RUBRIC.name;
+    $('#rubric-instructions').value = DEFAULT_RUBRIC.instructions;
+
+    updateRubricSummary();
+    setStatus('rubric-status', 'Default rubric restored. Save it to keep the changes.', 'success');
+  });
+
+  /* -------------------------------------------------------
+     HISTORY
+     This saves summaries only, not student answer text.
+  ------------------------------------------------------- */
+
+  function readHistory() {
+    const saved = safeRead(HISTORY_KEY, []);
+    return Array.isArray(saved) ? saved : [];
   }
 
   function renderHistory() {
-    const list = $("#history-list");
-    const entries = getHistory();
+    const list = $('#history-list');
+    const entries = readHistory();
 
-    $("#history-count").textContent = String(entries.length);
+    $('#history-count').textContent = String(entries.length);
     list.replaceChildren();
 
     if (!entries.length) {
-      const empty = document.createElement("div");
-      empty.className = "empty-state";
+      const empty = document.createElement('div');
+      empty.className = 'empty-state';
 
-      const icon = document.createElement("span");
-      icon.className = "empty-symbol";
-      icon.textContent = "◷";
+      const icon = document.createElement('span');
+      icon.className = 'empty-symbol';
+      icon.textContent = '◷';
 
-      const title = document.createElement("h3");
-      title.textContent = "No saved sessions yet";
+      const title = document.createElement('h3');
+      title.textContent = 'No saved sessions yet';
 
-      const copy = document.createElement("p");
-      copy.textContent =
-        "Prepared session summaries will appear here. Student answers are not saved in history.";
+      const message = document.createElement('p');
+      message.textContent = 'Prepared request summaries will appear here. Student answers are not stored in history.';
 
-      empty.append(icon, title, copy);
+      empty.append(icon, title, message);
       list.appendChild(empty);
       return;
     }
 
     entries.slice().reverse().forEach((entry) => {
-      const row = document.createElement("article");
-      row.className = "history-entry";
+      const row = document.createElement('article');
+      row.className = 'history-entry';
 
-      const info = document.createElement("div");
-      const title = document.createElement("strong");
-      title.textContent = entry.title || "Grading session";
+      const info = document.createElement('div');
+      const title = document.createElement('strong');
+      title.textContent = entry.title || 'Grading session';
 
-      const details = document.createElement("small");
+      const details = document.createElement('small');
       const date = new Date(entry.createdAt);
 
       details.textContent =
-        `${Number.isNaN(date.getTime()) ? "Saved session" : date.toLocaleString()} · ` +
+        `${Number.isNaN(date.getTime()) ? 'Saved session' : date.toLocaleString()} · ` +
         `${entry.points} possible points · ${entry.criteria} criteria`;
 
       info.append(title, details);
 
-      const chip = document.createElement("span");
-      chip.className = "history-chip";
-      chip.textContent = "Prepared";
+      const chip = document.createElement('span');
+      chip.className = 'history-chip';
+      chip.textContent = 'Prepared';
 
       row.append(info, chip);
       list.appendChild(row);
     });
   }
 
-  $("#export-history").addEventListener("click", () => {
+  $('#export-history').addEventListener('click', () => {
     const blob = new Blob(
-      [JSON.stringify(getHistory(), null, 2)],
-      { type: "application/json" }
+      [JSON.stringify(readHistory(), null, 2)],
+      { type: 'application/json' }
     );
 
     const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
+    const link = document.createElement('a');
 
     link.href = url;
-    link.download = "gradenova-history.json";
-
+    link.download = 'gradenova-history.json';
     document.body.appendChild(link);
     link.click();
     link.remove();
 
-    URL.revokeObjectURL(url);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   });
 
-  $("#clear-history").addEventListener("click", () => {
-    if (!confirm("Clear saved GradeNova session summaries from this browser?")) {
-      return;
-    }
+  $('#clear-history').addEventListener('click', () => {
+    if (!window.confirm('Clear saved GradeNova session summaries from this browser?')) return;
 
-    writeStorage(HISTORY_KEY, []);
+    safeWrite(HISTORY_KEY, []);
     renderHistory();
   });
 
-  // ----------------------------------------
-  // GRADING REQUEST VALIDATION
-  // ----------------------------------------
+  /* -------------------------------------------------------
+     GRADING FORM
+     The frontend validates input but does not invent a score.
+  ------------------------------------------------------- */
 
-  $("#grading-form").addEventListener("submit", (event) => {
+  $('#grading-form').addEventListener('submit', (event) => {
     event.preventDefault();
 
-    const test = $("#test-input").value.trim();
-    const answers = $("#answers-input").value.trim();
-    const answerKey = $("#grading-answer-key").value.trim();
-    const points = Number($("#total-points").value);
-    const rubric = getRubric();
+    const test = $('#test-input').value.trim();
+    const answers = $('#answers-input').value.trim();
+    const points = Number($('#total-points').value);
+    const rubric = collectRubric();
 
     if (!test || !answers) {
-      showStatus(
-        "grading-status",
-        "Please enter both the test or assignment and the student's answers.",
-        "error"
-      );
-
-      (!test ? $("#test-input") : $("#answers-input")).focus();
+      setStatus('grading-status', 'Please enter both the assignment and the student’s answers.', 'error');
+      (!test ? $('#test-input') : $('#answers-input')).focus();
       return;
     }
 
-    if (!Number.isFinite(points) || points <= 0) {
-      showStatus(
-        "grading-status",
-        "Enter a total possible score greater than zero.",
-        "error"
-      );
-      $("#total-points").focus();
+    if (!Number.isFinite(points) || points <= 0 || points > 10000) {
+      setStatus('grading-status', 'Enter a total possible score between 1 and 10,000.', 'error');
+      $('#total-points').focus();
       return;
     }
 
-    if (rubric.criteria.some((item) => !Number.isFinite(item.points) || item.points < 0)) {
-      showStatus(
-        "grading-status",
-        "Check the rubric point values. They must be zero or greater.",
-        "error"
-      );
+    if (rubric.criteria.some((item) =>
+      !Number.isFinite(item.points) || item.points < 0
+    )) {
+      setStatus('grading-status', 'Check the rubric point values. They must be zero or greater.', 'error');
       return;
     }
 
     if (rubric.criteria.length && rubric.total > points) {
-      showStatus(
-        "grading-status",
-        `Your rubric totals ${rubric.total} points, more than the ${points} possible points. Adjust the rubric or assignment total first.`,
-        "error"
-      );
-
-      openTab("rubric");
+      setStatus('grading-status', `Your rubric totals ${rubric.total} points, which exceeds the ${points} possible points. Adjust the rubric or assignment total first.`, 'error');
+      openTab('rubric');
       return;
     }
 
-    showStatus(
-      "grading-status",
-      "✓ Request validated. No score has been generated because an AI grading backend is not connected.",
-      "success"
+    setStatus(
+      'grading-status',
+      '✓ Request validated. No score has been generated because an AI grading backend is not connected.',
+      'success'
     );
 
-    const result = $("#results-content");
+    const result = $('#results-content');
     result.replaceChildren();
 
-    const icon = document.createElement("span");
-    icon.className = "empty-symbol";
-    icon.textContent = "⌁";
+    const icon = document.createElement('span');
+    icon.className = 'empty-symbol';
+    icon.textContent = '⌁';
 
-    const title = document.createElement("h3");
-    title.textContent = "Request prepared — not graded yet";
+    const title = document.createElement('h3');
+    title.textContent = 'Request prepared — not graded yet';
 
-    const message = document.createElement("p");
-    message.textContent =
-      "Your inputs passed front-end validation. Connect a secured backend to receive an actual score and feedback report.";
+    const message = document.createElement('p');
+    message.textContent = 'Your inputs passed front-end validation. Connect a secure backend to generate an actual score and feedback report.';
 
-    const back = document.createElement("a");
-    back.className = "btn btn-primary";
-    back.href = "#grading";
-    back.textContent = "Return to grading";
+    const back = document.createElement('a');
+    back.className = 'btn btn-primary';
+    back.href = '#grading';
+    back.textContent = 'Return to grading';
 
     result.append(icon, title, message, back);
 
-    if ($("#option-history").checked) {
-      const entries = getHistory();
+    if ($('#option-history').checked) {
+      const entries = readHistory();
 
       entries.push({
         id: String(Date.now()),
@@ -600,105 +565,101 @@ document.addEventListener("DOMContentLoaded", () => {
         title: rubric.name,
         points,
         criteria: rubric.criteria.length,
-        hasAnswerKey: Boolean(answerKey),
-        strictness: $("#grading-strictness").value
+        strictness: $('#grading-strictness').value
       });
 
-      writeStorage(HISTORY_KEY, entries.slice(-50));
+      safeWrite(HISTORY_KEY, entries.slice(-50));
       renderHistory();
     }
 
-    openTab("results");
+    openTab('results');
   });
 
-  $("#clear-grading").addEventListener("click", () => {
-    $("#grading-form").reset();
-    $("#total-points").value = "100";
-
-    showStatus("grading-status", "Form cleared. Your rubric and saved history were not changed.");
+  $('#clear-grading').addEventListener('click', () => {
+    $('#grading-form').reset();
+    $('#total-points').value = '100';
+    setStatus('grading-status', 'Form cleared. Your rubric and saved history were not changed.');
     updateRubricSummary();
   });
 
-  // ----------------------------------------
-  // SETTINGS
-  // ----------------------------------------
+  /* -------------------------------------------------------
+     SETTINGS
+  ------------------------------------------------------- */
 
-  $("#save-settings").addEventListener("click", () => {
+  $('#save-settings').addEventListener('click', () => {
     const prefs = {
-      theme: $("#settings-theme").value,
-      accent: $("#accent-color").value,
-      motion: $("#settings-motion").checked,
-      strictness: $("#settings-default-strictness").value
+      theme: $('#settings-theme').value,
+      accent: $('#accent-color').value,
+      motion: $('#settings-motion').checked,
+      strictness: $('#settings-default-strictness').value
     };
 
     applyTheme(prefs.theme, false);
     applyAccent(prefs.accent, false);
-    applyMotion(prefs.motion);
+    applyMotion(prefs.motion, false);
+    $('#grading-strictness').value = prefs.strictness;
 
-    $("#grading-strictness").value = prefs.strictness;
+    const saved = safeWrite(PREFS_KEY, prefs);
 
-    const saved = writeStorage(PREFS_KEY, prefs);
-
-    showStatus(
-      "settings-status",
-      saved
-        ? "✓ Your studio preferences are saved on this device."
-        : "Could not save preferences. Check your browser storage settings.",
-      saved ? "success" : "error"
+    setStatus(
+      'settings-status',
+      saved ? '✓ Your studio preferences are saved on this device.' : 'Could not save preferences. Check browser storage settings.',
+      saved ? 'success' : 'error'
     );
   });
 
-  $("#reset-settings").addEventListener("click", () => {
-    applyTheme("cosmic", false);
-    applyAccent("#39d7ff", false);
-    applyMotion(true);
+  $('#reset-settings').addEventListener('click', () => {
+    applyTheme('cosmic', false);
+    applyAccent('#39d7ff', false);
+    applyMotion(true, false);
 
-    $("#settings-default-strictness").value = "balanced";
-    $("#grading-strictness").value = "balanced";
+    $('#settings-default-strictness').value = 'balanced';
+    $('#grading-strictness').value = 'balanced';
 
-    writeStorage(PREFS_KEY, {
-      theme: "cosmic",
-      accent: "#39d7ff",
+    safeWrite(PREFS_KEY, {
+      theme: 'cosmic',
+      accent: '#39d7ff',
       motion: true,
-      strictness: "balanced"
+      strictness: 'balanced'
     });
 
-    showStatus("settings-status", "Default appearance restored.", "success");
+    setStatus('settings-status', 'Default appearance restored.', 'success');
   });
 
-  // ----------------------------------------
-  // RESTORE SAVED PREFERENCES AND START UP
-  // ----------------------------------------
+  /* -------------------------------------------------------
+     RESTORE SAVED PREFERENCES
+  ------------------------------------------------------- */
 
-  const prefs = readStorage(PREFS_KEY, {});
+  const prefs = getPrefs();
 
   applyTheme(
-    Object.hasOwn(THEMES, prefs.theme) ? prefs.theme : "cosmic",
+    Object.hasOwn(THEMES, prefs.theme) ? prefs.theme : 'cosmic',
     false
   );
 
   applyAccent(
-    typeof prefs.accent === "string" ? prefs.accent : "#39d7ff",
+    typeof prefs.accent === 'string' ? prefs.accent : '#39d7ff',
     false
   );
 
-  applyMotion(typeof prefs.motion === "boolean" ? prefs.motion : true);
+  applyMotion(
+    typeof prefs.motion === 'boolean' ? prefs.motion : true,
+    false
+  );
 
-  if (["lenient", "balanced", "strict"].includes(prefs.strictness)) {
-    $("#settings-default-strictness").value = prefs.strictness;
-    $("#grading-strictness").value = prefs.strictness;
+  if (['lenient', 'balanced', 'strict'].includes(prefs.strictness)) {
+    $('#settings-default-strictness').value = prefs.strictness;
+    $('#grading-strictness').value = prefs.strictness;
   }
 
-  const savedRubric = readStorage(RUBRIC_KEY, null);
+  const savedRubric = safeRead(RUBRIC_KEY, null);
 
   if (savedRubric && Array.isArray(savedRubric.criteria) && savedRubric.criteria.length) {
-    $("#rubric-name").value = savedRubric.name || "My Grading Rubric";
-    $("#rubric-instructions").value = savedRubric.instructions || "";
+    $('#rubric-name').value = savedRubric.name || DEFAULT_RUBRIC.name;
+    $('#rubric-instructions').value = savedRubric.instructions || '';
 
     rubricContainer.replaceChildren(
-      ...savedRubric.criteria.map((item) =>
-        createCriterion(item.name, item.points)
-      )
+      ...savedRubric.criteria.map((item) => criterionRow(item.name, item.points))
     );
   }
 
@@ -707,11 +668,9 @@ document.addEventListener("DOMContentLoaded", () => {
   renderHistory();
 
   openTab(
-    VALID_TABS.has(location.hash.slice(1))
-      ? location.hash.slice(1)
-      : "home",
+    VALID_TABS.has(location.hash.slice(1)) ? location.hash.slice(1) : 'home',
     false
   );
 
-  console.info("GradeNova initialized. Front end ready; AI backend not connected.");
+  console.info('GradeNova initialized. Frontend ready; grading backend not connected.');
 });
