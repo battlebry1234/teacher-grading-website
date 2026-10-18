@@ -2661,3 +2661,46 @@ body::after,
 .matrix-background {
   pointer-events: none;
 }
+
+/* =========================================
+   GRADENOVA: SEPARATE PAGE VIEWS
+   ========================================= */
+
+.page-view {
+  display: none;
+  width: 100%;
+  min-width: 0;
+  animation: pageFadeIn .24s ease-out;
+}
+
+.page-view.active {
+  display: block;
+}
+
+@keyframes pageFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.main-navigation button {
+  cursor: pointer;
+}
+
+.main-navigation button.active {
+  border-color: var(--accent-color, #7b72ff);
+  color: var(--text-primary, #fff);
+  background: rgba(105, 95, 255, .16);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-view {
+    animation: none;
+  }
+}
