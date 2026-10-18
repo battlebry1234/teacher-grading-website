@@ -1,439 +1,643 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GradeNova | AI Grading Studio</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#05091b">
+  <meta name="description" content="GradeNova — your futuristic, customizable grading studio.">
+  <title>GradeNova | Teaching Command Center</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <script src="script.js" defer></script>
 </head>
-<body data-theme="cosmic">
-  <div class="ambient ambient-one"></div>
-  <div class="ambient ambient-two"></div>
 
-  <header class="topbar">
-    <a href="#home" class="brand">
-      <span class="brand-icon">◇</span>
-      <span>
-        <strong>Grade<span>Nova</span></strong>
-        <small>AI GRADING STUDIO</small>
+<body data-theme="cosmic" data-background-mode="preset">
+
+  <a class="skip-link" href="#workspace">Skip to workspace</a>
+
+  <!-- Existing animated atmospheres -->
+  <div class="scene scene-cosmic" aria-hidden="true">
+    <div class="nebula nebula-one"></div>
+    <div class="nebula nebula-two"></div>
+    <div class="starfield"></div>
+    <div class="planet planet-one"></div>
+    <div class="planet planet-two"></div>
+  </div>
+
+  <div class="scene scene-ocean" aria-hidden="true">
+    <div class="ocean-light"></div>
+    <div class="ocean-bubbles"></div>
+  </div>
+
+  <div class="scene scene-forest" aria-hidden="true">
+    <div class="forest-mist"></div>
+    <div class="forest-moon"></div>
+    <div class="forest-fireflies"></div>
+  </div>
+
+  <div class="scene scene-inferno" aria-hidden="true">
+    <div class="inferno-glow"></div>
+    <div class="inferno-embers"></div>
+  </div>
+
+  <div class="scene scene-matrix" aria-hidden="true">
+    <div id="matrix-rain"></div>
+  </div>
+
+  <div class="scene scene-cyberpunk" aria-hidden="true">
+    <div class="cyber-sun"></div>
+    <div class="cyber-city"></div>
+    <div class="cyber-grid"></div>
+    <div class="cyber-equalizer" id="cyber-equalizer"></div>
+  </div>
+
+  <div class="scene scene-aurora" aria-hidden="true">
+    <div class="aurora-stars"></div>
+    <div class="aurora-curtain aurora-one"></div>
+    <div class="aurora-curtain aurora-two"></div>
+    <div class="aurora-curtain aurora-three"></div>
+  </div>
+
+  <div class="scene scene-light" aria-hidden="true"></div>
+  <div id="ambient-particles" aria-hidden="true"></div>
+
+  <!-- Header -->
+  <header class="topbar shell">
+    <a class="brand" href="#home" aria-label="GradeNova home">
+      <span class="logo-stage" aria-hidden="true">
+        <span class="logo-orbit orbit-one"></span>
+        <span class="logo-orbit orbit-two"></span>
+        <span class="logo-orbit orbit-three"></span>
+        <span class="logo-core">
+          <svg viewBox="0 0 100 100">
+            <path d="M8 36 50 12 92 36 50 60Z"/>
+            <path d="M24 48v23q26 18 52 0V48L50 63Z"/>
+            <path d="M92 36v30"/>
+          </svg>
+        </span>
+        <i class="logo-dot dot-one"></i>
+        <i class="logo-dot dot-two"></i>
+        <i class="logo-dot dot-three"></i>
+      </span>
+
+      <span class="brand-copy">
+        <span class="brand-name">Grade<span>Nova</span></span>
+        <span class="brand-tagline">SMARTER GRADING. BRIGHTER FUTURES.</span>
       </span>
     </a>
-    <div class="top-right">
-      <span class="online-dot"></span>
-      <span>Workspace ready</span>
-      <button class="icon-button" data-go="customization" aria-label="Customize">✧</button>
+
+    <div class="top-actions">
+      <span class="connection-pill">
+        <i class="connection-dot"></i>
+        <span id="connection-label">Frontend ready · Backend not verified</span>
+      </span>
+      <button class="icon-button" id="quick-theme" type="button"
+        aria-label="Switch to the next theme" title="Cycle themes">☼</button>
+      <a class="user-pill" href="#settings">
+        <span class="avatar">TN</span>
+        <span>Teacher<br><small>Educator studio</small></span>
+      </a>
     </div>
   </header>
 
-  <div class="app-layout">
-    <aside class="sidebar">
-      <p class="eyebrow">WORKSPACE</p>
-      <nav>
-        <a href="#home" data-tab="home">⌂ <span>Overview</span></a>
-        <a href="#grading" data-tab="grading">✎ <span>Grade a test</span></a>
-        <a href="#rubric" data-tab="rubric">☷ <span>Custom rubric</span></a>
-        <a href="#results" data-tab="results">▥ <span>Results & analytics</span></a>
-        <a href="#history" data-tab="history">◷ <span>Grading history</span></a>
-      </nav>
+  <div class="shell app-layout">
 
-      <div class="separator"></div>
-      <p class="eyebrow">PERSONALIZE</p>
-      <nav>
-        <a href="#customization" data-tab="customization">✧ <span>Customization</span></a>
-        <a href="#settings" data-tab="settings">⚙ <span>Settings</span></a>
-      </nav>
-
-      <div class="sidebar-bottom">
-        <div class="mini-orb"></div>
-        <p>A calmer way to<br><strong>grade smarter.</strong></p>
-        <small>GRADENOVA STUDIO</small>
+    <!-- Sidebar -->
+    <aside class="sidebar glass-panel">
+      <div class="sidebar-title">
+        <span class="eyebrow">WORKSPACE</span>
+        <h2>Your Studio</h2>
       </div>
+
+      <nav class="main-nav" aria-label="Main navigation">
+        <a class="nav-link active" href="#home" aria-current="page">
+          <span class="nav-icon">⌂</span> Home
+        </a>
+        <a class="nav-link" href="#grading">
+          <span class="nav-icon">▤</span> Grade a Test
+        </a>
+        <a class="nav-link" href="#rubric">
+          <span class="nav-icon">✧</span> Custom Rubric
+        </a>
+        <a class="nav-link" href="#results">
+          <span class="nav-icon">▥</span> Analytics
+        </a>
+        <a class="nav-link" href="#history">
+          <span class="nav-icon">◷</span> History
+        </a>
+        <a class="nav-link" href="#customization">
+          <span class="nav-icon">✦</span> Customization
+        </a>
+        <a class="nav-link" href="#settings">
+          <span class="nav-icon">⚙</span> Settings
+        </a>
+      </nav>
+
+      <div class="side-rule"></div>
+
+      <div class="theme-heading">
+        <span class="eyebrow">ATMOSPHERE</span>
+        <h3>Choose your world</h3>
+      </div>
+
+      <div class="theme-list">
+        <button class="theme-option active" type="button" data-set-theme="cosmic" aria-pressed="true">
+          <span class="swatch sw-cosmic">✦</span>
+          <span class="theme-label"><b>Cosmic</b><small>Deep space</small></span>
+          <span class="check">✓</span>
+        </button>
+        <button class="theme-option" type="button" data-set-theme="ocean" aria-pressed="false">
+          <span class="swatch sw-ocean">≈</span>
+          <span class="theme-label"><b>Ocean</b><small>Deep currents</small></span>
+          <span class="check">✓</span>
+        </button>
+        <button class="theme-option" type="button" data-set-theme="forest" aria-pressed="false">
+          <span class="swatch sw-forest">❧</span>
+          <span class="theme-label"><b>Forest</b><small>Green mist</small></span>
+          <span class="check">✓</span>
+        </button>
+        <button class="theme-option" type="button" data-set-theme="inferno" aria-pressed="false">
+          <span class="swatch sw-inferno">♨</span>
+          <span class="theme-label"><b>Inferno</b><small>Fire and embers</small></span>
+          <span class="check">✓</span>
+        </button>
+        <button class="theme-option" type="button" data-set-theme="matrix" aria-pressed="false">
+          <span class="swatch sw-matrix">01</span>
+          <span class="theme-label"><b>Matrix</b><small>Binary rain</small></span>
+          <span class="check">✓</span>
+        </button>
+        <button class="theme-option" type="button" data-set-theme="cyberpunk" aria-pressed="false">
+          <span class="swatch sw-cyber">▥</span>
+          <span class="theme-label"><b>Cyberpunk</b><small>Neon city</small></span>
+          <span class="check">✓</span>
+        </button>
+        <button class="theme-option" type="button" data-set-theme="aurora" aria-pressed="false">
+          <span class="swatch sw-aurora">✧</span>
+          <span class="theme-label"><b>Aurora</b><small>Northern lights</small></span>
+          <span class="check">✓</span>
+        </button>
+        <button class="theme-option" type="button" data-set-theme="light" aria-pressed="false">
+          <span class="swatch sw-light">☼</span>
+          <span class="theme-label"><b>Light</b><small>Clean and bright</small></span>
+          <span class="check">✓</span>
+        </button>
+      </div>
+
+      <div class="sidebar-note">
+        <span>✦</span>
+        <p><b>Your teaching matters.</b><br>Your criteria. Your decisions. Your classroom.</p>
+      </div>
+
+      <div class="sidebar-brand"><span class="mini-logo">✦</span> GradeNova</div>
     </aside>
 
-    <main class="main-content">
+    <!-- Workspace: each tab shows a separate panel -->
+    <main class="workspace" id="workspace" tabindex="-1">
+
       <!-- HOME -->
-      <section class="panel" data-panel="home">
-        <div class="hero">
-          <div>
-            <p class="eyebrow">✦ YOUR GRADING WORKSPACE</p>
-            <h1>Clarity for every<br><span>answer.</span></h1>
-            <p class="description">
-              A focused space to organize assessments, build rubrics,
-              and turn feedback into progress.
-            </p>
-            <div class="button-row">
-              <button class="button primary" data-go="grading">＋ Start grading ↗</button>
-              <button class="button" data-go="customization">Personalize studio</button>
+      <section class="workspace-panel home-panel" data-panel="home">
+        <div class="hero glass-panel">
+          <div class="hero-copy">
+            <span class="eyebrow hero-label"><i></i> YOUR TEACHING COMMAND CENTER</span>
+            <h1>Make room for<br><span class="gradient-text">great teaching.</span></h1>
+            <p>Organize tests, build custom rubrics, and prepare thoughtful feedback — all in one high-tech studio.</p>
+            <div class="hero-buttons">
+              <a class="btn btn-primary" href="#grading">Start grading <span>→</span></a>
+              <a class="btn btn-ghost" href="#customization">✦ Customize studio</a>
             </div>
+            <p class="hero-foot"><span>✦</span> Your workflow. Your criteria. Your decisions.</p>
           </div>
 
-          <div class="hero-art" aria-hidden="true">
-            <div class="orbit orbit-one"></div>
-            <div class="orbit orbit-two"></div>
-            <div class="orbit orbit-three"></div>
-            <div class="hero-core">G</div>
-            <div class="floating-card score-card">
-              <small>PRECISION</small>
-              <strong>01 <span>/ 03</span></strong>
-              <div class="bars"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="hero-visual" aria-hidden="true">
+            <div class="hero-orbit orbit-a"></div>
+            <div class="hero-orbit orbit-b"></div>
+            <div class="hero-orbit orbit-c"></div>
+            <div class="hero-cap">
+              <svg viewBox="0 0 100 100">
+                <path d="M5 35 50 10 95 35 50 60Z"/>
+                <path d="M24 48v22q26 18 52 0V48L50 63Z"/>
+                <path d="M94 36v30"/>
+              </svg>
             </div>
-            <div class="floating-card feedback-card">
-              <b>✦</b>
-              <span><strong>Thoughtful feedback</strong><small>Made for learning</small></span>
+            <span class="orb-dot orb-one"></span>
+            <span class="orb-dot orb-two"></span>
+            <span class="orb-dot orb-three"></span>
+            <span class="orb-dot orb-four"></span>
+            <div class="floating-chip chip-a">✧ Smart feedback</div>
+            <div class="floating-chip chip-b">✓ Teacher in control</div>
+          </div>
+          <div class="hero-footer">◈ A smarter workflow, designed around you.</div>
+        </div>
+
+        <div class="section-title-row">
+          <div><span class="eyebrow">YOUR WORKSPACE</span><h2>Everything in one place</h2></div>
+          <span class="tiny-pill">One studio · your rules</span>
+        </div>
+
+        <div class="feature-grid">
+          <a class="feature-card feature-grading" href="#grading">
+            <span class="feature-icon">▤</span><h3>AI Grading</h3>
+            <p>Prepare tests and student responses for review.</p>
+            <span class="feature-link">Open grading →</span>
+          </a>
+          <a class="feature-card feature-rubric" href="#rubric">
+            <span class="feature-icon">◉</span><h3>Custom Rubrics</h3>
+            <p>Choose criteria and points that fit your assignment.</p>
+            <span class="feature-link">Build a rubric →</span>
+          </a>
+          <a class="feature-card feature-history" href="#history">
+            <span class="feature-icon">◷</span><h3>Session History</h3>
+            <p>Review, save, and export prepared sessions.</p>
+            <span class="feature-link">View history →</span>
+          </a>
+        </div>
+
+        <div class="status-banner glass-panel">
+          <span class="status-symbol">ⓘ</span>
+          <div><b>AI connection status</b><p id="home-status">Actual AI scoring requires a connected backend.</p></div>
+          <a class="text-action" href="#settings">Configure →</a>
+        </div>
+
+        <div class="bottom-grid">
+          <div class="glass-panel quick-card">
+            <div class="card-heading"><h3>Quick Actions</h3><small>Get started fast</small></div>
+            <div class="quick-buttons">
+              <a href="#grading">▤ Grade a test <span>→</span></a>
+              <a href="#rubric">✧ Build a rubric <span>→</span></a>
+              <a href="#history">◷ View history <span>→</span></a>
+              <a href="#customization">✦ Customize studio <span>→</span></a>
             </div>
           </div>
-        </div>
-
-        <div class="section-heading">
-          <div><p class="eyebrow">AT A GLANCE</p><h2>Your studio</h2></div>
-          <small>Saved on this device</small>
-        </div>
-
-        <div class="stats">
-          <article class="stat-card">
-            <div class="stat-icon">✎</div>
-            <p>Assessments saved</p>
-            <strong id="stat-count">0</strong>
-            <small>Local history records</small>
-          </article>
-          <article class="stat-card">
-            <div class="stat-icon cyan">☷</div>
-            <p>Active rubric</p>
-            <strong id="stat-rubric">Default</strong>
-            <small>Your scoring framework</small>
-          </article>
-          <article class="stat-card">
-            <div class="stat-icon pink">✧</div>
-            <p>Studio atmosphere</p>
-            <strong id="stat-theme">Cosmic</strong>
-            <small>Make it feel like yours</small>
-          </article>
-        </div>
-
-        <div class="section-heading lower-heading">
-          <div><p class="eyebrow">QUICK START</p><h2>Pick up where you want</h2></div>
-        </div>
-
-        <div class="quick-grid">
-          <button class="quick-card" data-go="grading">
-            <span class="quick-icon">✎</span>
-            <strong>Grade an assessment</strong>
-            <small>Enter answers and grading criteria ↗</small>
-          </button>
-          <button class="quick-card" data-go="rubric">
-            <span class="quick-icon">☷</span>
-            <strong>Build a rubric</strong>
-            <small>Define the criteria that matter ↗</small>
-          </button>
-          <button class="quick-card" data-go="customization">
-            <span class="quick-icon">✧</span>
-            <strong>Shape your studio</strong>
-            <small>Theme, wallpaper, sound and glow ↗</small>
-          </button>
-        </div>
-
-        <div class="notice">
-          <span>ⓘ</span>
-          <p><strong>AI grading connection</strong><br>
-          This interface prepares and saves grading requests locally.
-          Actual AI grading requires a secure backend connection.</p>
+          <div class="glass-panel glance-card">
+            <div class="card-heading"><h3>At a Glance</h3><small>Your studio, your way</small></div>
+            <div class="glance-stats">
+              <div><b id="history-count">0</b><small>Saved sessions</small></div>
+              <div><b id="criteria-count">3</b><small>Rubric criteria</small></div>
+              <div><b id="theme-count">8</b><small>Themes</small></div>
+            </div>
+          </div>
         </div>
       </section>
 
       <!-- GRADING -->
-      <section class="panel" data-panel="grading" hidden>
-        <div class="page-heading">
-          <p class="eyebrow">ASSESSMENT WORKSPACE</p>
-          <h1>Grade a <span>test.</span></h1>
-          <p>Prepare an assessment and define your grading approach.</p>
+      <section class="workspace-panel glass-panel content-panel" data-panel="grading" hidden>
+        <div class="panel-heading">
+          <div><span class="eyebrow">GRADING WORKSPACE</span><h1>Grade a Test</h1><p>Enter an assignment and student response, then prepare the request for review.</p></div>
+          <span class="step-tag">01 / INPUT</span>
         </div>
 
-        <form id="grading-form" class="two-column">
-          <div class="glass-card">
-            <p class="eyebrow">01 / ASSESSMENT</p>
-            <h2>What are we grading?</h2>
-
-            <label for="test-title">Assessment name</label>
-            <input id="test-title" required placeholder="e.g. Biology — Cell Structure">
-
-            <label for="test-input">Questions or assignment prompt</label>
-            <textarea id="test-input" rows="5" required placeholder="Paste the questions or assignment instructions..."></textarea>
-
-            <label for="answers-input">Student answers</label>
-            <textarea id="answers-input" rows="7" required placeholder="Paste student answers here..."></textarea>
-
-            <label for="answer-key">Answer key or reference notes</label>
-            <textarea id="answer-key" rows="3" placeholder="Expected answers or key concepts..."></textarea>
-          </div>
-
-          <div class="glass-card">
-            <p class="eyebrow">02 / GRADING PLAN</p>
-            <h2>Set your approach</h2>
-
-            <label for="grading-strictness">Grading strictness</label>
-            <select id="grading-strictness">
-              <option value="balanced">Balanced — fair and consistent</option>
-              <option value="lenient">Flexible — reward understanding</option>
-              <option value="strict">Strict — follow criteria closely</option>
-            </select>
-
-            <label for="total-points">Total possible points</label>
-            <input id="total-points" type="number" min="1" max="1000" value="100">
-
-            <div class="check-list">
-              <label><input id="option-feedback" type="checkbox" checked> Written feedback</label>
-              <label><input id="option-breakdown" type="checkbox" checked> Score breakdown</label>
-              <label><input id="option-explanations" type="checkbox"> Explain deductions</label>
-              <label><input id="option-history" type="checkbox" checked> Save to local history</label>
+        <form id="grading-form">
+          <div class="form-grid">
+            <div class="field">
+              <label for="test-input">Test or assignment <span class="required">*</span></label>
+              <textarea id="test-input" required placeholder="Paste the test, assignment, or exam here..."></textarea>
             </div>
-
-            <button class="button primary full-width" type="submit">Prepare grading request ↗</button>
-            <p class="hint">This demo prepares a request summary. It does not produce an AI grade yet.</p>
+            <div class="field">
+              <label for="answers-input">Student's answers <span class="required">*</span></label>
+              <textarea id="answers-input" required placeholder="Paste the student's answers here..."></textarea>
+            </div>
           </div>
-        </form>
 
-        <div id="grading-status" class="glass-card result-box" hidden aria-live="polite"></div>
+          <div class="form-grid compact-grid">
+            <div class="field">
+              <label for="grading-strictness">Grading approach</label>
+              <select id="grading-strictness">
+                <option value="lenient">Flexible — allow reasonable alternatives</option>
+                <option value="balanced" selected>Balanced — fair and consistent</option>
+                <option value="strict">Strict — follow criteria closely</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="total-points">Total possible points</label>
+              <input id="total-points" type="number" min="1" max="10000" value="100" required>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="grading-answer-key">Answer key <span class="muted">(optional)</span></label>
+            <textarea id="grading-answer-key" rows="3" placeholder="Paste correct answers or reference notes, if available..."></textarea>
+          </div>
+
+          <div class="check-grid">
+            <label><input type="checkbox" id="option-feedback" checked> Written feedback</label>
+            <label><input type="checkbox" id="option-breakdown" checked> Score breakdown</label>
+            <label><input type="checkbox" id="option-explanations" checked> Explain deductions</label>
+            <label><input type="checkbox" id="option-history" checked> Save to history</label>
+          </div>
+
+          <div class="form-actions">
+            <button class="btn btn-primary" type="submit">Prepare grading request →</button>
+            <button class="btn btn-ghost" type="button" id="clear-grading">Clear form</button>
+            <a class="text-action" href="#rubric">Edit rubric first ↗</a>
+          </div>
+          <p class="status-message" id="grading-status" role="status" aria-live="polite">Ready. Actual AI scoring needs a connected backend.</p>
+        </form>
       </section>
 
       <!-- RUBRIC -->
-      <section class="panel" data-panel="rubric" hidden>
-        <div class="page-heading">
-          <p class="eyebrow">YOUR GRADING FRAMEWORK</p>
-          <h1>Custom <span>rubric.</span></h1>
-          <p>Create a clear, repeatable standard for grading.</p>
+      <section class="workspace-panel glass-panel content-panel" data-panel="rubric" hidden>
+        <div class="panel-heading">
+          <div><span class="eyebrow">PERSONALIZE YOUR CRITERIA</span><h1>Rubric Builder</h1><p>Create grading criteria that match your assignment.</p></div>
+          <span class="step-tag">02 / CRITERIA</span>
         </div>
 
-        <div class="glass-card">
+        <div class="field">
           <label for="rubric-name">Rubric name</label>
-          <input id="rubric-name" value="General assessment rubric">
-
-          <label for="rubric-instructions">Overall instructions</label>
-          <textarea id="rubric-instructions" rows="3" placeholder="What should a strong answer demonstrate?"></textarea>
-
-          <div class="section-heading rubric-heading">
-            <div><h2>Scoring criteria</h2><small>Add the dimensions you want to evaluate.</small></div>
-            <button class="button" id="add-criterion" type="button">＋ Add criterion</button>
-          </div>
-
-          <div id="rubric-criteria" class="criteria-list">
-            <div class="criterion-row">
-              <input aria-label="Criterion name" value="Accuracy" placeholder="Criterion name">
-              <input aria-label="Criterion points" type="number" min="1" value="40">
-              <button class="remove-criterion" type="button" aria-label="Remove criterion">×</button>
-            </div>
-            <div class="criterion-row">
-              <input aria-label="Criterion name" value="Reasoning" placeholder="Criterion name">
-              <input aria-label="Criterion points" type="number" min="1" value="35">
-              <button class="remove-criterion" type="button" aria-label="Remove criterion">×</button>
-            </div>
-            <div class="criterion-row">
-              <input aria-label="Criterion name" value="Clarity" placeholder="Criterion name">
-              <input aria-label="Criterion points" type="number" min="1" value="25">
-              <button class="remove-criterion" type="button" aria-label="Remove criterion">×</button>
-            </div>
-          </div>
-
-          <div class="rubric-footer">
-            Total points <strong id="rubric-total">100</strong>
-            <button class="button primary" id="save-rubric" type="button">Save rubric</button>
-          </div>
-          <p id="rubric-status" class="inline-status"></p>
+          <input id="rubric-name" value="My Grading Rubric" maxlength="150">
         </div>
+
+        <div class="criteria-header">
+          <div><h3>Criteria and points</h3><p class="muted">Give each criterion a name and point value.</p></div>
+          <button class="btn btn-ghost" type="button" id="add-criterion">＋ Add criterion</button>
+        </div>
+
+        <div id="rubric-criteria" class="criteria-list">
+          <div class="criterion-row">
+            <label>Criterion <input name="criterion-name" value="Accuracy" maxlength="150"></label>
+            <label>Points <input name="criterion-points" type="number" min="0" max="10000" value="50"></label>
+            <button type="button" class="remove-criterion" aria-label="Remove Accuracy criterion">×</button>
+          </div>
+          <div class="criterion-row">
+            <label>Criterion <input name="criterion-name" value="Reasoning and explanation" maxlength="150"></label>
+            <label>Points <input name="criterion-points" type="number" min="0" max="10000" value="30"></label>
+            <button type="button" class="remove-criterion" aria-label="Remove reasoning criterion">×</button>
+          </div>
+          <div class="criterion-row">
+            <label>Criterion <input name="criterion-name" value="Completeness" maxlength="150"></label>
+            <label>Points <input name="criterion-points" type="number" min="0" max="10000" value="20"></label>
+            <button type="button" class="remove-criterion" aria-label="Remove completeness criterion">×</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="rubric-instructions">Additional instructions</label>
+          <textarea id="rubric-instructions" rows="4" placeholder="Partial credit, acceptable alternatives, special expectations..."></textarea>
+        </div>
+
+        <div class="rubric-summary">
+          <span>Rubric points total</span>
+          <strong id="rubric-total">100</strong>
+          <span id="rubric-total-note">Matches the default assignment total.</span>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn btn-primary" id="save-rubric" type="button">Save rubric ✓</button>
+          <button class="btn btn-ghost" id="reset-rubric" type="button">Reset defaults</button>
+          <a class="text-action" href="#grading">Continue to grading →</a>
+        </div>
+        <p class="status-message" id="rubric-status" role="status" aria-live="polite"></p>
       </section>
 
-      <!-- RESULTS -->
-      <section class="panel" data-panel="results" hidden>
-        <div class="page-heading">
-          <p class="eyebrow">INSIGHTS & PROGRESS</p>
-          <h1>Results & <span>analytics.</span></h1>
-          <p>Review the grading sessions saved in this browser.</p>
+      <!-- ANALYTICS -->
+      <section class="workspace-panel glass-panel content-panel" data-panel="results" hidden>
+        <div class="panel-heading">
+          <div><span class="eyebrow">REPORT CENTER</span><h1>Analytics & Results</h1><p>Review prepared grading requests and actual grading reports once the backend is connected.</p></div>
+          <span class="step-tag">03 / REPORTS</span>
         </div>
-        <div class="stats">
-          <article class="stat-card"><div class="stat-icon">◷</div><p>Sessions saved</p><strong id="analytics-count">0</strong></article>
-          <article class="stat-card"><div class="stat-icon cyan">◎</div><p>Most recent</p><strong id="analytics-recent">—</strong></article>
-          <article class="stat-card"><div class="stat-icon pink">▤</div><p>Current rubric</p><strong id="analytics-rubric">Default</strong></article>
-        </div>
-        <div class="glass-card activity-card">
-          <div class="section-heading"><h2>Recent activity</h2><button class="button" data-go="history">View history ↗</button></div>
-          <div id="results-content" class="empty-state">No sessions yet. Prepare your first grading request to see activity here.</div>
+        <div id="results-content" class="empty-state">
+          <span class="empty-symbol">◈</span>
+          <h3>No grading report yet</h3>
+          <p>Prepare a request first. Real scores and feedback require a connected grading backend.</p>
+          <a class="btn btn-primary" href="#grading">Prepare a request →</a>
         </div>
       </section>
 
       <!-- HISTORY -->
-      <section class="panel" data-panel="history" hidden>
-        <div class="page-heading">
-          <p class="eyebrow">YOUR LOCAL RECORDS</p>
-          <h1>Grading <span>history.</span></h1>
-          <p>Session summaries are saved in this browser on this device.</p>
+      <section class="workspace-panel glass-panel content-panel" data-panel="history" hidden>
+        <div class="panel-heading">
+          <div><span class="eyebrow">LOCAL SESSION LOG</span><h1>History</h1><p>Session summaries are stored in this browser on this device.</p></div>
+          <span class="step-tag">LOCAL</span>
         </div>
-        <div class="history-toolbar">
-          <span id="history-count">0 sessions</span>
-          <div>
-            <button class="button" id="export-history">Export JSON</button>
-            <button class="button danger" id="clear-history">Clear history</button>
-          </div>
+        <div class="history-actions">
+          <button class="btn btn-ghost" type="button" id="export-history">Export JSON ↓</button>
+          <button class="btn btn-danger" type="button" id="clear-history">Clear history</button>
         </div>
         <div id="history-list" class="history-list"></div>
       </section>
 
-      <!-- CUSTOMIZATION -->
-      <section class="panel" data-panel="customization" hidden>
-        <div class="page-heading">
-          <p class="eyebrow">MAKE IT YOURS</p>
-          <h1>Your personal <span>atmosphere.</span></h1>
-          <p>Shape the look, feel, and sound of your grading studio.</p>
+      <!-- CUSTOMIZATION STUDIO -->
+      <section class="workspace-panel glass-panel content-panel" data-panel="customization" hidden>
+        <div class="panel-heading">
+          <div>
+            <span class="eyebrow">YOUR PERSONAL WORKSPACE</span>
+            <h1>Customization Studio</h1>
+            <p>Design your atmosphere and create a calm space for focused grading.</p>
+          </div>
+          <span class="step-tag">YOUR STUDIO ✦</span>
         </div>
 
-        <div class="custom-layout">
-          <div class="glass-card">
-            <p class="eyebrow">01 / ATMOSPHERE</p>
-            <h2>Choose a world</h2>
-            <div class="theme-grid">
-              <button class="theme-choice" data-set-theme="cosmic"><i class="swatch cosmic"></i><b>Cosmic</b></button>
-              <button class="theme-choice" data-set-theme="ocean"><i class="swatch ocean"></i><b>Ocean</b></button>
-              <button class="theme-choice" data-set-theme="forest"><i class="swatch forest"></i><b>Forest</b></button>
-              <button class="theme-choice" data-set-theme="inferno"><i class="swatch inferno"></i><b>Inferno</b></button>
-              <button class="theme-choice" data-set-theme="aurora"><i class="swatch aurora"></i><b>Aurora</b></button>
-              <button class="theme-choice" data-set-theme="cyberpunk"><i class="swatch cyberpunk"></i><b>Cyberpunk</b></button>
-              <button class="theme-choice" data-set-theme="matrix"><i class="swatch matrix"></i><b>Matrix</b></button>
-              <button class="theme-choice" data-set-theme="light"><i class="swatch light"></i><b>Light</b></button>
+        <section class="custom-card">
+          <div class="custom-card-heading">
+            <div class="custom-icon">◈</div>
+            <div>
+              <h2>Your Background</h2>
+              <p>Choose one of your animated worlds, a solid color, or your own picture.</p>
             </div>
-
-            <div class="separator"></div>
-            <p class="eyebrow">02 / BACKGROUND</p>
-
-            <label for="background-color">Solid background color</label>
-            <div class="color-line">
-              <input id="background-color" type="color" value="#080b19">
-              <span id="background-color-label">#080B19</span>
-              <button class="button compact" id="clear-background" type="button">Use theme</button>
-            </div>
-
-            <label for="wallpaper-upload">Upload your own wallpaper</label>
-            <input id="wallpaper-upload" type="file" accept="image/*">
-            <p class="hint">Choose an image smaller than 6 MB for reliable browser saving.</p>
-
-            <div class="range-heading"><label for="overlay-strength">Wallpaper dimming</label><output id="overlay-output">45%</output></div>
-            <input id="overlay-strength" type="range" min="0" max="85" value="45">
-
-            <div class="range-heading"><label for="brightness">Brightness</label><output id="brightness-output">100%</output></div>
-            <input id="brightness" type="range" min="50" max="140" value="100">
-
-            <div class="range-heading"><label for="animation-intensity">Ambient animation</label><output id="animation-output">60%</output></div>
-            <input id="animation-intensity" type="range" min="0" max="100" value="60">
-
-            <div class="range-heading"><label for="panel-blur">Panel glass blur</label><output id="blur-output">18px</output></div>
-            <input id="panel-blur" type="range" min="0" max="30" value="18">
-
-            <label for="accent-color">Accent color</label>
-            <div class="color-line">
-              <input id="accent-color" type="color" value="#8b7bff">
-              <span id="accent-color-label">#8B7BFF</span>
-            </div>
-
-            <div class="button-row">
-              <button class="button primary" id="save-customization" type="button">Save appearance</button>
-              <button class="button" id="reset-customization" type="button">Reset</button>
-            </div>
-            <p id="custom-status" class="inline-status"></p>
           </div>
 
-          <div class="right-column">
-            <div class="glass-card">
-              <div class="section-heading"><div><p class="eyebrow">LIVE PREVIEW</p><h2>Your studio, your way</h2></div><small class="live">● LIVE</small></div>
-              <div class="preview-window">
-                <div class="preview-top">◇ GradeNova <span>•••</span></div>
-                <div class="preview-content">
-                  <small>YOUR GRADING WORKSPACE</small>
-                  <strong>Clarity for every<br><em>answer.</em></strong>
-                  <i></i>
-                </div>
-              </div>
-              <p class="hint">Changes preview instantly. Save when you're happy with the atmosphere.</p>
+          <div class="custom-grid">
+            <div class="field">
+              <label for="customize-mode">Background type</label>
+              <select id="customize-mode">
+                <option value="preset">Animated atmosphere</option>
+                <option value="solid">Solid color</option>
+                <option value="wallpaper">My own picture</option>
+              </select>
             </div>
 
-            <div class="glass-card music-card">
-              <div class="section-heading">
-                <div><p class="eyebrow">03 / FOCUS MODE</p><h2>Ambient music</h2></div>
-                <span class="music-icon">♫</span>
-              </div>
-              <p class="description small-description">Soft, piano-inspired ambient soundscapes for a calmer workspace.</p>
-
-              <div class="music-track">
-                <div class="track-art">♫</div>
-                <div class="track-info"><strong id="track-title">Quiet Constellations</strong><small>Gentle tones · looping</small></div>
-                <div id="equalizer" class="equalizer"><i></i><i></i><i></i><i></i><i></i></div>
-              </div>
-
-              <label for="music-track">Choose a soundscape</label>
-              <select id="music-track">
-                <option value="0">01 · Quiet Constellations</option>
-                <option value="1">02 · Velvet Morning</option>
-                <option value="2">03 · Silver Rain</option>
-                <option value="3">04 · Stillwater</option>
-                <option value="4">05 · Moonlit Keys</option>
-                <option value="5">06 · Gentle Orbit</option>
-                <option value="6">07 · Winter Window</option>
-                <option value="7">08 · Soft Horizon</option>
-                <option value="8">09 · Glass Garden</option>
-                <option value="9">10 · Last Light</option>
+            <div class="field">
+              <label for="customize-theme">Animated atmosphere</label>
+              <select id="customize-theme">
+                <option value="cosmic">Cosmic — deep space</option>
+                <option value="ocean">Ocean — underwater blue</option>
+                <option value="forest">Forest — green mist</option>
+                <option value="inferno">Inferno — fire and embers</option>
+                <option value="matrix">Matrix — digital rain</option>
+                <option value="cyberpunk">Cyberpunk — neon city</option>
+                <option value="aurora">Aurora — northern lights</option>
+                <option value="light">Light — bright workspace</option>
               </select>
+            </div>
+
+            <div class="field">
+              <label for="customize-solid-color">Solid background color</label>
+              <div class="color-control">
+                <input id="customize-solid-color" type="color" value="#05091b">
+                <span>Choose your own color.</span>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="customize-wallpaper">Upload a background picture</label>
+              <input id="customize-wallpaper" type="file" accept="image/png,image/jpeg,image/webp,image/gif">
+              <small>Choose an image from your computer. Maximum size: 8 MB.</small>
+            </div>
+          </div>
+
+          <div class="field overlay-control">
+            <label for="customize-overlay">
+              Background darkness
+              <span id="customize-overlay-value">35%</span>
+            </label>
+            <input id="customize-overlay" type="range" min="0" max="75" value="35">
+            <small>Adjust the overlay to keep text easy to read over your picture.</small>
+          </div>
+
+          <div class="custom-actions">
+            <button class="btn btn-primary" id="save-customization" type="button">Save customization ✓</button>
+            <button class="btn btn-ghost" id="reset-customization" type="button">Reset background</button>
+          </div>
+          <p class="status-message" id="customization-status" role="status" aria-live="polite"></p>
+        </section>
+
+        <section class="custom-card music-studio">
+          <div class="music-heading-row">
+            <div class="custom-card-heading">
+              <div class="custom-icon music-icon">♫</div>
+              <div>
+                <span class="eyebrow">FOCUS MODE</span>
+                <h2>Serenity Sound Studio</h2>
+                <p>Soft instrumental soundscapes for your grading sessions.</p>
+              </div>
+            </div>
+            <label class="music-toggle">
+              <input id="music-enabled" type="checkbox">
+              <span>Enable music</span>
+            </label>
+          </div>
+
+          <div class="music-layout">
+            <div class="music-player">
+              <div class="album-art" aria-hidden="true">
+                <span>♫</span>
+                <div class="music-orbit"></div>
+              </div>
+
+              <p class="eyebrow">NOW SELECTED</p>
+              <h3 id="music-track-title">Moonlit Reflections</h3>
+              <p id="music-track-style">Soft piano melody</p>
+
+              <div class="sound-wave" id="sound-wave" aria-hidden="true">
+                <i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+                <i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+                <i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+              </div>
+
+              <div class="music-progress">
+                <span id="music-elapsed">0:00</span>
+                <span>2:00</span>
+              </div>
+              <div class="music-progress-track"><div id="music-progress-fill"></div></div>
 
               <div class="music-controls">
-                <button id="music-toggle" class="play-button" type="button" aria-label="Play music">▶</button>
-                <div class="volume-control">
-                  <div class="range-heading"><label for="music-volume">Volume</label><output id="volume-output">20%</output></div>
-                  <input id="music-volume" type="range" min="0" max="100" value="20">
-                </div>
+                <button class="music-control" id="music-shuffle" type="button" aria-pressed="false" aria-label="Toggle shuffle" title="Shuffle">⤨</button>
+                <button class="music-control" id="music-previous" type="button" aria-label="Previous track" title="Previous track">|◀</button>
+                <button class="music-control music-play" id="music-play" type="button" aria-label="Play music" title="Play">▶</button>
+                <button class="music-control" id="music-next" type="button" aria-label="Next track" title="Next track">▶|</button>
+                <button class="music-control" id="music-repeat" type="button" aria-pressed="false" aria-label="Toggle repeat" title="Repeat track">⟳</button>
               </div>
-              <p class="hint">Music is generated by your browser. Press Play to start or pause it.</p>
+
+              <div class="volume-row">
+                <label for="music-volume">♫</label>
+                <input id="music-volume" type="range" min="0" max="100" value="35">
+                <span id="music-volume-value">35%</span>
+              </div>
+
+              <p id="music-status" class="music-status" role="status" aria-live="polite">
+                Music is off. Press Play when you want to listen.
+              </p>
+            </div>
+
+            <div class="track-panel">
+              <div class="track-panel-heading">
+                <h3>Ten Peaceful Tracks</h3>
+                <span>2 min each</span>
+              </div>
+              <p class="track-note">Gentle browser-generated melodies. Music starts only when you press Play.</p>
+              <div id="music-track-list" class="music-track-list"></div>
             </div>
           </div>
+        </section>
+
+        <div class="custom-footer-note">
+          <span>✧</span>
+          <p>Your preferences and uploaded background are stored locally in this browser. They are not automatically shared with other users.</p>
         </div>
       </section>
 
       <!-- SETTINGS -->
-      <section class="panel" data-panel="settings" hidden>
-        <div class="page-heading">
-          <p class="eyebrow">WORKSPACE PREFERENCES</p>
-          <h1>Studio <span>settings.</span></h1>
-          <p>Set defaults for new grading requests.</p>
+      <section class="workspace-panel glass-panel content-panel" data-panel="settings" hidden>
+        <div class="panel-heading">
+          <div><span class="eyebrow">GRADING PREFERENCES</span><h1>Studio Settings</h1><p>Set grading defaults and fine-tune the appearance.</p></div>
+          <span class="step-tag">SETTINGS</span>
         </div>
 
-        <div class="glass-card settings-card">
-          <p class="eyebrow">GRADING PREFERENCES</p>
-          <h2>Default behavior</h2>
-
-          <label for="settings-default-strictness">Default grading strictness</label>
-          <select id="settings-default-strictness">
-            <option value="balanced">Balanced</option>
-            <option value="lenient">Flexible</option>
-            <option value="strict">Strict</option>
-          </select>
-
-          <label for="settings-default-points">Default total points</label>
-          <input id="settings-default-points" type="number" min="1" max="1000" value="100">
-
-          <div class="check-list">
-            <label><input id="settings-feedback" type="checkbox" checked> Written feedback by default</label>
-            <label><input id="settings-breakdown" type="checkbox" checked> Score breakdown by default</label>
-            <label><input id="settings-motion" type="checkbox" checked> Allow ambient motion</label>
+        <div class="settings-grid">
+          <div class="field">
+            <label for="settings-theme">Atmosphere theme</label>
+            <select id="settings-theme">
+              <option value="cosmic">Cosmic</option>
+              <option value="ocean">Ocean</option>
+              <option value="forest">Forest</option>
+              <option value="inferno">Inferno</option>
+              <option value="matrix">Matrix</option>
+              <option value="cyberpunk">Cyberpunk</option>
+              <option value="aurora">Aurora</option>
+              <option value="light">Light</option>
+            </select>
           </div>
 
-          <div class="button-row">
-            <button class="button primary" id="save-settings" type="button">Save settings</button>
-            <button class="button" id="reset-settings" type="button">Reset settings</button>
+          <div class="field">
+            <label for="accent-color">Accent color</label>
+            <div class="color-control">
+              <input type="color" id="accent-color" value="#39d7ff">
+              <span>Change the studio's neon highlight.</span>
+            </div>
           </div>
-          <p id="settings-status" class="inline-status"></p>
+
+          <div class="field">
+            <label for="settings-default-strictness">Default grading approach</label>
+            <select id="settings-default-strictness">
+              <option value="lenient">Flexible</option>
+              <option value="balanced" selected>Balanced</option>
+              <option value="strict">Strict</option>
+            </select>
+          </div>
+
+          <label class="motion-setting">
+            <input id="settings-motion" type="checkbox" checked>
+            <span><b>Animate the background</b><small>Turn off motion whenever you want.</small></span>
+          </label>
+        </div>
+
+        <div class="settings-preview">
+          <span class="preview-orb"></span>
+          <div>
+            <b id="current-theme-name">Cosmic</b>
+            <p id="current-theme-description">A cinematic deep-space atmosphere.</p>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn btn-primary" id="save-settings" type="button">Save preferences ✓</button>
+          <button class="btn btn-ghost" id="reset-settings" type="button">Reset appearance</button>
+        </div>
+        <p class="status-message" id="settings-status" role="status" aria-live="polite"></p>
+
+        <div class="backend-note">
+          <b>About AI grading</b>
+          <p>Never put a private API key in this frontend. AI grading requires a securely configured backend.</p>
         </div>
       </section>
-
-      <footer class="footer">
-        <span>◇ GRADENOVA STUDIO</span>
-        <span>Designed for focus. Built for clarity.</span>
-      </footer>
     </main>
   </div>
-  <script src="script.js"></script>
+
+  <footer class="shell footer">
+    <a href="#home">✦ GradeNova</a>
+    <span>Smarter grading. Brighter futures.</span>
+    <span>Teacher judgment always comes first.</span>
+  </footer>
 </body>
 </html>
