@@ -92,7 +92,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     $$('.main-nav a[href^="#"]').forEach((link) => {
       const selected = link.getAttribute('href') === '#' + tabName;
-
       link.classList.toggle('active', selected);
 
       if (selected) {
@@ -574,8 +573,7 @@ document.addEventListener('DOMContentLoaded', () => {
     applyTheme(themeControl.value, false);
     setCustomMode(customPrefs.mode || 'preset', false);
   }
-
-  /* =====================================================
+    /* =====================================================
      RUBRIC BUILDER
   ===================================================== */
 
@@ -710,7 +708,8 @@ document.addEventListener('DOMContentLoaded', () => {
     updateRubricSummary();
     setStatus('rubric-status', 'Default rubric restored. Save it to keep the changes.', 'success');
   });
-    /* =====================================================
+
+  /* =====================================================
      HISTORY
      Only summaries are saved, never pasted student answers.
   ===================================================== */
@@ -917,40 +916,7 @@ document.addEventListener('DOMContentLoaded', () => {
     applyTheme(prefs.theme, false);
     setCustomMode('preset');
     applyAccent(prefs.accent, false);
-    applyMotion(prefs.motion, false);
-    $('#grading-strictness').value = prefs.strictness;
-
-    const saved = safeWrite(PREFS_KEY, prefs);
-
-    setStatus(
-      'settings-status',
-      saved
-        ? '✓ Your studio preferences are saved on this device.'
-        : 'Could not save preferences. Check browser storage settings.',
-      saved ? 'success' : 'error'
-    );
-  });
-
-  $('#reset-settings').addEventListener('click', () => {
-    applyTheme('cosmic', false);
-    setCustomMode('preset');
-    applyAccent('#39d7ff', false);
-    applyMotion(true, false);
-
-    $('#settings-default-strictness').value = 'balanced';
-    $('#grading-strictness').value = 'balanced';
-
-    safeWrite(PREFS_KEY, {
-      theme: 'cosmic',
-      accent: '#39d7ff',
-      motion: true,
-      strictness: 'balanced'
-    });
-
-    setStatus('settings-status', 'Default appearance restored.', 'success');
-  });
-
-  /* =====================================================
+      /* =====================================================
      SERENITY SOUND STUDIO
      Ten synthesized instrumental melodies.
      Music is OFF by default and stays off after reload.
@@ -1029,6 +995,8 @@ document.addEventListener('DOMContentLoaded', () => {
   let shuffleOn = false;
   let repeatOn = false;
   let noteStep = 0;
+  let lastMelodyNote = null;
+  let melodyCenter = null;
   let elapsedMs = 0;
   let startedAt = 0;
 
@@ -1110,7 +1078,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function stopScheduledNotes() {
-    if (noteTimer) clearInterval(noteTimer);
+    if (noteTimer) clearTimeout(noteTimer);
     if (progressTimer) clearInterval(progressTimer);
 
     noteTimer = null;
@@ -1126,7 +1094,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     activeOscillators.clear();
   }
-    function createMusicNote(midiNote, instrument, lengthSeconds, loudness = 0.7) {
+
+  function createMusicNote(midiNote, instrument, lengthSeconds, loudness = 0.7) {
     if (!audioContext || !masterGain) return;
 
     const now = audioContext.currentTime;
@@ -1244,23 +1213,126 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  /* =====================================================
+     RANDOMIZED MELODY ENGINE
+     Varied notes, phrases, pauses, and accompaniment.
+  ===================================================== */
+
   function scheduleMusicStep() {
     if (!playing || !audioContext) return;
 
     const track = TRACKS[currentTrack];
-    const midi = track.notes[noteStep % track.notes.length];
+    const palette = [...new Set(track.notes)].sort((a, b) => a - b);
 
-    createMusicNote(midi, track.instrument, 1.0, 1);
+    if (!palette.length) return;
 
-    if (noteStep % 4 === 0) {
-      createMusicNote(midi - 12, 'piano', 1.35, 0.45);
-      createMusicNote(midi + 7, track.instrument, 1.0, 0.25);
+    // Choose a fresh musical center at the start of each phrase.
+    if (noteStep % 8 === 0 || melodyCenter === null) {
+      melodyCenter = palette[Math.floor(Math.random() * palette.length)];
+    }
+
+    if (lastMelodyNote === null) {
+      lastMelodyNote = melodyCenter;
+    }
+
+    const phrasePosition = noteStep % 8;
+    let target = lastMelodyNote;
+    const roll = Math.random();
+
+    if (phrasePosition === 0) {
+      target = melodyCenter;
+    } else if (phrasePosition === 7) {
+      const lowerNotes = palette.filter((note) => note <= melodyCenter + 2);
+      const endingNotes = lowerNotes.length ? lowerNotes : palette;
+
+      target = endingNotes[Math.floor(Math.random() * endingNotes.length)];
+    } else if (roll < 0.20) {
+      target = lastMelodyNote;
+    } else if (roll < 0.57) {
+      target = lastMelodyNote + (Math.random() < 0.5 ? -2 : 2);
+    } else if (roll < 0.82) {
+      target = lastMelodyNote + (Math.random() < 0.5 ? -4 : 4);
+    } else {
+      target = lastMelodyNote + (Math.random() < 0.5 ? -7 : 7);
+    }
+
+    // Favor nearby notes, but allow unexpected intervals occasionally.
+    const candidates = palette
+      .map((note) => ({
+        note,
+        distance: Math.abs(note - target)
+      }))
+      .sort((a, b) => a.distance - b.distance);
+
+    const shortlist = candidates.slice(0, Math.min(4, candidates.length));
+
+    let melodyNote = shortlist[
+      Math.floor(Math.random() * shortlist.length)
+    ].note;
+
+    if (
+      melodyNote === lastMelodyNote &&
+      Math.random() < 0.55 &&
+      palette.length > 1
+    ) {
+      const alternatives = palette.filter((note) => note !== lastMelodyNote);
+
+      melodyNote = alternatives[
+        Math.floor(Math.random() * alternatives.length)
+      ];
+    }
+
+    lastMelodyNote = melodyNote;
+
+    // Vary the rhythm: some short notes, some longer notes, some breathing room.
+    const rhythmRoll = Math.random();
+    let noteLength;
+    let nextDelay;
+
+    if (rhythmRoll < 0.18) {
+      noteLength = 0.82;
+      nextDelay = 1050;
+    } else if (rhythmRoll < 0.40) {
+      noteLength = 0.27;
+      nextDelay = 430;
+    } else {
+      noteLength = 0.52;
+      nextDelay = 690 + Math.random() * 190;
+    }
+
+    // A brief rest now and then keeps every beat from sounding identical.
+    if (Math.random() >= 0.11) {
+      createMusicNote(
+        melodyNote,
+        track.instrument,
+        noteLength,
+        0.68 + Math.random() * 0.22
+      );
+    }
+
+    // Quiet bass notes provide a little harmonic grounding.
+    if (noteStep % 4 === 0 && Math.random() < 0.78) {
+      createMusicNote(melodyCenter - 12, 'piano', 1.1, 0.25);
+    }
+
+    // Add a soft harmony only occasionally.
+    if (noteStep % 3 === 1 && Math.random() < 0.32) {
+      const harmony = palette.reduce((best, note) =>
+        Math.abs(note - (melodyNote + 3)) < Math.abs(best - (melodyNote + 3))
+          ? note
+          : best,
+      palette[0]);
+
+      createMusicNote(harmony, track.instrument, 0.72, 0.16);
     }
 
     noteStep += 1;
-  }
 
-  function pickRandomTrack(excludeIndex) {
+    if (playing) {
+      noteTimer = setTimeout(scheduleMusicStep, nextDelay);
+    }
+  }
+      function pickRandomTrack(excludeIndex) {
     if (TRACKS.length < 2) return excludeIndex;
 
     let next = excludeIndex;
@@ -1300,7 +1372,10 @@ document.addEventListener('DOMContentLoaded', () => {
       playing = true;
       startedAt = Date.now();
 
-      noteTimer = setInterval(scheduleMusicStep, 760);
+      noteStep = 0;
+      lastMelodyNote = null;
+      melodyCenter = null;
+
       progressTimer = setInterval(updateMusicProgress, 250);
 
       scheduleMusicStep();
@@ -1348,6 +1423,8 @@ document.addEventListener('DOMContentLoaded', () => {
     currentTrack = (index + TRACKS.length) % TRACKS.length;
     elapsedMs = 0;
     noteStep = 0;
+    lastMelodyNote = null;
+    melodyCenter = null;
 
     stopScheduledNotes();
     playing = false;
@@ -1418,7 +1495,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     safeWrite(AUDIO_KEY, { volume });
   });
-    /* =====================================================
+
+  /* =====================================================
      RESTORE SAVED PREFERENCES AND START THE APP
   ===================================================== */
 
@@ -1496,33 +1574,36 @@ document.addEventListener('DOMContentLoaded', () => {
   );
 });
 
-/* GradeNova: binary rain contained inside each Matrix cap */
-(() => {
-  document.querySelectorAll(".cap-effect-matrix").forEach((cap) => {
-    // Prevent creating duplicate streams if this code runs again.
-    if (cap.dataset.binaryReady === "true") return;
+/* =====================================================
+   MATRIX CAP EFFECT
+===================================================== */
 
-    cap.dataset.binaryReady = "true";
+(() => {
+  document.querySelectorAll('.cap-effect-matrix').forEach((cap) => {
+    if (cap.dataset.binaryReady === 'true') return;
+
+    cap.dataset.binaryReady = 'true';
     cap.replaceChildren();
 
-    for (let column = 0; column < 7; column++) {
-      const stream = document.createElement("span");
-      stream.className = "binary-stream";
+    for (let column = 0; column < 7; column += 1) {
+      const stream = document.createElement('span');
+      stream.className = 'binary-stream';
 
-      let digits = "";
-      for (let row = 0; row < 12; row++) {
-        digits += Math.random() > 0.5 ? "1" : "0";
-        digits += "\n";
+      let digits = '';
+
+      for (let row = 0; row < 12; row += 1) {
+        digits += Math.random() > 0.5 ? '1' : '0';
+        digits += '\n';
       }
 
       stream.textContent = digits;
       stream.style.left = `${column * 14}%`;
       stream.style.setProperty(
-        "--fall-time",
+        '--fall-time',
         `${1.4 + Math.random() * 1.8}s`
       );
       stream.style.setProperty(
-        "--fall-delay",
+        '--fall-delay',
         `${-Math.random() * 3}s`
       );
 
