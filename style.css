@@ -882,3 +882,493 @@ body[data-theme="light"] .criterion-row input { background: rgba(255,255,255,.8)
   }
   .sound-wave.is-playing i { animation: none; }
 }
+
+/* ==========================================================
+   GRADENOVA — ATMOSPHERE-REACTIVE GRADUATION CAP
+   Paste this block at the very bottom of style.css.
+   ========================================================== */
+
+.logo-cap-art,
+.hero-cap {
+  --cap-primary: #8af4ff;
+  --cap-secondary: #9d78ff;
+  --cap-shadow: rgba(57, 215, 255, .7);
+
+  isolation: isolate;
+  position: relative;
+  overflow: visible;
+  transition: filter .35s ease, transform .35s ease;
+}
+
+.logo-cap-art {
+  overflow: visible;
+}
+
+.logo-cap-art .cap-outline,
+.hero-cap .cap-outline {
+  position: relative;
+  z-index: 2;
+  overflow: visible;
+  filter: drop-shadow(0 0 5px var(--cap-shadow));
+}
+
+.logo-cap-art .cap-top,
+.hero-cap .cap-top {
+  fill: url(#brandCapMetal);
+  stroke: var(--cap-primary);
+  stroke-width: 2.2;
+  stroke-linejoin: round;
+}
+
+.hero-cap .cap-top {
+  fill: url(#heroCapMetal);
+}
+
+.logo-cap-art .cap-top-inset,
+.hero-cap .cap-top-inset {
+  fill: rgba(255, 255, 255, .08);
+  stroke: var(--cap-primary);
+  stroke-width: 1.1;
+  opacity: .9;
+}
+
+.logo-cap-art .cap-board,
+.hero-cap .cap-board {
+  fill: url(#brandCapBoard);
+  stroke: var(--cap-primary);
+  stroke-width: 1.8;
+}
+
+.hero-cap .cap-board {
+  fill: url(#heroCapBoard);
+}
+
+.logo-cap-art .cap-board-edge,
+.hero-cap .cap-board-edge,
+.logo-cap-art .cap-circuit,
+.hero-cap .cap-circuit {
+  fill: none;
+  stroke: var(--cap-primary);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.logo-cap-art .cap-tassel-line,
+.hero-cap .cap-tassel-line {
+  fill: none;
+  stroke: var(--cap-secondary);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+}
+
+.logo-cap-art .cap-tassel-end,
+.hero-cap .cap-tassel-end {
+  fill: var(--cap-secondary);
+  stroke: var(--cap-primary);
+  stroke-width: 1;
+}
+
+.logo-cap-art .cap-node,
+.hero-cap .cap-node {
+  fill: #fff;
+  stroke: var(--cap-primary);
+  stroke-width: 1.5;
+}
+
+.logo-cap-art .cap-gradient-start,
+.hero-cap .cap-gradient-start {
+  stop-color: var(--cap-primary);
+}
+
+.logo-cap-art .cap-gradient-mid,
+.hero-cap .cap-gradient-mid {
+  stop-color: var(--cap-secondary);
+}
+
+.logo-cap-art .cap-gradient-end,
+.hero-cap .cap-gradient-end {
+  stop-color: #10153c;
+}
+
+.logo-cap-art .cap-board-start,
+.hero-cap .cap-board-start {
+  stop-color: var(--cap-primary);
+}
+
+.logo-cap-art .cap-board-end,
+.hero-cap .cap-board-end {
+  stop-color: #17153d;
+}
+
+.cap-theme-effect {
+  position: absolute;
+  z-index: 3;
+  display: none;
+  pointer-events: none;
+  user-select: none;
+}
+
+.cap-effect-matrix {
+  top: 24%;
+  left: 37%;
+  color: #b7ffd0;
+  font: 800 7px/1.15 ui-monospace, monospace;
+  letter-spacing: 1px;
+  text-shadow: 0 0 5px #00ff6a, 0 0 10px #00ff6a;
+  transform: rotate(-25deg);
+}
+
+.cap-effect-fire {
+  inset: -16% 4% 22%;
+}
+
+.cap-effect-fire i {
+  position: absolute;
+  bottom: 10%;
+  display: block;
+  width: 23%;
+  height: 62%;
+  border-radius: 65% 35% 55% 45%;
+  background: linear-gradient(to top, #ff321b 3%, #ff7a22 45%, #fff0a0 80%, transparent);
+  filter: drop-shadow(0 0 6px #ff5a18);
+  transform-origin: bottom;
+  animation: cap-flame-dance .7s ease-in-out infinite alternate;
+}
+
+.cap-effect-fire i:nth-child(1) {
+  left: 17%;
+  height: 52%;
+  animation-delay: -.3s;
+}
+
+.cap-effect-fire i:nth-child(2) {
+  left: 43%;
+  height: 75%;
+  animation-delay: -.1s;
+}
+
+.cap-effect-fire i:nth-child(3) {
+  right: 14%;
+  height: 57%;
+  animation-delay: -.45s;
+}
+
+.cap-effect-vines {
+  inset: 5% 0 10%;
+}
+
+.cap-effect-vines i {
+  position: absolute;
+  top: 4%;
+  left: 15%;
+  width: 58%;
+  height: 80%;
+  border: 2px solid #67e69a;
+  border-right-color: transparent;
+  border-bottom-color: transparent;
+  border-radius: 60% 0 0 0;
+  filter: drop-shadow(0 0 4px rgba(80, 255, 145, .75));
+  transform: rotate(15deg);
+}
+
+.cap-effect-vines i::before,
+.cap-effect-vines i::after {
+  content: "";
+  position: absolute;
+  width: 13px;
+  height: 6px;
+  border-radius: 100% 0 100% 0;
+  background: linear-gradient(135deg, #a7ff9d, #168c55);
+  box-shadow: 0 0 5px rgba(105, 255, 151, .55);
+}
+
+.cap-effect-vines i::before {
+  top: 22%;
+  left: 5%;
+  transform: rotate(-30deg);
+}
+
+.cap-effect-vines i::after {
+  top: 52%;
+  left: 47%;
+  transform: rotate(35deg);
+}
+
+.cap-effect-vines i:nth-child(2) {
+  left: 38%;
+  top: 20%;
+  width: 48%;
+  height: 66%;
+  transform: scaleX(-1) rotate(10deg);
+}
+
+.cap-effect-stars {
+  top: 10%;
+  left: 10%;
+  width: 80%;
+  color: #f0ddff;
+  font-size: 8px;
+  letter-spacing: 3px;
+  text-align: center;
+  text-shadow: 0 0 6px #a77cff, 0 0 13px #5bbdff;
+  animation: cap-stars-twinkle 2.2s ease-in-out infinite alternate;
+}
+
+.cap-effect-ocean {
+  inset: 30% 12% auto;
+  color: #baf7ff;
+  font-size: 12px;
+  letter-spacing: 2px;
+  text-align: center;
+  text-shadow: 0 0 8px #26dfff;
+  animation: cap-wave-drift 2.8s ease-in-out infinite alternate;
+}
+
+.cap-effect-cyber {
+  bottom: 24%;
+  left: 24%;
+  color: #ff9bf0;
+  font-size: 8px;
+  letter-spacing: 2px;
+  text-shadow: 0 0 7px #ff28c9;
+  transform: skewY(-10deg);
+}
+
+.cap-effect-aurora {
+  inset: 15% 12% 28%;
+  border-radius: 50%;
+  background: linear-gradient(
+    115deg,
+    transparent 5%,
+    rgba(35, 255, 184, .05) 25%,
+    rgba(35, 255, 184, .8) 48%,
+    rgba(101, 145, 255, .6) 62%,
+    transparent 85%
+  );
+  filter: blur(5px);
+  mix-blend-mode: screen;
+  animation: cap-aurora-flow 4s ease-in-out infinite alternate;
+}
+
+/* Cosmic: holographic circuitry and star-like glints */
+body[data-theme="cosmic"] .logo-atmosphere,
+body[data-theme="cosmic"] .logo-cap-art,
+body[data-theme="cosmic"] .hero-cap {
+  --cap-primary: #8af4ff;
+  --cap-secondary: #bd8aff;
+  --cap-shadow: rgba(78, 157, 255, .85);
+}
+
+body[data-theme="cosmic"] .cap-effect-stars {
+  display: block;
+}
+
+body[data-theme="cosmic"] .logo-cap-art,
+body[data-theme="cosmic"] .hero-cap {
+  filter: drop-shadow(0 0 15px rgba(88, 122, 255, .45));
+}
+
+/* Ocean: cool blue glass with flowing wave marks */
+body[data-theme="ocean"] .logo-cap-art,
+body[data-theme="ocean"] .hero-cap {
+  --cap-primary: #9af5ff;
+  --cap-secondary: #319bff;
+  --cap-shadow: rgba(29, 201, 255, .8);
+}
+
+body[data-theme="ocean"] .cap-effect-ocean {
+  display: block;
+}
+
+/* Forest: green cap with climbing vines */
+body[data-theme="forest"] .logo-cap-art,
+body[data-theme="forest"] .hero-cap {
+  --cap-primary: #a5ffb7;
+  --cap-secondary: #43c77b;
+  --cap-shadow: rgba(68, 255, 136, .65);
+}
+
+body[data-theme="forest"] .cap-effect-vines {
+  display: block;
+}
+
+/* Inferno: glowing red-orange cap with animated flames */
+body[data-theme="inferno"] .logo-cap-art,
+body[data-theme="inferno"] .hero-cap {
+  --cap-primary: #ffcb72;
+  --cap-secondary: #ff512f;
+  --cap-shadow: rgba(255, 72, 24, .9);
+}
+
+body[data-theme="inferno"] .cap-effect-fire {
+  display: block;
+}
+
+body[data-theme="inferno"] .logo-cap-art .cap-top,
+body[data-theme="inferno"] .hero-cap .cap-top {
+  fill: #8b260f;
+}
+
+body[data-theme="inferno"] .logo-cap-art .cap-board,
+body[data-theme="inferno"] .hero-cap .cap-board {
+  fill: #4c120a;
+}
+
+/* Matrix: green digital code across the cap */
+body[data-theme="matrix"] .logo-cap-art,
+body[data-theme="matrix"] .hero-cap {
+  --cap-primary: #72ff9e;
+  --cap-secondary: #16d96a;
+  --cap-shadow: rgba(0, 255, 92, .85);
+}
+
+body[data-theme="matrix"] .cap-effect-matrix {
+  display: block;
+}
+
+body[data-theme="matrix"] .logo-cap-art .cap-top,
+body[data-theme="matrix"] .hero-cap .cap-top {
+  fill: #052c16;
+}
+
+body[data-theme="matrix"] .logo-cap-art .cap-board,
+body[data-theme="matrix"] .hero-cap .cap-board {
+  fill: #031b0c;
+}
+
+body[data-theme="matrix"] .logo-cap-art .cap-circuit,
+body[data-theme="matrix"] .hero-cap .cap-circuit {
+  stroke-dasharray: 3 3;
+  animation: cap-code-pulse 1.2s linear infinite;
+}
+
+/* Cyberpunk: hot pink and electric cyan */
+body[data-theme="cyberpunk"] .logo-cap-art,
+body[data-theme="cyberpunk"] .hero-cap {
+  --cap-primary: #58f4ff;
+  --cap-secondary: #ff48d7;
+  --cap-shadow: rgba(255, 47, 215, .85);
+}
+
+body[data-theme="cyberpunk"] .cap-effect-cyber {
+  display: block;
+}
+
+body[data-theme="cyberpunk"] .logo-cap-art .cap-top,
+body[data-theme="cyberpunk"] .hero-cap .cap-top {
+  fill: #35104b;
+}
+
+body[data-theme="cyberpunk"] .logo-cap-art .cap-circuit,
+body[data-theme="cyberpunk"] .hero-cap .cap-circuit {
+  stroke: #ff48d7;
+  stroke-width: 2;
+}
+
+/* Aurora: shifting mint, blue and violet light */
+body[data-theme="aurora"] .logo-cap-art,
+body[data-theme="aurora"] .hero-cap {
+  --cap-primary: #9dffdf;
+  --cap-secondary: #9d9aff;
+  --cap-shadow: rgba(85, 255, 211, .75);
+}
+
+body[data-theme="aurora"] .cap-effect-aurora {
+  display: block;
+}
+
+/* Light: bright silver and royal-blue finish */
+body[data-theme="light"] .logo-cap-art,
+body[data-theme="light"] .hero-cap {
+  --cap-primary: #365dff;
+  --cap-secondary: #8a45df;
+  --cap-shadow: rgba(54, 93, 255, .4);
+}
+
+body[data-theme="light"] .logo-cap-art .cap-top,
+body[data-theme="light"] .hero-cap .cap-top {
+  fill: #dce7ff;
+}
+
+body[data-theme="light"] .logo-cap-art .cap-board,
+body[data-theme="light"] .hero-cap .cap-board {
+  fill: #a9bbff;
+}
+
+body[data-theme="light"] .logo-cap-art .cap-top-inset,
+body[data-theme="light"] .hero-cap .cap-top-inset {
+  fill: rgba(255, 255, 255, .6);
+}
+
+/* Keep the logo and cap compatible with the user's motion setting */
+@keyframes cap-flame-dance {
+  from { transform: scaleY(.72) rotate(-7deg); opacity: .78; }
+  to { transform: scaleY(1.08) rotate(7deg); opacity: 1; }
+}
+
+@keyframes cap-stars-twinkle {
+  from { opacity: .55; transform: translateY(1px); }
+  to { opacity: 1; transform: translateY(-2px); }
+}
+
+@keyframes cap-wave-drift {
+  from { transform: translateX(-3px) translateY(1px); opacity: .65; }
+  to { transform: translateX(3px) translateY(-2px); opacity: 1; }
+}
+
+@keyframes cap-aurora-flow {
+  from { opacity: .4; transform: translateX(-4px) skewX(-8deg); }
+  to { opacity: .95; transform: translateX(4px) skewX(8deg); }
+}
+
+@keyframes cap-code-pulse {
+  from { opacity: .55; }
+  to { opacity: 1; }
+}
+
+body.motion-off .cap-theme-effect,
+body.motion-off .cap-theme-effect *,
+body.motion-off .logo-cap-art,
+body.motion-off .hero-cap {
+  animation-play-state: paused !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cap-theme-effect,
+  .cap-theme-effect *,
+  .logo-cap-art,
+  .hero-cap {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .logo-stage {
+    width: 60px;
+    height: 60px;
+    border-radius: 17px;
+  }
+
+  .logo-cap-art {
+    width: 43px;
+    height: 43px;
+  }
+
+  .brand {
+    gap: 10px;
+  }
+
+  .brand-name {
+    font-size: 1.7rem;
+  }
+
+  .brand-tagline {
+    letter-spacing: .07em;
+  }
+
+  .hero-cap {
+    max-width: 100px;
+  }
+}
