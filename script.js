@@ -11,38 +11,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const AUDIO_KEY = 'gradenova-audio-v1';
 
   const THEMES = {
-    cosmic: {
-      name: 'Cosmic',
-      description: 'A cinematic deep-space atmosphere.'
-    },
-    ocean: {
-      name: 'Ocean',
-      description: 'A calm underwater world with cool blue light.'
-    },
-    forest: {
-      name: 'Forest',
-      description: 'A peaceful green atmosphere with moonlit mist.'
-    },
-    inferno: {
-      name: 'Inferno',
-      description: 'A dramatic atmosphere of glowing embers.'
-    },
-    matrix: {
-      name: 'Matrix',
-      description: 'A digital world with animated green code.'
-    },
-    cyberpunk: {
-      name: 'Cyberpunk',
-      description: 'A neon city with futuristic colors.'
-    },
-    aurora: {
-      name: 'Aurora',
-      description: 'A glowing northern-lights atmosphere.'
-    },
-    light: {
-      name: 'Light',
-      description: 'A bright, clean workspace.'
-    }
+    cosmic: { name: 'Cosmic', description: 'A cinematic deep-space atmosphere.' },
+    ocean: { name: 'Ocean', description: 'A calm underwater world with cool blue light.' },
+    forest: { name: 'Forest', description: 'A peaceful green atmosphere with moonlit mist.' },
+    inferno: { name: 'Inferno', description: 'A dramatic atmosphere of glowing embers.' },
+    matrix: { name: 'Matrix', description: 'A digital world with animated green code.' },
+    cyberpunk: { name: 'Cyberpunk', description: 'A neon city with futuristic colors.' },
+    aurora: { name: 'Aurora', description: 'A glowing northern-lights atmosphere.' },
+    light: { name: 'Light', description: 'A bright, clean workspace.' }
   };
 
   const THEME_COLORS = {
@@ -734,8 +710,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateRubricSummary();
     setStatus('rubric-status', 'Default rubric restored. Save it to keep the changes.', 'success');
   });
-
-  /* =====================================================
+    /* =====================================================
      HISTORY
      Only summaries are saved, never pasted student answers.
   ===================================================== */
@@ -1067,7 +1042,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function formatMusicTime(ms) {
     const seconds = Math.floor(Math.max(0, ms) / 1000);
-
     return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
   }
 
@@ -1152,56 +1126,122 @@ document.addEventListener('DOMContentLoaded', () => {
 
     activeOscillators.clear();
   }
-
-  function createMusicNote(midiNote, instrument, lengthSeconds, loudness = 0.7) {
+    function createMusicNote(midiNote, instrument, lengthSeconds, loudness = 0.7) {
     if (!audioContext || !masterGain) return;
 
     const now = audioContext.currentTime;
     const frequency = 440 * Math.pow(2, (midiNote - 69) / 12);
-
-    const oscillator = audioContext.createOscillator();
-    const envelope = audioContext.createGain();
+    const isViolin = instrument === 'violin';
     const filter = audioContext.createBiquadFilter();
+    const envelope = audioContext.createGain();
+    const oscillators = [];
+    let vibrato = null;
+    let vibratoDepth = null;
 
-    oscillator.type = instrument === 'violin' ? 'sawtooth' : 'triangle';
-    oscillator.frequency.setValueAtTime(frequency, now);
+    // A gentle, filtered sound keeps the synthesized instruments less harsh.
+    const peak = 0.12 * loudness;
+    const attack = isViolin ? 0.20 : 0.012;
+    const endTime = now + Math.max(0.15, lengthSeconds);
 
     filter.type = 'lowpass';
-    filter.frequency.value = instrument === 'violin' ? 1700 : 2600;
-    filter.Q.value = 0.5;
-
-    const peak = (Number(volumeControl.value) / 100) * 0.09 * loudness;
-    const attack = instrument === 'violin' ? 0.24 : 0.015;
-    const release = instrument === 'violin' ? lengthSeconds : 0.48;
+    filter.frequency.setValueAtTime(isViolin ? 1450 : 2100, now);
+    filter.Q.setValueAtTime(0.45, now);
 
     envelope.gain.setValueAtTime(0.0001, now);
     envelope.gain.linearRampToValueAtTime(peak, now + attack);
-    envelope.gain.setTargetAtTime(
-      instrument === 'violin' ? peak * 0.75 : 0.0001,
-      now + attack,
-      instrument === 'violin' ? 0.3 : 0.12
-    );
-    envelope.gain.setValueAtTime(
-      Math.max(0.0001, peak * 0.25),
-      now + Math.max(attack, lengthSeconds - release * 0.4)
-    );
-    envelope.gain.exponentialRampToValueAtTime(0.0001, now + lengthSeconds);
 
-    oscillator.connect(filter);
+    if (isViolin) {
+      envelope.gain.setTargetAtTime(peak * 0.72, now + attack, 0.24);
+      envelope.gain.setTargetAtTime(0.0001, endTime - 0.28, 0.18);
+    } else {
+      // Quick piano-like attack followed by a smooth decay.
+      envelope.gain.setTargetAtTime(peak * 0.35, now + attack, 0.28);
+      envelope.gain.setTargetAtTime(0.0001, endTime - 0.22, 0.12);
+    }
+
     filter.connect(envelope);
     envelope.connect(masterGain);
 
-    activeOscillators.add(oscillator);
+    function addTone(type, toneFrequency, toneGain) {
+      const oscillator = audioContext.createOscillator();
+      const tone = audioContext.createGain();
 
-    oscillator.addEventListener('ended', () => {
-      activeOscillators.delete(oscillator);
-      oscillator.disconnect();
-      filter.disconnect();
-      envelope.disconnect();
-    }, { once: true });
+      oscillator.type = type;
+      oscillator.frequency.setValueAtTime(toneFrequency, now);
+      tone.gain.setValueAtTime(toneGain, now);
 
-    oscillator.start(now);
-    oscillator.stop(now + lengthSeconds + 0.03);
+      oscillator.connect(tone);
+      tone.connect(filter);
+
+      activeOscillators.add(oscillator);
+      oscillators.push(oscillator);
+
+      oscillator.addEventListener('ended', () => {
+        activeOscillators.delete(oscillator);
+        oscillator.disconnect();
+        tone.disconnect();
+      }, { once: true });
+
+      oscillator.start(now);
+      oscillator.stop(endTime + 0.03);
+    }
+
+    if (isViolin) {
+      // A soft sawtooth with a quiet sine overtone suggests sustained strings.
+      addTone('sawtooth', frequency, 0.52);
+      addTone('sine', frequency * 2, 0.10);
+
+      // Gentle vibrato adds movement without the harsh mechanical wobble.
+      vibrato = audioContext.createOscillator();
+      vibratoDepth = audioContext.createGain();
+
+      vibrato.type = 'sine';
+      vibrato.frequency.setValueAtTime(4.2, now);
+      vibratoDepth.gain.setValueAtTime(2.2, now);
+
+      vibrato.connect(vibratoDepth);
+      vibratoDepth.connect(oscillators[0].frequency);
+
+      activeOscillators.add(vibrato);
+
+      vibrato.addEventListener('ended', () => {
+        activeOscillators.delete(vibrato);
+        vibrato.disconnect();
+        vibratoDepth.disconnect();
+      }, { once: true });
+
+      vibrato.start(now + 0.18);
+      vibrato.stop(endTime + 0.03);
+    } else {
+      // A rounded triangle wave and quiet overtone create a softer piano-like tone.
+      addTone('triangle', frequency, 0.72);
+      addTone('sine', frequency * 2, 0.08);
+    }
+
+    // Disconnect each note's shared audio nodes when its own sounds finish.
+    let remaining = oscillators.length + (isViolin ? 1 : 0);
+
+    const cleanup = () => {
+      remaining -= 1;
+
+      if (remaining <= 0) {
+        try {
+          filter.disconnect();
+        } catch (_) {}
+
+        try {
+          envelope.disconnect();
+        } catch (_) {}
+      }
+    };
+
+    oscillators.forEach((oscillator) => {
+      oscillator.addEventListener('ended', cleanup, { once: true });
+    });
+
+    if (vibrato) {
+      vibrato.addEventListener('ended', cleanup, { once: true });
+    }
   }
 
   function scheduleMusicStep() {
@@ -1260,7 +1300,7 @@ document.addEventListener('DOMContentLoaded', () => {
       playing = true;
       startedAt = Date.now();
 
-      noteTimer = setInterval(scheduleMusicStep, 680);
+      noteTimer = setInterval(scheduleMusicStep, 760);
       progressTimer = setInterval(updateMusicProgress, 250);
 
       scheduleMusicStep();
@@ -1378,8 +1418,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     safeWrite(AUDIO_KEY, { volume });
   });
-
-  /* =====================================================
+    /* =====================================================
      RESTORE SAVED PREFERENCES AND START THE APP
   ===================================================== */
 
