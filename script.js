@@ -1456,3 +1456,38 @@ document.addEventListener('DOMContentLoaded', () => {
     'GradeNova initialized. Frontend features are ready; AI grading requires a configured backend.'
   );
 });
+
+/* GradeNova: binary rain contained inside each Matrix cap */
+(() => {
+  document.querySelectorAll(".cap-effect-matrix").forEach((cap) => {
+    // Prevent creating duplicate streams if this code runs again.
+    if (cap.dataset.binaryReady === "true") return;
+
+    cap.dataset.binaryReady = "true";
+    cap.replaceChildren();
+
+    for (let column = 0; column < 7; column++) {
+      const stream = document.createElement("span");
+      stream.className = "binary-stream";
+
+      let digits = "";
+      for (let row = 0; row < 12; row++) {
+        digits += Math.random() > 0.5 ? "1" : "0";
+        digits += "\n";
+      }
+
+      stream.textContent = digits;
+      stream.style.left = `${column * 14}%`;
+      stream.style.setProperty(
+        "--fall-time",
+        `${1.4 + Math.random() * 1.8}s`
+      );
+      stream.style.setProperty(
+        "--fall-delay",
+        `${-Math.random() * 3}s`
+      );
+
+      cap.appendChild(stream);
+    }
+  });
+})();
