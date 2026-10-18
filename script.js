@@ -1576,3 +1576,74 @@ function handleKeyboardShortcuts(event) {
 
   openPage(activeButton?.dataset.page || "home");
 })();
+
+/* ==========================================
+   GradeNova: Tab switching
+   ========================================== */
+
+document.addEventListener("DOMContentLoaded", () => {
+  const body = document.body;
+
+  const validTabs = [
+    "home",
+    "grading",
+    "rubric",
+    "answer-key",
+    "results",
+    "history",
+    "settings"
+  ];
+
+  function openTab(tabName) {
+    if (!validTabs.includes(tabName)) {
+      tabName = "home";
+    }
+
+    // Tell the CSS which tab to display.
+    body.dataset.activeTab = tabName;
+
+    // Update the left navigation highlight.
+    document.querySelectorAll(
+      '.left-sidebar nav a[href^="#"]'
+    ).forEach((link) => {
+      const selected = link.getAttribute("href") === `#${tabName}`;
+
+      link.classList.toggle("active", selected);
+
+      if (selected) {
+        link.setAttribute("aria-current", "page");
+      } else {
+        link.removeAttribute("aria-current");
+      }
+    });
+
+    // Expand the answer key when its tab is opened.
+    const answerKey = document.getElementById("answer-key");
+
+    if (answerKey) {
+      answerKey.open = tabName === "answer-key";
+    }
+
+    // Start each tab at the top instead of jumping down the page.
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }
+
+  // Start on Home.
+  openTab("home");
+
+  // Handle navigation links throughout the website.
+  document.addEventListener("click", (event) => {
+    if (!(event.target instanceof Element)) return;
+
+    const link = event.target.closest('a[href^="#"]');
+
+    if (!link) return;
+
+    const tabName = link.getAttribute("href").slice(1);
+
+    if (!validTabs.includes(tabName)) return;
+
+    event.preventDefault();
+    openTab(tabName);
+  }, true);
+});
