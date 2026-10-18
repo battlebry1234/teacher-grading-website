@@ -695,3 +695,379 @@ body.reduce-motion *, body.reduce-motion::before, body.reduce-motion::after { an
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; scroll-behavior: auto !important; transition: none !important; }
 }
+
+
+/* ==================================================
+   GRADENOVA — CINEMATIC ATMOSPHERE ENGINE
+   Premium background enhancements
+   ================================================== */
+
+/* Smooth transitions between worlds */
+.scene {
+  transition: opacity 0.9s ease, filter 0.9s ease;
+  contain: paint;
+}
+
+body[data-theme="cosmic"] .scene-cosmic,
+body[data-theme="ocean"] .scene-ocean,
+body[data-theme="forest"] .scene-forest,
+body[data-theme="inferno"] .scene-inferno,
+body[data-theme="matrix"] .scene-matrix,
+body[data-theme="cyberpunk"] .scene-cyberpunk,
+body[data-theme="aurora"] .scene-aurora {
+  opacity: 1;
+}
+
+/* =============== MATRIX: DIGITAL RAIN =============== */
+
+body[data-theme="matrix"] .scene-matrix {
+  background:
+    radial-gradient(ellipse at 50% 45%,
+      rgba(0, 255, 90, 0.13), transparent 58%),
+    linear-gradient(180deg, #010403, #03180c 55%, #010604);
+}
+
+#matrix-rain {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  opacity: 0.95;
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    black 9%,
+    black 88%,
+    transparent 100%
+  );
+}
+
+.matrix-column {
+  position: absolute;
+  top: -115%;
+  left: var(--x);
+  color: #38ff83;
+  font-family: Consolas, "Courier New", monospace;
+  font-size: clamp(14px, 1.25vw, 20px);
+  font-weight: 800;
+  line-height: 1.5;
+  letter-spacing: 3px;
+  white-space: pre;
+  text-shadow:
+    0 0 5px #00ff66,
+    0 0 14px rgba(0, 255, 102, 0.9);
+  animation: matrix-fall var(--duration) linear infinite;
+  animation-delay: var(--delay);
+  will-change: transform;
+}
+
+.matrix-column:nth-child(3n) {
+  color: #d5ffe3;
+  text-shadow: 0 0 12px #48ff8d;
+}
+
+.matrix-column:nth-child(4n) {
+  font-size: 19px;
+  opacity: 0.65;
+}
+
+body[data-theme="matrix"] .glass-panel {
+  border-color: rgba(46, 255, 125, 0.23);
+  box-shadow:
+    0 0 24px rgba(0, 255, 100, 0.035),
+    inset 0 1px rgba(110, 255, 160, 0.04);
+}
+
+@keyframes matrix-fall {
+  from { transform: translateY(0); }
+  to   { transform: translateY(220vh); }
+}
+
+/* =============== INFERNO: VOLCANIC FIRE =============== */
+
+body[data-theme="inferno"] .scene-inferno {
+  background:
+    radial-gradient(ellipse at 50% 100%,
+      rgba(255, 91, 0, 0.55), transparent 50%),
+    radial-gradient(ellipse at 15% 80%,
+      rgba(180, 24, 0, 0.26), transparent 40%),
+    linear-gradient(180deg, #070408 0%, #200806 65%, #390b03 100%);
+}
+
+/* A glowing heat source rises from the bottom */
+body[data-theme="inferno"] .inferno-glow {
+  left: -10%;
+  width: 120%;
+  height: 90%;
+  bottom: -48%;
+  background: radial-gradient(
+    ellipse at 50% 40%,
+    rgba(255, 242, 153, 0.95) 0%,
+    rgba(255, 113, 15, 0.7) 16%,
+    rgba(239, 39, 0, 0.42) 38%,
+    transparent 72%
+  );
+  filter: blur(32px);
+  animation: inferno-heat 2.8s ease-in-out infinite alternate;
+}
+
+/* Two layered, CSS-generated flame silhouettes */
+body[data-theme="inferno"] .scene-inferno::before,
+body[data-theme="inferno"] .scene-inferno::after {
+  content: "";
+  position: absolute;
+  left: -10%;
+  bottom: -24%;
+  width: 120%;
+  height: 88%;
+  pointer-events: none;
+  transform-origin: bottom center;
+  clip-path: polygon(
+    0 100%, 0 78%, 7% 61%, 12% 83%,
+    19% 48%, 24% 69%, 31% 28%, 37% 63%,
+    44% 13%, 50% 53%, 57% 0%, 63% 48%,
+    70% 25%, 76% 67%, 83% 37%, 90% 72%,
+    96% 57%, 100% 82%, 100% 100%
+  );
+  background: linear-gradient(
+    0deg,
+    #ff3b00 0%,
+    #ff6a00 26%,
+    rgba(255, 163, 38, 0.75) 52%,
+    rgba(255, 212, 94, 0.15) 76%,
+    transparent 94%
+  );
+  filter: blur(9px);
+  opacity: 0.38;
+  animation: inferno-flames 3.2s ease-in-out infinite alternate;
+}
+
+body[data-theme="inferno"] .scene-inferno::after {
+  left: -5%;
+  width: 110%;
+  height: 69%;
+  opacity: 0.27;
+  filter: blur(17px);
+  animation-delay: -1.7s;
+  animation-duration: 4.1s;
+  transform: scaleX(-1);
+}
+
+body[data-theme="inferno"] .inferno-embers {
+  opacity: 0.9;
+  background-image:
+    radial-gradient(circle, #fff0a6 1px, transparent 2px),
+    radial-gradient(circle, #ff9a36 2px, transparent 3px),
+    radial-gradient(circle, #ff4820 1px, transparent 3px);
+  background-size: 83px 125px, 137px 190px, 191px 160px;
+  animation: ember-rise 10s linear infinite;
+}
+
+@keyframes inferno-heat {
+  from { transform: scale(0.94); opacity: 0.55; }
+  to   { transform: scale(1.08); opacity: 0.95; }
+}
+
+@keyframes inferno-flames {
+  from { transform: scaleY(0.91) skewX(-2deg); }
+  to   { transform: scaleY(1.08) skewX(3deg); }
+}
+
+/* =============== CYBERPUNK: NEON CITY =============== */
+
+body[data-theme="cyberpunk"] .scene-cyberpunk {
+  background:
+    radial-gradient(ellipse at 50% 40%,
+      rgba(226, 26, 192, 0.2), transparent 43%),
+    linear-gradient(180deg, #060714, #180925 55%, #27092e);
+}
+
+body[data-theme="cyberpunk"] .cyber-sun {
+  opacity: 0.82;
+  filter:
+    drop-shadow(0 0 22px rgba(255, 50, 207, 0.75))
+    drop-shadow(0 0 65px rgba(128, 50, 255, 0.35));
+  animation: cyber-sun-pulse 4s ease-in-out infinite alternate;
+}
+
+body[data-theme="cyberpunk"] .cyber-city {
+  opacity: 0.9;
+  filter:
+    drop-shadow(0 0 8px #ff28c9)
+    drop-shadow(0 0 22px rgba(54, 234, 255, 0.28));
+}
+
+/* Stronger animated neon perspective grid */
+body[data-theme="cyberpunk"] .cyber-grid {
+  background-image:
+    linear-gradient(rgba(255, 55, 210, 0.65) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(54, 234, 255, 0.55) 1px, transparent 1px);
+  background-size: 44px 30px;
+  animation: cyber-grid-pulse 1.4s ease-in-out infinite alternate;
+}
+
+/* The bars pulse independently, like a futuristic sound visualizer */
+body[data-theme="cyberpunk"] .cyber-equalizer {
+  height: 23%;
+  bottom: 8%;
+  opacity: 0.96;
+}
+
+body[data-theme="cyberpunk"] .cyber-equalizer i {
+  box-shadow:
+    0 0 8px rgba(54, 234, 255, 0.65),
+    0 0 18px rgba(255, 45, 210, 0.28);
+  animation: equalizer-beat var(--beat, 0.8s) ease-in-out infinite alternate;
+}
+
+@keyframes cyber-sun-pulse {
+  from { filter: drop-shadow(0 0 20px #ff35c9); }
+  to   { filter: drop-shadow(0 0 44px #ff35c9); }
+}
+
+@keyframes cyber-grid-pulse {
+  from { opacity: 0.42; }
+  to   { opacity: 0.95; }
+}
+
+/* =============== COSMIC: DEEP SPACE =============== */
+
+body[data-theme="cosmic"] .scene-cosmic {
+  background:
+    radial-gradient(ellipse at 48% 42%,
+      rgba(97, 54, 199, 0.23), transparent 42%),
+    radial-gradient(ellipse at 80% 22%,
+      rgba(15, 129, 215, 0.18), transparent 35%),
+    linear-gradient(180deg, #02030b, #080b25 55%, #03040d);
+}
+
+body[data-theme="cosmic"] .nebula {
+  opacity: 0.65;
+  filter: blur(48px);
+}
+
+body[data-theme="cosmic"] .starfield {
+  opacity: 0.95;
+  animation-duration: 65s;
+}
+
+body[data-theme="cosmic"] .planet {
+  box-shadow:
+    inset -18px -16px 30px rgba(0, 0, 0, 0.8),
+    0 0 35px rgba(92, 112, 255, 0.3);
+}
+
+/* =============== OCEAN: UNDERWATER DEPTH =============== */
+
+body[data-theme="ocean"] .scene-ocean {
+  background:
+    radial-gradient(ellipse at 50% 0%,
+      rgba(52, 203, 255, 0.24), transparent 43%),
+    linear-gradient(180deg, #06334b, #03243a 48%, #010813);
+}
+
+body[data-theme="ocean"] .ocean-light {
+  opacity: 0.9;
+  filter: blur(13px);
+}
+
+body[data-theme="ocean"] .ocean-bubbles {
+  opacity: 0.9;
+  background-size: 83px 120px;
+  animation-duration: 15s;
+}
+
+/* =============== FOREST: MOONLIT MIST =============== */
+
+body[data-theme="forest"] .scene-forest {
+  background:
+    radial-gradient(ellipse at 50% 30%,
+      rgba(48, 122, 78, 0.25), transparent 45%),
+    linear-gradient(180deg, #020a08, #062117 60%, #010604);
+}
+
+body[data-theme="forest"] .forest-mist {
+  filter: blur(30px);
+  animation-duration: 10s;
+}
+
+body[data-theme="forest"] .forest-fireflies {
+  opacity: 0.95;
+  animation-duration: 4s;
+}
+
+/* =============== AURORA: MOVING LIGHT RIBBONS =============== */
+
+body[data-theme="aurora"] .aurora-curtain {
+  opacity: 0.82;
+  filter: blur(25px);
+  animation-duration: 13s;
+}
+
+body[data-theme="aurora"] .aurora-one {
+  background: linear-gradient(
+    115deg,
+    transparent 10%,
+    rgba(25, 255, 170, 0.58) 32%,
+    rgba(38, 200, 255, 0.34) 48%,
+    transparent 75%
+  );
+}
+
+/* =============== PREMIUM GLASS PANELS =============== */
+
+.glass-panel {
+  backdrop-filter: blur(18px) saturate(125%);
+  -webkit-backdrop-filter: blur(18px) saturate(125%);
+  transition:
+    border-color 0.35s ease,
+    box-shadow 0.35s ease,
+    background 0.35s ease;
+}
+
+.theme-option {
+  transition:
+    transform 0.25s ease,
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.theme-option:hover {
+  transform: translateX(3px);
+}
+
+/* =============== PERFORMANCE & ACCESSIBILITY =============== */
+
+@media (max-width: 700px) {
+  .matrix-column {
+    font-size: 13px;
+    letter-spacing: 2px;
+  }
+
+  body[data-theme="inferno"] .scene-inferno::before,
+  body[data-theme="inferno"] .scene-inferno::after {
+    filter: blur(14px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .matrix-column,
+  .inferno-glow,
+  .scene-inferno::before,
+  .scene-inferno::after,
+  .cyber-sun,
+  .cyber-grid,
+  .cyber-equalizer i {
+    animation: none !important;
+  }
+}
+
+body.motion-off .matrix-column,
+body.motion-off .inferno-glow,
+body.motion-off .scene-inferno::before,
+body.motion-off .scene-inferno::after,
+body.motion-off .cyber-sun,
+body.motion-off .cyber-grid,
+body.motion-off .cyber-equalizer i {
+  animation-play-state: paused !important;
+}
+
