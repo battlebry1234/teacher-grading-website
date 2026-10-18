@@ -2704,3 +2704,69 @@ body::after,
     animation: none;
   }
 }
+
+/* ==========================================
+   GradeNova: Real tab navigation
+   ========================================== */
+
+/* HOME tab */
+body[data-active-tab="home"] .dashboard-main > :not(.hero-card):not(.stats-grid) {
+  display: none !important;
+}
+
+/* Show only the selected main section */
+body[data-active-tab="grading"] .dashboard-main > :not(#grading),
+body[data-active-tab="rubric"] .dashboard-main > :not(#grading),
+body[data-active-tab="answer-key"] .dashboard-main > :not(#grading),
+body[data-active-tab="results"] .dashboard-main > :not(#results),
+body[data-active-tab="history"] .dashboard-main > :not(#history),
+body[data-active-tab="settings"] .dashboard-main > :not(#settings) {
+  display: none !important;
+}
+
+/* Hide the home dashboard when another tab is open */
+body[data-active-tab]:not([data-active-tab="home"])
+  .dashboard-main > .hero-card,
+body[data-active-tab]:not([data-active-tab="home"])
+  .dashboard-main > .stats-grid {
+  display: none !important;
+}
+
+/* Rubric Builder gets its own tab */
+body[data-active-tab="rubric"] #grading-form > :not(#rubric) {
+  display: none !important;
+}
+
+/* Answer Key gets its own tab */
+body[data-active-tab="answer-key"] #grading-form > :not(#answer-key) {
+  display: none !important;
+}
+
+/* Make the selected section fill the workspace */
+body[data-active-tab]:not([data-active-tab="home"]) .dashboard-main {
+  grid-column: 2 / -1;
+  grid-row: 1;
+  min-width: 0;
+}
+
+/* Keep the left navigation visible, but hide Quick Tools
+   while viewing a separate tab */
+body[data-active-tab]:not([data-active-tab="home"]) .right-sidebar {
+  display: none !important;
+}
+
+/* Highlight the selected navigation tab */
+.left-sidebar .nav-link.active {
+  border-color: var(--accent);
+  background: var(--panel-soft);
+  color: var(--text);
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+/* Small screens */
+@media (max-width: 980px) {
+  body[data-active-tab]:not([data-active-tab="home"]) .dashboard-main {
+    grid-column: 1 / -1;
+    grid-row: auto;
+  }
+}
