@@ -1516,3 +1516,63 @@ function handleKeyboardShortcuts(event) {
 
   applyTheme(savedTheme);
 })();
+
+/* =========================================
+   GRADENOVA: SEPARATE NAVIGATION PAGES
+   ========================================= */
+
+(() => {
+  const navButtons = document.querySelectorAll("[data-page]");
+  const pageViews = document.querySelectorAll("[data-view]");
+
+  if (!navButtons.length || !pageViews.length) {
+    console.warn(
+      "GradeNova: Navigation needs matching data-page and data-view elements."
+    );
+    return;
+  }
+
+  function openPage(pageName) {
+    const targetPage = Array.from(pageViews).find(
+      (page) => page.dataset.view === pageName
+    );
+
+    if (!targetPage) {
+      console.warn("GradeNova: Missing page section:", pageName);
+      return;
+    }
+
+    pageViews.forEach((page) => {
+      const selected = page === targetPage;
+      page.classList.toggle("active", selected);
+      page.setAttribute("aria-hidden", String(!selected));
+    });
+
+    navButtons.forEach((button) => {
+      const selected = button.dataset.page === pageName;
+
+      button.classList.toggle("active", selected);
+
+      if (selected) {
+        button.setAttribute("aria-current", "page");
+      } else {
+        button.removeAttribute("aria-current");
+      }
+    });
+  }
+
+  document.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-page]");
+    if (!button) return;
+
+    event.preventDefault();
+    openPage(button.dataset.page);
+  });
+
+  // Open the Home page by default.
+  const activeButton = Array.from(navButtons).find(
+    (button) => button.classList.contains("active")
+  );
+
+  openPage(activeButton?.dataset.page || "home");
+})();
