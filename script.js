@@ -1431,3 +1431,88 @@ function handleKeyboardShortcuts(event) {
     initGradeNovaNavigation();
   }
 })();
+
+/* =========================================
+   GRADENOVA: WORKING THEME SELECTOR
+   ========================================= */
+
+(() => {
+  const themeButtons = document.querySelectorAll(
+    "[data-theme-choice], [data-set-theme]"
+  );
+
+  if (!themeButtons.length) {
+    console.warn(
+      "GradeNova: No theme buttons found. Check the theme button HTML."
+    );
+    return;
+  }
+
+  const supportedThemes = [
+    "cosmic", "nebula", "matrix", "inferno", "cyberpunk",
+    "aurora", "ocean", "deepsea", "forest", "emerald",
+    "arctic", "solar", "volcanic", "moon", "holographic",
+    "quantum", "synthwave", "sakura", "desert", "light"
+  ];
+
+  function applyTheme(themeName) {
+    if (!supportedThemes.includes(themeName)) return;
+
+    // Make the selected theme available to all CSS rules.
+    document.documentElement.dataset.theme = themeName;
+    document.body.dataset.theme = themeName;
+
+    // Update selected button styling and accessibility state.
+    themeButtons.forEach((button) => {
+      const buttonTheme =
+        button.dataset.themeChoice || button.dataset.setTheme;
+
+      const selected = buttonTheme === themeName;
+
+      button.classList.toggle("active", selected);
+      button.setAttribute("aria-pressed", String(selected));
+    });
+
+    try {
+      localStorage.setItem("gradenova-theme", themeName);
+    } catch (error) {
+      console.warn("GradeNova couldn't save the theme preference.");
+    }
+
+    // Notify any other theme effects in the website.
+    document.dispatchEvent(
+      new CustomEvent("gradenova:themechange", {
+        detail: { theme: themeName }
+      })
+    );
+  }
+
+  // Event delegation means theme buttons remain clickable
+  // even if the theme list is re-rendered later.
+  document.addEventListener("click", (event) => {
+    const button = event.target.closest(
+      "[data-theme-choice], [data-set-theme]"
+    );
+
+    if (!button) return;
+
+    const themeName =
+      button.dataset.themeChoice || button.dataset.setTheme;
+
+    if (supportedThemes.includes(themeName)) {
+      event.preventDefault();
+      applyTheme(themeName);
+    }
+  });
+
+  // Restore the saved theme when the website opens.
+  let savedTheme = "cosmic";
+
+  try {
+    savedTheme = localStorage.getItem("gradenova-theme") || "cosmic";
+  } catch (error) {
+    // Continue with the default theme.
+  }
+
+  applyTheme(savedTheme);
+})();
