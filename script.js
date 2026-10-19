@@ -77,9 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (type) node.classList.add(type);
   }
 
-  /* =====================================================
-     NAVIGATION
-  ===================================================== */
+  /* NAVIGATION */
 
   function openTab(tabName, updateAddress = true) {
     if (!VALID_TABS.has(tabName)) tabName = 'home';
@@ -125,9 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
     openTab(location.hash.slice(1), false);
   });
 
-  /* =====================================================
-     THEMES AND PREFERENCES
-  ===================================================== */
+  /* THEMES AND PREFERENCES */
 
   function getPrefs() {
     const prefs = safeRead(PREFS_KEY, {});
@@ -223,9 +219,7 @@ document.addEventListener('DOMContentLoaded', () => {
     applyMotion(event.target.checked, true);
   });
 
-  /* =====================================================
-     ANIMATED BACKGROUND ELEMENTS
-  ===================================================== */
+  /* ANIMATED BACKGROUNDS */
 
   function createAnimations() {
     const rain = $('#matrix-rain');
@@ -252,11 +246,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (equalizer && equalizer.childElementCount === 0) {
       for (let i = 0; i < 48; i += 1) {
         const bar = document.createElement('i');
-
         bar.style.setProperty('--h', `${22 + ((i * 31) % 76)}%`);
         bar.style.setProperty('--beat', `${0.38 + (i % 7) * 0.09}s`);
         bar.style.animationDelay = `${-(i % 9) * 0.12}s`;
-
         equalizer.appendChild(bar);
       }
     }
@@ -286,9 +278,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  /* =====================================================
-     CUSTOM BACKGROUND STUDIO
-  ===================================================== */
+  /* CUSTOM BACKGROUND STUDIO */
 
   let customPrefs = safeRead(CUSTOM_KEY, {});
   if (!customPrefs || typeof customPrefs !== 'object') customPrefs = {};
@@ -488,11 +478,6 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   $('#save-customization').addEventListener('click', () => {
-    customPrefs.mode = modeControl.value;
-    customPrefs.theme = themeControl.value;
-    customPrefs.solidColor = solidColorControl.value;
-    customPrefs.overlay = Number(overlayControl.value);
-
     applyTheme(themeControl.value, false);
     applySolidColor();
     applyOverlay();
@@ -573,9 +558,8 @@ document.addEventListener('DOMContentLoaded', () => {
     applyTheme(themeControl.value, false);
     setCustomMode(customPrefs.mode || 'preset', false);
   }
-    /* =====================================================
-     RUBRIC BUILDER
-  ===================================================== */
+
+  /* RUBRIC BUILDER */
 
   const rubricContainer = $('#rubric-criteria');
 
@@ -709,10 +693,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setStatus('rubric-status', 'Default rubric restored. Save it to keep the changes.', 'success');
   });
 
-  /* =====================================================
-     HISTORY
-     Only summaries are saved, never pasted student answers.
-  ===================================================== */
+  /* HISTORY */
 
   function readHistory() {
     const saved = safeRead(HISTORY_KEY, []);
@@ -797,10 +778,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderHistory();
   });
 
-  /* =====================================================
-     GRADING FORM
-     No fake scores: this front end does not call an AI API.
-  ===================================================== */
+  /* GRADING FORM — DOES NOT INVENT SCORES */
 
   $('#grading-form').addEventListener('submit', (event) => {
     event.preventDefault();
@@ -901,9 +879,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateRubricSummary();
   });
 
-  /* =====================================================
-     SETTINGS
-  ===================================================== */
+  /* SETTINGS */
 
   $('#save-settings').addEventListener('click', () => {
     const prefs = {
@@ -916,73 +892,52 @@ document.addEventListener('DOMContentLoaded', () => {
     applyTheme(prefs.theme, false);
     setCustomMode('preset');
     applyAccent(prefs.accent, false);
-      /* =====================================================
-     SERENITY SOUND STUDIO
-     Ten synthesized instrumental melodies.
-     Music is OFF by default and stays off after reload.
-  ===================================================== */
+    applyMotion(prefs.motion, false);
+    $('#grading-strictness').value = prefs.strictness;
+
+    const saved = safeWrite(PREFS_KEY, prefs);
+
+    setStatus(
+      'settings-status',
+      saved
+        ? '✓ Your studio preferences are saved on this device.'
+        : 'Could not save preferences. Check browser storage settings.',
+      saved ? 'success' : 'error'
+    );
+  });
+
+  $('#reset-settings').addEventListener('click', () => {
+    applyTheme('cosmic', false);
+    setCustomMode('preset');
+    applyAccent('#39d7ff', false);
+    applyMotion(true, false);
+
+    $('#settings-default-strictness').value = 'balanced';
+    $('#grading-strictness').value = 'balanced';
+
+    safeWrite(PREFS_KEY, {
+      theme: 'cosmic',
+      accent: '#39d7ff',
+      motion: true,
+      strictness: 'balanced'
+    });
+
+    setStatus('settings-status', 'Default appearance restored.', 'success');
+  });
+
+  /* SERENITY SOUND STUDIO */
 
   const TRACKS = [
-    {
-      name: 'Moonlit Reflections',
-      style: 'Soft piano melody',
-      instrument: 'piano',
-      notes: [60,64,67,72,69,67,64,62,65,69,72,76,74,69,65,64]
-    },
-    {
-      name: 'Gentle Horizons',
-      style: 'Soft piano melody',
-      instrument: 'piano',
-      notes: [57,60,64,69,67,64,60,59,62,65,69,74,72,69,65,62]
-    },
-    {
-      name: 'Forest Whispers',
-      style: 'Warm string-like tones',
-      instrument: 'violin',
-      notes: [55,59,62,67,69,67,62,59,57,60,64,69,67,64,60,57]
-    },
-    {
-      name: 'Ocean Dreams',
-      style: 'Piano-style melody',
-      instrument: 'piano',
-      notes: [62,65,69,74,72,69,65,62,60,64,67,72,71,67,64,60]
-    },
-    {
-      name: 'Quiet Path',
-      style: 'Soft piano melody',
-      instrument: 'piano',
-      notes: [60,63,67,70,72,70,67,63,58,62,65,70,68,65,62,58]
-    },
-    {
-      name: 'Winter Light',
-      style: 'Gentle string-like tones',
-      instrument: 'violin',
-      notes: [53,57,60,65,64,60,57,55,57,60,64,69,67,64,60,57]
-    },
-    {
-      name: 'Golden Morning',
-      style: 'Soft piano melody',
-      instrument: 'piano',
-      notes: [65,69,72,77,76,72,69,67,64,67,71,76,74,71,67,64]
-    },
-    {
-      name: 'Starlit Skies',
-      style: 'Piano-style melody',
-      instrument: 'piano',
-      notes: [58,62,65,70,69,65,62,60,57,60,64,69,67,64,60,57]
-    },
-    {
-      name: 'Calm Waters',
-      style: 'Warm string-like tones',
-      instrument: 'violin',
-      notes: [60,64,67,71,72,71,67,64,55,59,62,67,65,62,59,55]
-    },
-    {
-      name: 'New Beginnings',
-      style: 'Soft piano melody',
-      instrument: 'piano',
-      notes: [62,65,69,74,76,74,69,65,60,64,67,72,74,72,67,64]
-    }
+    { name: 'Moonlit Reflections', style: 'Soft piano melody', instrument: 'piano', notes: [60,64,67,72,69,67,64,62,65,69,72,76,74,69,65,64] },
+    { name: 'Gentle Horizons', style: 'Soft piano melody', instrument: 'piano', notes: [57,60,64,69,67,64,60,59,62,65,69,74,72,69,65,62] },
+    { name: 'Forest Whispers', style: 'Warm string-like tones', instrument: 'violin', notes: [55,59,62,67,69,67,62,59,57,60,64,69,67,64,60,57] },
+    { name: 'Ocean Dreams', style: 'Piano-style melody', instrument: 'piano', notes: [62,65,69,74,72,69,65,62,60,64,67,72,71,67,64,60] },
+    { name: 'Quiet Path', style: 'Soft piano melody', instrument: 'piano', notes: [60,63,67,70,72,70,67,63,58,62,65,70,68,65,62,58] },
+    { name: 'Winter Light', style: 'Gentle string-like tones', instrument: 'violin', notes: [53,57,60,65,64,60,57,55,57,60,64,69,67,64,60,57] },
+    { name: 'Golden Morning', style: 'Soft piano melody', instrument: 'piano', notes: [65,69,72,77,76,72,69,67,64,67,71,76,74,71,67,64] },
+    { name: 'Starlit Skies', style: 'Piano-style melody', instrument: 'piano', notes: [58,62,65,70,69,65,62,60,57,60,64,69,67,64,60,57] },
+    { name: 'Calm Waters', style: 'Warm string-like tones', instrument: 'violin', notes: [60,64,67,71,72,71,67,64,55,59,62,67,65,62,59,55] },
+    { name: 'New Beginnings', style: 'Soft piano melody', instrument: 'piano', notes: [62,65,69,74,76,74,69,65,60,64,67,72,74,72,67,64] }
   ];
 
   let currentTrack = 0;
@@ -990,13 +945,11 @@ document.addEventListener('DOMContentLoaded', () => {
   let masterGain = null;
   let noteTimer = null;
   let progressTimer = null;
-  let activeOscillators = new Set();
+  const activeOscillators = new Set();
   let playing = false;
   let shuffleOn = false;
   let repeatOn = false;
   let noteStep = 0;
-  let lastMelodyNote = null;
-  let melodyCenter = null;
   let elapsedMs = 0;
   let startedAt = 0;
 
@@ -1078,7 +1031,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function stopScheduledNotes() {
-    if (noteTimer) clearTimeout(noteTimer);
+    if (noteTimer) clearInterval(noteTimer);
     if (progressTimer) clearInterval(progressTimer);
 
     noteTimer = null;
@@ -1104,10 +1057,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const filter = audioContext.createBiquadFilter();
     const envelope = audioContext.createGain();
     const oscillators = [];
-    let vibrato = null;
-    let vibratoDepth = null;
 
-    // A gentle, filtered sound keeps the synthesized instruments less harsh.
     const peak = 0.12 * loudness;
     const attack = isViolin ? 0.20 : 0.012;
     const endTime = now + Math.max(0.15, lengthSeconds);
@@ -1123,7 +1073,6 @@ document.addEventListener('DOMContentLoaded', () => {
       envelope.gain.setTargetAtTime(peak * 0.72, now + attack, 0.24);
       envelope.gain.setTargetAtTime(0.0001, endTime - 0.28, 0.18);
     } else {
-      // Quick piano-like attack followed by a smooth decay.
       envelope.gain.setTargetAtTime(peak * 0.35, now + attack, 0.28);
       envelope.gain.setTargetAtTime(0.0001, endTime - 0.22, 0.12);
     }
@@ -1138,10 +1087,8 @@ document.addEventListener('DOMContentLoaded', () => {
       oscillator.type = type;
       oscillator.frequency.setValueAtTime(toneFrequency, now);
       tone.gain.setValueAtTime(toneGain, now);
-
       oscillator.connect(tone);
       tone.connect(filter);
-
       activeOscillators.add(oscillator);
       oscillators.push(oscillator);
 
@@ -1156,21 +1103,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (isViolin) {
-      // A soft sawtooth with a quiet sine overtone suggests sustained strings.
       addTone('sawtooth', frequency, 0.52);
       addTone('sine', frequency * 2, 0.10);
 
-      // Gentle vibrato adds movement without the harsh mechanical wobble.
-      vibrato = audioContext.createOscillator();
-      vibratoDepth = audioContext.createGain();
-
+      const vibrato = audioContext.createOscillator();
+      const vibratoDepth = audioContext.createGain();
       vibrato.type = 'sine';
       vibrato.frequency.setValueAtTime(4.2, now);
       vibratoDepth.gain.setValueAtTime(2.2, now);
-
       vibrato.connect(vibratoDepth);
       vibratoDepth.connect(oscillators[0].frequency);
-
       activeOscillators.add(vibrato);
 
       vibrato.addEventListener('ended', () => {
@@ -1182,161 +1124,44 @@ document.addEventListener('DOMContentLoaded', () => {
       vibrato.start(now + 0.18);
       vibrato.stop(endTime + 0.03);
     } else {
-      // A rounded triangle wave and quiet overtone create a softer piano-like tone.
       addTone('triangle', frequency, 0.72);
       addTone('sine', frequency * 2, 0.08);
     }
 
-    // Disconnect each note's shared audio nodes when its own sounds finish.
     let remaining = oscillators.length + (isViolin ? 1 : 0);
-
     const cleanup = () => {
       remaining -= 1;
-
       if (remaining <= 0) {
-        try {
-          filter.disconnect();
-        } catch (_) {}
-
-        try {
-          envelope.disconnect();
-        } catch (_) {}
+        try { filter.disconnect(); } catch (_) {}
+        try { envelope.disconnect(); } catch (_) {}
       }
     };
 
     oscillators.forEach((oscillator) => {
       oscillator.addEventListener('ended', cleanup, { once: true });
     });
-
-    if (vibrato) {
-      vibrato.addEventListener('ended', cleanup, { once: true });
-    }
   }
-
-  /* =====================================================
-     RANDOMIZED MELODY ENGINE
-     Varied notes, phrases, pauses, and accompaniment.
-  ===================================================== */
 
   function scheduleMusicStep() {
     if (!playing || !audioContext) return;
 
     const track = TRACKS[currentTrack];
-    const palette = [...new Set(track.notes)].sort((a, b) => a - b);
+    const midi = track.notes[noteStep % track.notes.length];
 
-    if (!palette.length) return;
+    createMusicNote(midi, track.instrument, 1.0, 1);
 
-    // Choose a fresh musical center at the start of each phrase.
-    if (noteStep % 8 === 0 || melodyCenter === null) {
-      melodyCenter = palette[Math.floor(Math.random() * palette.length)];
-    }
-
-    if (lastMelodyNote === null) {
-      lastMelodyNote = melodyCenter;
-    }
-
-    const phrasePosition = noteStep % 8;
-    let target = lastMelodyNote;
-    const roll = Math.random();
-
-    if (phrasePosition === 0) {
-      target = melodyCenter;
-    } else if (phrasePosition === 7) {
-      const lowerNotes = palette.filter((note) => note <= melodyCenter + 2);
-      const endingNotes = lowerNotes.length ? lowerNotes : palette;
-
-      target = endingNotes[Math.floor(Math.random() * endingNotes.length)];
-    } else if (roll < 0.20) {
-      target = lastMelodyNote;
-    } else if (roll < 0.57) {
-      target = lastMelodyNote + (Math.random() < 0.5 ? -2 : 2);
-    } else if (roll < 0.82) {
-      target = lastMelodyNote + (Math.random() < 0.5 ? -4 : 4);
-    } else {
-      target = lastMelodyNote + (Math.random() < 0.5 ? -7 : 7);
-    }
-
-    // Favor nearby notes, but allow unexpected intervals occasionally.
-    const candidates = palette
-      .map((note) => ({
-        note,
-        distance: Math.abs(note - target)
-      }))
-      .sort((a, b) => a.distance - b.distance);
-
-    const shortlist = candidates.slice(0, Math.min(4, candidates.length));
-
-    let melodyNote = shortlist[
-      Math.floor(Math.random() * shortlist.length)
-    ].note;
-
-    if (
-      melodyNote === lastMelodyNote &&
-      Math.random() < 0.55 &&
-      palette.length > 1
-    ) {
-      const alternatives = palette.filter((note) => note !== lastMelodyNote);
-
-      melodyNote = alternatives[
-        Math.floor(Math.random() * alternatives.length)
-      ];
-    }
-
-    lastMelodyNote = melodyNote;
-
-    // Vary the rhythm: some short notes, some longer notes, some breathing room.
-    const rhythmRoll = Math.random();
-    let noteLength;
-    let nextDelay;
-
-    if (rhythmRoll < 0.18) {
-      noteLength = 0.82;
-      nextDelay = 1050;
-    } else if (rhythmRoll < 0.40) {
-      noteLength = 0.27;
-      nextDelay = 430;
-    } else {
-      noteLength = 0.52;
-      nextDelay = 690 + Math.random() * 190;
-    }
-
-    // A brief rest now and then keeps every beat from sounding identical.
-    if (Math.random() >= 0.11) {
-      createMusicNote(
-        melodyNote,
-        track.instrument,
-        noteLength,
-        0.68 + Math.random() * 0.22
-      );
-    }
-
-    // Quiet bass notes provide a little harmonic grounding.
-    if (noteStep % 4 === 0 && Math.random() < 0.78) {
-      createMusicNote(melodyCenter - 12, 'piano', 1.1, 0.25);
-    }
-
-    // Add a soft harmony only occasionally.
-    if (noteStep % 3 === 1 && Math.random() < 0.32) {
-      const harmony = palette.reduce((best, note) =>
-        Math.abs(note - (melodyNote + 3)) < Math.abs(best - (melodyNote + 3))
-          ? note
-          : best,
-      palette[0]);
-
-      createMusicNote(harmony, track.instrument, 0.72, 0.16);
+    if (noteStep % 4 === 0) {
+      createMusicNote(midi - 12, 'piano', 1.35, 0.45);
+      createMusicNote(midi + 7, track.instrument, 1.0, 0.25);
     }
 
     noteStep += 1;
-
-    if (playing) {
-      noteTimer = setTimeout(scheduleMusicStep, nextDelay);
-    }
   }
-      function pickRandomTrack(excludeIndex) {
+
+  function pickRandomTrack(excludeIndex) {
     if (TRACKS.length < 2) return excludeIndex;
 
     let next = excludeIndex;
-
     while (next === excludeIndex) {
       next = Math.floor(Math.random() * TRACKS.length);
     }
@@ -1372,10 +1197,7 @@ document.addEventListener('DOMContentLoaded', () => {
       playing = true;
       startedAt = Date.now();
 
-      noteStep = 0;
-      lastMelodyNote = null;
-      melodyCenter = null;
-
+      noteTimer = setInterval(scheduleMusicStep, 760);
       progressTimer = setInterval(updateMusicProgress, 250);
 
       scheduleMusicStep();
@@ -1423,8 +1245,6 @@ document.addEventListener('DOMContentLoaded', () => {
     currentTrack = (index + TRACKS.length) % TRACKS.length;
     elapsedMs = 0;
     noteStep = 0;
-    lastMelodyNote = null;
-    melodyCenter = null;
 
     stopScheduledNotes();
     playing = false;
@@ -1482,7 +1302,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   volumeControl.addEventListener('input', () => {
     const volume = Number(volumeControl.value);
-
     $('#music-volume-value').textContent = `${volume}%`;
 
     if (masterGain && audioContext) {
@@ -1496,9 +1315,7 @@ document.addEventListener('DOMContentLoaded', () => {
     safeWrite(AUDIO_KEY, { volume });
   });
 
-  /* =====================================================
-     RESTORE SAVED PREFERENCES AND START THE APP
-  ===================================================== */
+  /* RESTORE PREFERENCES AND START THE APP */
 
   const prefs = getPrefs();
 
@@ -1550,7 +1367,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   $('#music-volume-value').textContent = `${volumeControl.value}%`;
 
-  // Intentionally do not autoplay music on page load.
   musicEnabled.checked = false;
   updateTrackDisplay();
 
@@ -1574,10 +1390,7 @@ document.addEventListener('DOMContentLoaded', () => {
   );
 });
 
-/* =====================================================
-   MATRIX CAP EFFECT
-===================================================== */
-
+/* Binary rain contained inside each Matrix cap */
 (() => {
   document.querySelectorAll('.cap-effect-matrix').forEach((cap) => {
     if (cap.dataset.binaryReady === 'true') return;
@@ -1590,7 +1403,6 @@ document.addEventListener('DOMContentLoaded', () => {
       stream.className = 'binary-stream';
 
       let digits = '';
-
       for (let row = 0; row < 12; row += 1) {
         digits += Math.random() > 0.5 ? '1' : '0';
         digits += '\n';
@@ -1598,14 +1410,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
       stream.textContent = digits;
       stream.style.left = `${column * 14}%`;
-      stream.style.setProperty(
-        '--fall-time',
-        `${1.4 + Math.random() * 1.8}s`
-      );
-      stream.style.setProperty(
-        '--fall-delay',
-        `${-Math.random() * 3}s`
-      );
+      stream.style.setProperty('--fall-time', `${1.4 + Math.random() * 1.8}s`);
+      stream.style.setProperty('--fall-delay', `${-Math.random() * 3}s`);
 
       cap.appendChild(stream);
     }
