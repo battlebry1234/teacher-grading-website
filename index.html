@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="en">
 <head>
@@ -13,73 +12,39 @@
   <link rel="stylesheet" href="style.css">
   <script src="script.js" defer></script>
 </head>
-
 <body data-theme="cosmic" data-background-mode="preset">
   <a class="skip-link" href="#workspace">Skip to workspace</a>
 
   <div class="scene scene-cosmic" aria-hidden="true">
-    <div class="nebula nebula-one"></div>
-    <div class="nebula nebula-two"></div>
-    <div class="starfield"></div>
-    <div class="planet planet-one"></div>
-    <div class="planet planet-two"></div>
+    <div class="nebula nebula-one"></div><div class="nebula nebula-two"></div>
+    <div class="starfield"></div><div class="planet planet-one"></div><div class="planet planet-two"></div>
   </div>
-
-  <div class="scene scene-ocean" aria-hidden="true">
-    <div class="ocean-light"></div>
-    <div class="ocean-bubbles"></div>
-  </div>
-
-  <div class="scene scene-forest" aria-hidden="true">
-    <div class="forest-mist"></div>
-    <div class="forest-moon"></div>
-    <div class="forest-fireflies"></div>
-  </div>
-
-  <div class="scene scene-inferno" aria-hidden="true">
-    <div class="inferno-glow"></div>
-    <div class="inferno-embers"></div>
-  </div>
-
-  <div class="scene scene-matrix" aria-hidden="true">
-    <div id="matrix-rain"></div>
-  </div>
-
+  <div class="scene scene-ocean" aria-hidden="true"><div class="ocean-light"></div><div class="ocean-bubbles"></div></div>
+  <div class="scene scene-forest" aria-hidden="true"><div class="forest-mist"></div><div class="forest-moon"></div><div class="forest-fireflies"></div></div>
+  <div class="scene scene-inferno" aria-hidden="true"><div class="inferno-glow"></div><div class="inferno-embers"></div></div>
+  <div class="scene scene-matrix" aria-hidden="true"><div id="matrix-rain"></div></div>
   <div class="scene scene-cyberpunk" aria-hidden="true">
-    <div class="cyber-sun"></div>
-    <div class="cyber-city"></div>
-    <div class="cyber-grid"></div>
-    <div class="cyber-equalizer" id="cyber-equalizer"></div>
+    <div class="cyber-sun"></div><div class="cyber-city"></div><div class="cyber-grid"></div><div class="cyber-equalizer" id="cyber-equalizer"></div>
   </div>
-
   <div class="scene scene-aurora" aria-hidden="true">
-    <div class="aurora-stars"></div>
-    <div class="aurora-curtain aurora-one"></div>
-    <div class="aurora-curtain aurora-two"></div>
-    <div class="aurora-curtain aurora-three"></div>
+    <div class="aurora-stars"></div><div class="aurora-curtain aurora-one"></div>
+    <div class="aurora-curtain aurora-two"></div><div class="aurora-curtain aurora-three"></div>
   </div>
-
   <div class="scene scene-light" aria-hidden="true"></div>
   <div id="ambient-particles" aria-hidden="true"></div>
 
   <header class="topbar shell">
     <a class="brand" href="#home" aria-label="GradeNova home">
       <span class="logo-stage logo-atmosphere" aria-hidden="true">
-        <span class="logo-orbit orbit-one"></span>
-        <span class="logo-orbit orbit-two"></span>
-        <span class="logo-orbit orbit-three"></span>
-
+        <span class="logo-orbit orbit-one"></span><span class="logo-orbit orbit-two"></span><span class="logo-orbit orbit-three"></span>
         <span class="logo-core logo-cap-art">
           <svg class="cap-outline" viewBox="0 0 120 110" role="presentation">
             <defs>
               <linearGradient id="brandCapMetal" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0" class="cap-gradient-start"/>
-                <stop offset=".52" class="cap-gradient-mid"/>
-                <stop offset="1" class="cap-gradient-end"/>
+                <stop offset="0" class="cap-gradient-start"/><stop offset="0.52" class="cap-gradient-mid"/><stop offset="1" class="cap-gradient-end"/>
               </linearGradient>
-              <linearGradient id="brandCapBoard" x1="0" y1="0" x2=".9" y2="1">
-                <stop offset="0" class="cap-board-start"/>
-                <stop offset="1" class="cap-board-end"/>
+              <linearGradient id="brandCapBoard" x1="0" y1="0" x2="0.9" y2="1">
+                <stop offset="0" class="cap-board-start"/><stop offset="1" class="cap-board-end"/>
               </linearGradient>
             </defs>
             <path class="cap-top" d="M8 34 60 7 112 34 60 62Z"/>
@@ -89,10 +54,8 @@
             <path class="cap-tassel-line" d="M111 34V61"/>
             <path class="cap-tassel-end" d="M111 59q-8 5-2 12q5 4 7-2l-2-10Z"/>
             <path class="cap-circuit" d="M35 34h11l5 5h12m-2 5h10l5-5h9M48 28l5 5m22 7 5 5m-32 0 4 4"/>
-            <circle class="cap-node" cx="46" cy="34" r="2"/>
-            <circle class="cap-node" cx="76" cy="39" r="2"/>
+            <circle class="cap-node" cx="46" cy="34" r="2"/><circle class="cap-node" cx="76" cy="39" r="2"/>
           </svg>
-
           <span class="cap-theme-effect cap-effect-matrix">01<br>10<br>01</span>
           <span class="cap-theme-effect cap-effect-fire"><i></i><i></i><i></i></span>
           <span class="cap-theme-effect cap-effect-vines"><i></i><i></i></span>
@@ -101,39 +64,23 @@
           <span class="cap-theme-effect cap-effect-cyber">▰ ▱ ▰</span>
           <span class="cap-theme-effect cap-effect-aurora"></span>
         </span>
-
-        <i class="logo-dot dot-one"></i>
-        <i class="logo-dot dot-two"></i>
-        <i class="logo-dot dot-three"></i>
+        <i class="logo-dot dot-one"></i><i class="logo-dot dot-two"></i><i class="logo-dot dot-three"></i>
       </span>
-
       <span class="brand-copy">
         <span class="brand-name">Grade<span>Nova</span></span>
         <span class="brand-tagline">SMARTER GRADING. BRIGHTER FUTURES.</span>
       </span>
     </a>
-
     <div class="top-actions">
-      <span class="connection-pill">
-        <i class="connection-dot"></i>
-        <span id="connection-label">Frontend ready · Backend not verified</span>
-      </span>
-      <button class="icon-button" id="quick-theme" type="button"
-        aria-label="Switch to the next theme" title="Cycle themes">☼</button>
-      <a class="user-pill" href="#settings">
-        <span class="avatar">TN</span>
-        <span>Teacher<br><small>Educator studio</small></span>
-      </a>
+      <span class="connection-pill"><i class="connection-dot"></i><span id="connection-label">Frontend ready · Backend not verified</span></span>
+      <button class="icon-button" id="quick-theme" type="button" aria-label="Switch to the next theme" title="Cycle themes">☼</button>
+      <a class="user-pill" href="#settings"><span class="avatar">TN</span><span>Teacher<br><small>Educator studio</small></span></a>
     </div>
   </header>
 
   <div class="shell app-layout">
     <aside class="sidebar glass-panel">
-      <div class="sidebar-title">
-        <span class="eyebrow">WORKSPACE</span>
-        <h2>Your Studio</h2>
-      </div>
-
+      <div class="sidebar-title"><span class="eyebrow">WORKSPACE</span><h2>Your Studio</h2></div>
       <nav class="main-nav" aria-label="Main navigation">
         <a class="nav-link active" href="#home" aria-current="page"><span class="nav-icon">⌂</span> Home</a>
         <a class="nav-link" href="#grading"><span class="nav-icon">▤</span> Grade a Test</a>
@@ -143,45 +90,19 @@
         <a class="nav-link" href="#customization"><span class="nav-icon">✦</span> Customization</a>
         <a class="nav-link" href="#settings"><span class="nav-icon">⚙</span> Settings</a>
       </nav>
-
       <div class="side-rule"></div>
-
-      <div class="theme-heading">
-        <span class="eyebrow">ATMOSPHERE</span>
-        <h3>Choose your world</h3>
-      </div>
-
+      <div class="theme-heading"><span class="eyebrow">ATMOSPHERE</span><h3>Choose your world</h3></div>
       <div class="theme-list">
-        <button class="theme-option active" type="button" data-set-theme="cosmic" aria-pressed="true">
-          <span class="swatch sw-cosmic">✦</span><span class="theme-label"><b>Cosmic</b><small>Deep space</small></span><span class="check">✓</span>
-        </button>
-        <button class="theme-option" type="button" data-set-theme="ocean" aria-pressed="false">
-          <span class="swatch sw-ocean">≈</span><span class="theme-label"><b>Ocean</b><small>Deep currents</small></span><span class="check">✓</span>
-        </button>
-        <button class="theme-option" type="button" data-set-theme="forest" aria-pressed="false">
-          <span class="swatch sw-forest">❧</span><span class="theme-label"><b>Forest</b><small>Green mist</small></span><span class="check">✓</span>
-        </button>
-        <button class="theme-option" type="button" data-set-theme="inferno" aria-pressed="false">
-          <span class="swatch sw-inferno">♨</span><span class="theme-label"><b>Inferno</b><small>Fire and embers</small></span><span class="check">✓</span>
-        </button>
-        <button class="theme-option" type="button" data-set-theme="matrix" aria-pressed="false">
-          <span class="swatch sw-matrix">01</span><span class="theme-label"><b>Matrix</b><small>Binary rain</small></span><span class="check">✓</span>
-        </button>
-        <button class="theme-option" type="button" data-set-theme="cyberpunk" aria-pressed="false">
-          <span class="swatch sw-cyber">▥</span><span class="theme-label"><b>Cyberpunk</b><small>Neon city</small></span><span class="check">✓</span>
-        </button>
-        <button class="theme-option" type="button" data-set-theme="aurora" aria-pressed="false">
-          <span class="swatch sw-aurora">✧</span><span class="theme-label"><b>Aurora</b><small>Northern lights</small></span><span class="check">✓</span>
-        </button>
-        <button class="theme-option" type="button" data-set-theme="light" aria-pressed="false">
-          <span class="swatch sw-light">☼</span><span class="theme-label"><b>Light</b><small>Clean and bright</small></span><span class="check">✓</span>
-        </button>
+        <button class="theme-option active" type="button" data-set-theme="cosmic" aria-pressed="true"><span class="swatch sw-cosmic">✦</span><span class="theme-label"><b>Cosmic</b><small>Deep space</small></span><span class="check">✓</span></button>
+        <button class="theme-option" type="button" data-set-theme="ocean" aria-pressed="false"><span class="swatch sw-ocean">≈</span><span class="theme-label"><b>Ocean</b><small>Deep currents</small></span><span class="check">✓</span></button>
+        <button class="theme-option" type="button" data-set-theme="forest" aria-pressed="false"><span class="swatch sw-forest">❧</span><span class="theme-label"><b>Forest</b><small>Green mist</small></span><span class="check">✓</span></button>
+        <button class="theme-option" type="button" data-set-theme="inferno" aria-pressed="false"><span class="swatch sw-inferno">♨</span><span class="theme-label"><b>Inferno</b><small>Fire and embers</small></span><span class="check">✓</span></button>
+        <button class="theme-option" type="button" data-set-theme="matrix" aria-pressed="false"><span class="swatch sw-matrix">01</span><span class="theme-label"><b>Matrix</b><small>Binary rain</small></span><span class="check">✓</span></button>
+        <button class="theme-option" type="button" data-set-theme="cyberpunk" aria-pressed="false"><span class="swatch sw-cyber">▥</span><span class="theme-label"><b>Cyberpunk</b><small>Neon city</small></span><span class="check">✓</span></button>
+        <button class="theme-option" type="button" data-set-theme="aurora" aria-pressed="false"><span class="swatch sw-aurora">✧</span><span class="theme-label"><b>Aurora</b><small>Northern lights</small></span><span class="check">✓</span></button>
+        <button class="theme-option" type="button" data-set-theme="light" aria-pressed="false"><span class="swatch sw-light">☼</span><span class="theme-label"><b>Light</b><small>Clean and bright</small></span><span class="check">✓</span></button>
       </div>
-
-      <div class="sidebar-note">
-        <span>✦</span>
-        <p><b>Your teaching matters.</b><br>Your criteria. Your decisions. Your classroom.</p>
-      </div>
+      <div class="sidebar-note"><span>✦</span><p><b>Your teaching matters.</b><br>Your criteria. Your decisions. Your classroom.</p></div>
       <div class="sidebar-brand"><span class="mini-logo">✦</span> GradeNova</div>
     </aside>
 
@@ -192,93 +113,47 @@
             <span class="eyebrow hero-label"><i></i> YOUR TEACHING COMMAND CENTER</span>
             <h1>Make room for<br><span class="gradient-text">great teaching.</span></h1>
             <p>Organize tests, build custom rubrics, and prepare thoughtful feedback — all in one high-tech studio.</p>
-            <div class="hero-buttons">
-              <a class="btn btn-primary" href="#grading">Start grading <span>→</span></a>
-              <a class="btn btn-ghost" href="#customization">✦ Customize studio</a>
-            </div>
+            <div class="hero-buttons"><a class="btn btn-primary" href="#grading">Start grading <span>→</span></a><a class="btn btn-ghost" href="#customization">✦ Customize studio</a></div>
             <p class="hero-foot"><span>✦</span> Your workflow. Your criteria. Your decisions.</p>
           </div>
-
           <div class="hero-visual" aria-hidden="true">
-            <div class="hero-orbit orbit-a"></div>
-            <div class="hero-orbit orbit-b"></div>
-            <div class="hero-orbit orbit-c"></div>
+            <div class="hero-orbit orbit-a"></div><div class="hero-orbit orbit-b"></div><div class="hero-orbit orbit-c"></div>
             <div class="hero-cap logo-atmosphere" aria-label="GradeNova graduation cap adapting to the selected atmosphere">
               <svg class="cap-outline" viewBox="0 0 120 110" role="presentation">
                 <defs>
-                  <linearGradient id="heroCapMetal" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0" class="cap-gradient-start"/>
-                    <stop offset=".52" class="cap-gradient-mid"/>
-                    <stop offset="1" class="cap-gradient-end"/>
-                  </linearGradient>
-                  <linearGradient id="heroCapBoard" x1="0" y1="0" x2=".9" y2="1">
-                    <stop offset="0" class="cap-board-start"/>
-                    <stop offset="1" class="cap-board-end"/>
-                  </linearGradient>
+                  <linearGradient id="heroCapMetal" x1="0" y1="0" x2="1" y2="1"><stop offset="0" class="cap-gradient-start"/><stop offset="0.52" class="cap-gradient-mid"/><stop offset="1" class="cap-gradient-end"/></linearGradient>
+                  <linearGradient id="heroCapBoard" x1="0" y1="0" x2="0.9" y2="1"><stop offset="0" class="cap-board-start"/><stop offset="1" class="cap-board-end"/></linearGradient>
                 </defs>
-                <path class="cap-top" d="M8 34 60 7 112 34 60 62Z"/>
-                <path class="cap-top-inset" d="M24 34 60 16 96 34 60 53Z"/>
-                <path class="cap-board" d="M27 46 60 64 93 46 91 72Q60 94 29 72Z"/>
-                <path class="cap-board-edge" d="M29 70Q60 91 91 70"/>
-                <path class="cap-tassel-line" d="M111 34V61"/>
-                <path class="cap-tassel-end" d="M111 59q-8 5-2 12q5 4 7-2l-2-10Z"/>
+                <path class="cap-top" d="M8 34 60 7 112 34 60 62Z"/><path class="cap-top-inset" d="M24 34 60 16 96 34 60 53Z"/>
+                <path class="cap-board" d="M27 46 60 64 93 46 91 72Q60 94 29 72Z"/><path class="cap-board-edge" d="M29 70Q60 91 91 70"/>
+                <path class="cap-tassel-line" d="M111 34V61"/><path class="cap-tassel-end" d="M111 59q-8 5-2 12q5 4 7-2l-2-10Z"/>
                 <path class="cap-circuit" d="M35 34h11l5 5h12m-2 5h10l5-5h9M48 28l5 5m22 7 5 5m-32 0 4 4"/>
-                <circle class="cap-node" cx="46" cy="34" r="2"/>
-                <circle class="cap-node" cx="76" cy="39" r="2"/>
+                <circle class="cap-node" cx="46" cy="34" r="2"/><circle class="cap-node" cx="76" cy="39" r="2"/>
               </svg>
-              <span class="cap-theme-effect cap-effect-matrix">01<br>10<br>01</span>
-              <span class="cap-theme-effect cap-effect-fire"><i></i><i></i><i></i></span>
-              <span class="cap-theme-effect cap-effect-vines"><i></i><i></i></span>
-              <span class="cap-theme-effect cap-effect-stars">✦ · ✧ · ✦</span>
-              <span class="cap-theme-effect cap-effect-ocean">〰 〰</span>
-              <span class="cap-theme-effect cap-effect-cyber">▰ ▱ ▰</span>
-              <span class="cap-theme-effect cap-effect-aurora"></span>
+              <span class="cap-theme-effect cap-effect-matrix">01<br>10<br>01</span><span class="cap-theme-effect cap-effect-fire"><i></i><i></i><i></i></span>
+              <span class="cap-theme-effect cap-effect-vines"><i></i><i></i></span><span class="cap-theme-effect cap-effect-stars">✦ · ✧ · ✦</span>
+              <span class="cap-theme-effect cap-effect-ocean">〰 〰</span><span class="cap-theme-effect cap-effect-cyber">▰ ▱ ▰</span><span class="cap-theme-effect cap-effect-aurora"></span>
             </div>
-            <span class="orb-dot orb-one"></span>
-            <span class="orb-dot orb-two"></span>
-            <span class="orb-dot orb-three"></span>
-            <span class="orb-dot orb-four"></span>
-            <div class="floating-chip chip-a">✧ Smart feedback</div>
-            <div class="floating-chip chip-b">✓ Teacher in control</div>
+            <span class="orb-dot orb-one"></span><span class="orb-dot orb-two"></span><span class="orb-dot orb-three"></span><span class="orb-dot orb-four"></span>
+            <div class="floating-chip chip-a">✧ Smart feedback</div><div class="floating-chip chip-b">✓ Teacher in control</div>
           </div>
           <div class="hero-footer">◈ A smarter workflow, designed around you.</div>
         </div>
 
-        <div class="section-title-row">
-          <div><span class="eyebrow">YOUR WORKSPACE</span><h2>Everything in one place</h2></div>
-          <span class="tiny-pill">One studio · your rules</span>
-        </div>
-
+        <div class="section-title-row"><div><span class="eyebrow">YOUR WORKSPACE</span><h2>Everything in one place</h2></div><span class="tiny-pill">One studio · your rules</span></div>
         <div class="feature-grid">
           <a class="feature-card feature-grading" href="#grading"><span class="feature-icon">▤</span><h3>AI Grading</h3><p>Prepare tests and student responses for review.</p><span class="feature-link">Open grading →</span></a>
           <a class="feature-card feature-rubric" href="#rubric"><span class="feature-icon">◉</span><h3>Custom Rubrics</h3><p>Choose criteria and points that fit your assignment.</p><span class="feature-link">Build a rubric →</span></a>
           <a class="feature-card feature-history" href="#history"><span class="feature-icon">◷</span><h3>Session History</h3><p>Review, save, and export prepared sessions.</p><span class="feature-link">View history →</span></a>
         </div>
-
-        <div class="status-banner glass-panel">
-          <span class="status-symbol">ⓘ</span>
-          <div><b>AI connection status</b><p id="home-status">Actual AI scoring requires a connected backend.</p></div>
-          <a class="text-action" href="#settings">Configure →</a>
-        </div>
-
+        <div class="status-banner glass-panel"><span class="status-symbol">ⓘ</span><div><b>AI connection status</b><p id="home-status">Actual AI scoring requires a connected backend.</p></div><a class="text-action" href="#settings">Configure →</a></div>
         <div class="bottom-grid">
-          <div class="glass-panel quick-card">
-            <div class="card-heading"><h3>Quick Actions</h3><small>Get started fast</small></div>
-            <div class="quick-buttons">
-              <a href="#grading">▤ Grade a test <span>→</span></a>
-              <a href="#rubric">✧ Build a rubric <span>→</span></a>
-              <a href="#history">◷ View history <span>→</span></a>
-              <a href="#customization">✦ Customize studio <span>→</span></a>
-            </div>
-          </div>
-          <div class="glass-panel glance-card">
-            <div class="card-heading"><h3>At a Glance</h3><small>Your studio, your way</small></div>
-            <div class="glance-stats">
-              <div><b id="history-count">0</b><small>Saved sessions</small></div>
-              <div><b id="criteria-count">3</b><small>Rubric criteria</small></div>
-              <div><b id="theme-count">8</b><small>Themes</small></div>
-            </div>
-          </div>
+          <div class="glass-panel quick-card"><div class="card-heading"><h3>Quick Actions</h3><small>Get started fast</small></div><div class="quick-buttons">
+            <a href="#grading">▤ Grade a test <span>→</span></a><a href="#rubric">✧ Build a rubric <span>→</span></a><a href="#history">◷ View history <span>→</span></a><a href="#customization">✦ Customize studio <span>→</span></a>
+          </div></div>
+          <div class="glass-panel glance-card"><div class="card-heading"><h3>At a Glance</h3><small>Your studio, your way</small></div><div class="glance-stats">
+            <div><b id="history-count">0</b><small>Saved sessions</small></div><div><b id="criteria-count">3</b><small>Rubric criteria</small></div><div><b id="theme-count">8</b><small>Themes</small></div>
+          </div></div>
         </div>
       </section>
 
@@ -295,16 +170,10 @@
           </div>
           <div class="field"><label for="grading-answer-key">Answer key <span class="muted">(optional)</span></label><textarea id="grading-answer-key" rows="3" placeholder="Paste correct answers or reference notes, if available..."></textarea></div>
           <div class="check-grid">
-            <label><input type="checkbox" id="option-feedback" checked> Written feedback</label>
-            <label><input type="checkbox" id="option-breakdown" checked> Score breakdown</label>
-            <label><input type="checkbox" id="option-explanations" checked> Explain deductions</label>
-            <label><input type="checkbox" id="option-history" checked> Save to history</label>
+            <label><input type="checkbox" id="option-feedback" checked> Written feedback</label><label><input type="checkbox" id="option-breakdown" checked> Score breakdown</label>
+            <label><input type="checkbox" id="option-explanations" checked> Explain deductions</label><label><input type="checkbox" id="option-history" checked> Save to history</label>
           </div>
-          <div class="form-actions">
-            <button class="btn btn-primary" type="submit">Prepare grading request →</button>
-            <button class="btn btn-ghost" type="button" id="clear-grading">Clear form</button>
-            <a class="text-action" href="#rubric">Edit rubric first ↗</a>
-          </div>
+          <div class="form-actions"><button class="btn btn-primary" type="submit">Prepare grading request →</button><button class="btn btn-ghost" type="button" id="clear-grading">Clear form</button><a class="text-action" href="#rubric">Edit rubric first ↗</a></div>
           <p class="status-message" id="grading-status" role="status" aria-live="polite">Ready. Actual AI scoring needs a connected backend.</p>
         </form>
       </section>
@@ -337,7 +206,6 @@
 
       <section class="workspace-panel glass-panel content-panel" data-panel="customization" hidden>
         <div class="panel-heading"><div><span class="eyebrow">YOUR PERSONAL WORKSPACE</span><h1>Customization Studio</h1><p>Design your atmosphere and create a calm space for focused grading.</p></div><span class="step-tag">YOUR STUDIO ✦</span></div>
-
         <section class="custom-card">
           <div class="custom-card-heading"><div class="custom-icon">◈</div><div><h2>Your Background</h2><p>Choose one of your animated worlds, a solid color, or your own picture.</p></div></div>
           <div class="custom-grid">
@@ -373,14 +241,9 @@
               <div class="volume-row"><label for="music-volume">♫</label><input id="music-volume" type="range" min="0" max="100" value="35"><span id="music-volume-value">35%</span></div>
               <p id="music-status" class="music-status" role="status" aria-live="polite">Music is off. Press Play when you want to listen.</p>
             </div>
-            <div class="track-panel">
-              <div class="track-panel-heading"><h3>Ten Peaceful Tracks</h3><span>2 min each</span></div>
-              <p class="track-note">Gentle browser-generated melodies. Music starts only when you press Play.</p>
-              <div id="music-track-list" class="music-track-list"></div>
-            </div>
+            <div class="track-panel"><div class="track-panel-heading"><h3>Ten Peaceful Tracks</h3><span>2 min each</span></div><p class="track-note">Gentle browser-generated melodies. Music starts only when you press Play.</p><div id="music-track-list" class="music-track-list"></div></div>
           </div>
         </section>
-
         <div class="custom-footer-note"><span>✧</span><p>Your preferences and uploaded background are stored locally in this browser. They are not automatically shared with other users.</p></div>
       </section>
 
@@ -399,11 +262,6 @@
       </section>
     </main>
   </div>
-
-  <footer class="shell footer">
-    <a href="#home">✦ GradeNova</a>
-    <span>Smarter grading. Brighter futures.</span>
-    <span>Teacher judgment always comes first.</span>
-  </footer>
+  <footer class="shell footer"><a href="#home">✦ GradeNova</a><span>Smarter grading. Brighter futures.</span><span>Teacher judgment always comes first.</span></footer>
 </body>
 </html>
