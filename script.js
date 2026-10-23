@@ -10,15 +10,44 @@ document.addEventListener('DOMContentLoaded', () => {
   const CUSTOM_KEY = 'gradenova-customizer-v1';
   const AUDIO_KEY = 'gradenova-audio-v1';
 
+  // GradeNova Render backend
+  const BACKEND_URL = 'https://teacher-grading-website-fnkr.onrender.com';
+  const HEALTH_URL = `${BACKEND_URL}/health`;
+  const GRADE_URL = `${BACKEND_URL}/api/grade`;
+
   const THEMES = {
-    cosmic: { name: 'Cosmic', description: 'A cinematic deep-space atmosphere.' },
-    ocean: { name: 'Ocean', description: 'A calm underwater world with cool blue light.' },
-    forest: { name: 'Forest', description: 'A peaceful green atmosphere with moonlit mist.' },
-    inferno: { name: 'Inferno', description: 'A dramatic atmosphere of glowing embers.' },
-    matrix: { name: 'Matrix', description: 'A digital world with animated green code.' },
-    cyberpunk: { name: 'Cyberpunk', description: 'A neon city with futuristic colors.' },
-    aurora: { name: 'Aurora', description: 'A glowing northern-lights atmosphere.' },
-    light: { name: 'Light', description: 'A bright, clean workspace.' }
+    cosmic: {
+      name: 'Cosmic',
+      description: 'A cinematic deep-space atmosphere.'
+    },
+    ocean: {
+      name: 'Ocean',
+      description: 'A calm underwater world with cool blue light.'
+    },
+    forest: {
+      name: 'Forest',
+      description: 'A peaceful green atmosphere with moonlit mist.'
+    },
+    inferno: {
+      name: 'Inferno',
+      description: 'A dramatic atmosphere of glowing embers.'
+    },
+    matrix: {
+      name: 'Matrix',
+      description: 'A digital world with animated green code.'
+    },
+    cyberpunk: {
+      name: 'Cyberpunk',
+      description: 'A neon city with futuristic colors.'
+    },
+    aurora: {
+      name: 'Aurora',
+      description: 'A glowing northern-lights atmosphere.'
+    },
+    light: {
+      name: 'Light',
+      description: 'A bright, clean workspace.'
+    }
   };
 
   const THEME_COLORS = {
@@ -33,8 +62,13 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   const VALID_TABS = new Set([
-    'home', 'grading', 'rubric', 'results',
-    'history', 'customization', 'settings'
+    'home',
+    'grading',
+    'rubric',
+    'results',
+    'history',
+    'customization',
+    'settings'
   ]);
 
   const DEFAULT_RUBRIC = {
@@ -77,10 +111,238 @@ document.addEventListener('DOMContentLoaded', () => {
     if (type) node.classList.add(type);
   }
 
-  /* NAVIGATION */
+  /* =====================================================
+     BACKEND CONNECTION
+  ===================================================== */
+
+  function setConnectionDisplay(connected, message) {
+    const label = $('#connection-label');
+    const homeStatus = $('#home-status');
+    const dot = $('.connection-dot');
+
+    if (label) {
+      label.textContent = connected
+        ? 'Backend connected'
+        : 'Backend not verified';
+    }
+
+    if (homeStatus) {
+      homeStatus.textContent = message;
+    }
+
+    if (dot) {
+      dot.classList.toggle('connected', connected);
+      dot.classList.toggle('disconnected', !connected);
+
+      dot.setAttribute(
+        'aria-label',
+        connected ? 'Backend connected' : 'Backend not verified'
+      );
+    }
+  }
+
+  async function checkBackendConnection() {
+    setConnectionDisplay(
+      false,
+      'Checking the GradeNova AI backend…'
+    );
+
+    try {
+      const response = await fetch(HEALTH_URL, {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json'
+        },
+        cache: 'no-store'
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          `Health check returned HTTP ${response.status}.`
+        );
+      }
+
+      const health = await response.json();
+
+      const healthy =
+        health &&
+        (health.status === 'ok' || health.ok === true);
+
+      if (!healthy) {
+        throw new Error(
+          'The backend did not report a healthy status.'
+        );
+      }
+
+      setConnectionDisplay(
+        true,
+        'Render is responding. AI grading requests can be sent to the backend.'
+      );
+
+      return true;
+    } catch (error) {
+      console.warn(
+        'GradeNova backend health check failed:',
+        error
+      );
+
+      setConnectionDisplay(
+        false,
+        'The backend could not be verified from this page. Check the Render URL, service status, and CORS settings.'
+      );
+
+      return false;
+    }
+  }
+
+  function addReportText(parent, tag, text, className) {
+    const node = document.createElement(tag);
+
+    if (className) {
+      node.className = className;
+    }
+
+    node.textContent = text == null ? '' : String(text);
+    parent.appendChild(node);
+
+    return node;
+  }
+
+  function renderGradeReport(report, assignmentTitle) {
+    const result = $('#results-content');
+    result.replaceChildren();
+
+    const wrap = document.createElement('section');
+    wrap.className = 'grade-report';
+
+    addReportText(
+      wrap,
+      'p',
+      'AI-GENERATED GRADING REPORT',
+      'eyebrow'
+    );
+
+    addReportText(
+      wrap,
+      'h2',
+      assignmentTitle || 'Grading results'
+    );
+
+    const score = Number(report.score);
+    const maxPoints = Number(report.maxPoints);
+    const percentage = Number(report.percentage);
+
+    addReportText(
+      wrap,
+      'h3',
+      `${score} / ${maxPoints} points`,
+      'grade-report-score'
+    );
+
+    addReportText(
+      wrap,
+      'p',
+      `${Number.isFinite(percentage) ? percentage : 0}%` +
+        (report.letterGrade
+          ? ` · ${report.letterGrade}`
+          : ''),
+      'grade-report-percentage'
+    );
+
+    addReportText(
+      wrap,
+      'p',
+      report.summary || 'No overall summary was returned.'
+    );
+
+    const strengths = Array.isArray(report.strengths)
+      ? report.strengths
+      : [];
+
+    if (strengths.length) {
+      addReportText(wrap, 'h3', 'Strengths');
+
+      const list = document.createElement('ul');
+
+      strengths.forEach((item) => {
+        addReportText(list, 'li', item);
+      });
+
+      wrap.appendChild(list);
+    }
+
+    const improvements = Array.isArray(report.improvements)
+      ? report.improvements
+      : [];
+
+    if (improvements.length) {
+      addReportText(wrap, 'h3', 'Areas to improve');
+
+      const list = document.createElement('ul');
+
+      improvements.forEach((item) => {
+        addReportText(list, 'li', item);
+      });
+
+      wrap.appendChild(list);
+    }
+
+    const criteria = Array.isArray(report.criteria)
+      ? report.criteria
+      : [];
+
+    if (criteria.length) {
+      addReportText(wrap, 'h3', 'Rubric breakdown');
+
+      const list = document.createElement('div');
+      list.className = 'grade-criteria-list';
+
+      criteria.forEach((criterion) => {
+        const item = document.createElement('article');
+        item.className = 'grade-criterion';
+
+        const name = criterion.name || 'Criterion';
+
+        const hasScore =
+          Number.isFinite(Number(criterion.score)) &&
+          Number.isFinite(Number(criterion.maxPoints));
+
+        addReportText(
+          item,
+          'h4',
+          hasScore
+            ? `${name} — ${criterion.score} / ${criterion.maxPoints}`
+            : name
+        );
+
+        if (criterion.feedback) {
+          addReportText(item, 'p', criterion.feedback);
+        }
+
+        list.appendChild(item);
+      });
+
+      wrap.appendChild(list);
+    }
+
+    addReportText(
+      wrap,
+      'p',
+      'This is an AI-generated suggestion. A teacher should review the feedback and final grade.',
+      'muted'
+    );
+
+    result.appendChild(wrap);
+  }
+
+  /* =====================================================
+     NAVIGATION
+  ===================================================== */
 
   function openTab(tabName, updateAddress = true) {
-    if (!VALID_TABS.has(tabName)) tabName = 'home';
+    if (!VALID_TABS.has(tabName)) {
+      tabName = 'home';
+    }
 
     document.body.dataset.activeTab = tabName;
 
@@ -89,7 +351,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     $$('.main-nav a[href^="#"]').forEach((link) => {
-      const selected = link.getAttribute('href') === '#' + tabName;
+      const selected =
+        link.getAttribute('href') === '#' + tabName;
+
       link.classList.toggle('active', selected);
 
       if (selected) {
@@ -99,11 +363,17 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    if (updateAddress && location.hash !== '#' + tabName) {
+    if (
+      updateAddress &&
+      location.hash !== '#' + tabName
+    ) {
       history.replaceState(null, '', '#' + tabName);
     }
 
-    window.scrollTo({ top: 0, behavior: 'auto' });
+    window.scrollTo({
+      top: 0,
+      behavior: 'auto'
+    });
   }
 
   document.addEventListener('click', (event) => {
@@ -113,6 +383,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!link) return;
 
     const tabName = link.getAttribute('href').slice(1);
+
     if (!VALID_TABS.has(tabName)) return;
 
     event.preventDefault();
@@ -123,71 +394,117 @@ document.addEventListener('DOMContentLoaded', () => {
     openTab(location.hash.slice(1), false);
   });
 
-  /* THEMES AND PREFERENCES */
+  /* =====================================================
+     THEMES AND PREFERENCES
+  ===================================================== */
 
   function getPrefs() {
     const prefs = safeRead(PREFS_KEY, {});
-    return prefs && typeof prefs === 'object' ? prefs : {};
+
+    return prefs && typeof prefs === 'object'
+      ? prefs
+      : {};
   }
 
   function savePref(name, value) {
-    safeWrite(PREFS_KEY, { ...getPrefs(), [name]: value });
+    safeWrite(PREFS_KEY, {
+      ...getPrefs(),
+      [name]: value
+    });
   }
 
   function updateThemeButtons(theme) {
     $$('[data-set-theme]').forEach((button) => {
       const selected = button.dataset.setTheme === theme;
+
       button.classList.toggle('active', selected);
-      button.setAttribute('aria-pressed', String(selected));
+
+      button.setAttribute(
+        'aria-pressed',
+        String(selected)
+      );
     });
   }
 
   function applyTheme(theme, persist = true) {
-    if (!Object.hasOwn(THEMES, theme)) theme = 'cosmic';
+    if (!Object.hasOwn(THEMES, theme)) {
+      theme = 'cosmic';
+    }
 
     document.body.dataset.theme = theme;
 
     const meta = $('meta[name="theme-color"]');
-    if (meta) meta.content = THEME_COLORS[theme];
+
+    if (meta) {
+      meta.content = THEME_COLORS[theme];
+    }
 
     const settingsTheme = $('#settings-theme');
-    if (settingsTheme) settingsTheme.value = theme;
+
+    if (settingsTheme) {
+      settingsTheme.value = theme;
+    }
 
     const customTheme = $('#customize-theme');
-    if (customTheme) customTheme.value = theme;
+
+    if (customTheme) {
+      customTheme.value = theme;
+    }
 
     const name = $('#current-theme-name');
     const description = $('#current-theme-description');
 
-    if (name) name.textContent = THEMES[theme].name;
-    if (description) description.textContent = THEMES[theme].description;
+    if (name) {
+      name.textContent = THEMES[theme].name;
+    }
+
+    if (description) {
+      description.textContent = THEMES[theme].description;
+    }
 
     updateThemeButtons(theme);
 
-    if (persist) savePref('theme', theme);
+    if (persist) {
+      savePref('theme', theme);
+    }
   }
 
   function applyAccent(color, persist = true) {
-    if (!/^#[0-9a-f]{6}$/i.test(color)) color = '#39d7ff';
+    if (!/^#[0-9a-f]{6}$/i.test(color)) {
+      color = '#39d7ff';
+    }
 
     document.body.style.setProperty('--accent', color);
 
     const picker = $('#accent-color');
-    if (picker) picker.value = color;
 
-    if (persist) savePref('accent', color);
+    if (picker) {
+      picker.value = color;
+    }
+
+    if (persist) {
+      savePref('accent', color);
+    }
   }
 
   function applyMotion(enabled, persist = false) {
     document.body.classList.toggle('motion-off', !enabled);
 
     const checkbox = $('#settings-motion');
-    if (checkbox) checkbox.checked = enabled;
+
+    if (checkbox) {
+      checkbox.checked = enabled;
+    }
 
     const particles = $('#ambient-particles');
-    if (particles) particles.hidden = !enabled;
 
-    if (persist) savePref('motion', enabled);
+    if (particles) {
+      particles.hidden = !enabled;
+    }
+
+    if (persist) {
+      savePref('motion', enabled);
+    }
   }
 
   $$('[data-set-theme]').forEach((button) => {
@@ -219,7 +536,9 @@ document.addEventListener('DOMContentLoaded', () => {
     applyMotion(event.target.checked, true);
   });
 
-  /* ANIMATED BACKGROUNDS */
+  /* =====================================================
+     ANIMATED BACKGROUND ELEMENTS
+  ===================================================== */
 
   function createAnimations() {
     const rain = $('#matrix-rain');
@@ -227,10 +546,23 @@ document.addEventListener('DOMContentLoaded', () => {
     if (rain && rain.childElementCount === 0) {
       for (let i = 0; i < 28; i += 1) {
         const column = document.createElement('span');
+
         column.className = 'matrix-column';
-        column.style.setProperty('--x', `${(i * 3.73) % 100}%`);
-        column.style.setProperty('--duration', `${7 + (i % 8) * 1.4}s`);
-        column.style.setProperty('--delay', `${-(i % 10) * 1.35}s`);
+
+        column.style.setProperty(
+          '--x',
+          `${(i * 3.73) % 100}%`
+        );
+
+        column.style.setProperty(
+          '--duration',
+          `${7 + (i % 8) * 1.4}s`
+        );
+
+        column.style.setProperty(
+          '--delay',
+          `${-(i % 10) * 1.35}s`
+        );
 
         column.textContent = Array.from(
           { length: 26 },
@@ -246,9 +578,20 @@ document.addEventListener('DOMContentLoaded', () => {
     if (equalizer && equalizer.childElementCount === 0) {
       for (let i = 0; i < 48; i += 1) {
         const bar = document.createElement('i');
-        bar.style.setProperty('--h', `${22 + ((i * 31) % 76)}%`);
-        bar.style.setProperty('--beat', `${0.38 + (i % 7) * 0.09}s`);
-        bar.style.animationDelay = `${-(i % 9) * 0.12}s`;
+
+        bar.style.setProperty(
+          '--h',
+          `${22 + ((i * 31) % 76)}%`
+        );
+
+        bar.style.setProperty(
+          '--beat',
+          `${0.38 + (i % 7) * 0.09}s`
+        );
+
+        bar.style.animationDelay =
+          `${-(i % 9) * 0.12}s`;
+
         equalizer.appendChild(bar);
       }
     }
@@ -260,14 +603,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
       for (let i = 0; i < 25; i += 1) {
         const particle = document.createElement('span');
+
         particle.className = 'ambient-particle';
+
         particle.style.left = `${(i * 37 + 11) % 100}%`;
         particle.style.top = `${(i * 23 + 17) % 100}%`;
-        particle.style.animationDuration = `${14 + (i % 9) * 2}s`;
-        particle.style.animationDelay = `${-(i % 13) * 1.7}s`;
-        particle.style.opacity = `${0.18 + (i % 5) * 0.1}`;
+
+        particle.style.animationDuration =
+          `${14 + (i % 9) * 2}s`;
+
+        particle.style.animationDelay =
+          `${-(i % 13) * 1.7}s`;
+
+        particle.style.opacity =
+          `${0.18 + (i % 5) * 0.1}`;
 
         const size = 1 + (i % 3);
+
         particle.style.width = `${size}px`;
         particle.style.height = `${size}px`;
 
@@ -278,10 +630,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  /* CUSTOM BACKGROUND STUDIO */
+  /* =====================================================
+     CUSTOM BACKGROUND STUDIO
+  ===================================================== */
 
   let customPrefs = safeRead(CUSTOM_KEY, {});
-  if (!customPrefs || typeof customPrefs !== 'object') customPrefs = {};
+
+  if (!customPrefs || typeof customPrefs !== 'object') {
+    customPrefs = {};
+  }
 
   let wallpaperUrl = null;
   let wallpaperDbPromise = null;
@@ -289,14 +646,21 @@ document.addEventListener('DOMContentLoaded', () => {
   function openWallpaperDB() {
     if (!('indexedDB' in window)) {
       return Promise.reject(
-        new Error('This browser does not support local image storage.')
+        new Error(
+          'This browser does not support local image storage.'
+        )
       );
     }
 
-    if (wallpaperDbPromise) return wallpaperDbPromise;
+    if (wallpaperDbPromise) {
+      return wallpaperDbPromise;
+    }
 
     wallpaperDbPromise = new Promise((resolve, reject) => {
-      const request = indexedDB.open('GradeNovaCustomization', 1);
+      const request = indexedDB.open(
+        'GradeNovaCustomization',
+        1
+      );
 
       request.onupgradeneeded = () => {
         const db = request.result;
@@ -306,8 +670,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       };
 
-      request.onsuccess = () => resolve(request.result);
-      request.onerror = () => reject(request.error);
+      request.onsuccess = () => {
+        resolve(request.result);
+      };
+
+      request.onerror = () => {
+        reject(request.error);
+      };
     });
 
     return wallpaperDbPromise;
@@ -318,11 +687,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     return new Promise((resolve, reject) => {
       const tx = db.transaction('wallpapers', 'readwrite');
-      tx.objectStore('wallpapers').put(blob, 'active-wallpaper');
+
+      tx.objectStore('wallpapers').put(
+        blob,
+        'active-wallpaper'
+      );
 
       tx.oncomplete = () => resolve();
       tx.onerror = () => reject(tx.error);
-      tx.onabort = () => reject(tx.error || new Error('Image save was cancelled.'));
+
+      tx.onabort = () => {
+        reject(
+          tx.error || new Error('Image save was cancelled.')
+        );
+      };
     });
   }
 
@@ -331,10 +709,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     return new Promise((resolve, reject) => {
       const tx = db.transaction('wallpapers', 'readonly');
-      const request = tx.objectStore('wallpapers').get('active-wallpaper');
 
-      request.onsuccess = () => resolve(request.result || null);
-      request.onerror = () => reject(request.error);
+      const request = tx
+        .objectStore('wallpapers')
+        .get('active-wallpaper');
+
+      request.onsuccess = () => {
+        resolve(request.result || null);
+      };
+
+      request.onerror = () => {
+        reject(request.error);
+      };
     });
   }
 
@@ -343,6 +729,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     return new Promise((resolve, reject) => {
       const tx = db.transaction('wallpapers', 'readwrite');
+
       tx.objectStore('wallpapers').delete('active-wallpaper');
 
       tx.oncomplete = () => resolve();
@@ -400,9 +787,15 @@ document.addEventListener('DOMContentLoaded', () => {
   function applySolidColor() {
     const color = solidColorControl.value;
 
-    if (!/^#[0-9a-f]{6}$/i.test(color)) return;
+    if (!/^#[0-9a-f]{6}$/i.test(color)) {
+      return;
+    }
 
-    document.body.style.setProperty('--custom-solid-color', color);
+    document.body.style.setProperty(
+      '--custom-solid-color',
+      color
+    );
+
     customPrefs.solidColor = color;
     safeWrite(CUSTOM_KEY, customPrefs);
   }
@@ -416,6 +809,7 @@ document.addEventListener('DOMContentLoaded', () => {
     );
 
     overlayValue.textContent = `${value}%`;
+
     customPrefs.overlay = value;
     safeWrite(CUSTOM_KEY, customPrefs);
   }
@@ -437,11 +831,19 @@ document.addEventListener('DOMContentLoaded', () => {
   overlayControl.addEventListener('input', applyOverlay);
 
   wallpaperControl.addEventListener('change', async () => {
-    const file = wallpaperControl.files && wallpaperControl.files[0];
+    const file =
+      wallpaperControl.files &&
+      wallpaperControl.files[0];
+
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      setStatus('customization-status', 'Please choose an image file.', 'error');
+      setStatus(
+        'customization-status',
+        'Please choose an image file.',
+        'error'
+      );
+
       wallpaperControl.value = '';
       return;
     }
@@ -452,12 +854,14 @@ document.addEventListener('DOMContentLoaded', () => {
         'That picture is larger than 8 MB. Choose a smaller image.',
         'error'
       );
+
       wallpaperControl.value = '';
       return;
     }
 
     try {
       await saveWallpaperBlob(file);
+
       showWallpaper(file);
       setCustomMode('wallpaper');
 
@@ -467,7 +871,10 @@ document.addEventListener('DOMContentLoaded', () => {
         'success'
       );
     } catch (error) {
-      console.error('GradeNova could not save the wallpaper:', error);
+      console.error(
+        'GradeNova could not save the wallpaper:',
+        error
+      );
 
       setStatus(
         'customization-status',
@@ -478,6 +885,11 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   $('#save-customization').addEventListener('click', () => {
+    customPrefs.mode = modeControl.value;
+    customPrefs.theme = themeControl.value;
+    customPrefs.solidColor = solidColorControl.value;
+    customPrefs.overlay = Number(overlayControl.value);
+
     applyTheme(themeControl.value, false);
     applySolidColor();
     applyOverlay();
@@ -498,7 +910,10 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       await deleteWallpaperBlob();
     } catch (error) {
-      console.warn('GradeNova could not remove the saved wallpaper:', error);
+      console.warn(
+        'GradeNova could not remove the saved wallpaper:',
+        error
+      );
     }
 
     showWallpaper(null);
@@ -541,6 +956,7 @@ document.addEventListener('DOMContentLoaded', () => {
         : '#05091b';
 
     const savedOverlay = Number(customPrefs.overlay);
+
     overlayControl.value = Number.isFinite(savedOverlay)
       ? Math.max(0, Math.min(75, savedOverlay))
       : 35;
@@ -552,14 +968,19 @@ document.addEventListener('DOMContentLoaded', () => {
       const blob = await readWallpaperBlob();
       showWallpaper(blob);
     } catch (error) {
-      console.warn('GradeNova could not restore its wallpaper:', error);
+      console.warn(
+        'GradeNova could not restore its wallpaper:',
+        error
+      );
     }
 
     applyTheme(themeControl.value, false);
     setCustomMode(customPrefs.mode || 'preset', false);
   }
 
-  /* RUBRIC BUILDER */
+  /* =====================================================
+     RUBRIC BUILDER
+  ===================================================== */
 
   const rubricContainer = $('#rubric-criteria');
 
@@ -575,6 +996,7 @@ document.addEventListener('DOMContentLoaded', () => {
     nameInput.value = name;
     nameInput.maxLength = 150;
     nameInput.placeholder = 'e.g. Evidence and reasoning';
+
     nameLabel.appendChild(nameInput);
 
     const pointsLabel = document.createElement('label');
@@ -587,6 +1009,7 @@ document.addEventListener('DOMContentLoaded', () => {
     pointsInput.max = '10000';
     pointsInput.step = '1';
     pointsInput.value = String(points);
+
     pointsLabel.appendChild(pointsInput);
 
     const remove = document.createElement('button');
@@ -601,14 +1024,19 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     row.append(nameLabel, pointsLabel, remove);
+
     return row;
   }
 
   function collectRubric() {
     const criteria = $$('.criterion-row', rubricContainer)
       .map((row) => ({
-        name: $('input[name="criterion-name"]', row).value.trim(),
-        points: Number($('input[name="criterion-points"]', row).value || 0)
+        name: $('input[name="criterion-name"]', row)
+          .value.trim(),
+
+        points: Number(
+          $('input[name="criterion-points"]', row).value || 0
+        )
       }))
       .filter((item) => item.name.length > 0);
 
@@ -616,7 +1044,10 @@ document.addEventListener('DOMContentLoaded', () => {
       name: $('#rubric-name').value.trim() || 'Untitled rubric',
       instructions: $('#rubric-instructions').value.trim(),
       criteria,
-      total: criteria.reduce((sum, item) => sum + item.points, 0)
+      total: criteria.reduce(
+        (sum, item) => sum + item.points,
+        0
+      )
     };
   }
 
@@ -624,9 +1055,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const rubric = collectRubric();
 
     $('#rubric-total').textContent = String(rubric.total);
-    $('#criteria-count').textContent = String(rubric.criteria.length);
+    $('#criteria-count').textContent =
+      String(rubric.criteria.length);
 
-    const assignmentTotal = Number($('#total-points').value || 100);
+    const assignmentTotal =
+      Number($('#total-points').value || 100);
+
     const note = $('#rubric-total-note');
 
     if (!note) return;
@@ -644,7 +1078,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   $('#add-criterion').addEventListener('click', () => {
     rubricContainer.appendChild(criterionRow('', 0));
-    $('input[name="criterion-name"]', rubricContainer.lastElementChild).focus();
+
+    $('input[name="criterion-name"]',
+      rubricContainer.lastElementChild
+    ).focus();
+
     updateRubricSummary();
   });
 
@@ -655,7 +1093,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const rubric = collectRubric();
 
     if (!rubric.criteria.length) {
-      setStatus('rubric-status', 'Add at least one named criterion before saving.', 'error');
+      setStatus(
+        'rubric-status',
+        'Add at least one named criterion before saving.',
+        'error'
+      );
+
       return;
     }
 
@@ -664,7 +1107,12 @@ document.addEventListener('DOMContentLoaded', () => {
     );
 
     if (!validPoints) {
-      setStatus('rubric-status', 'Check the rubric point values.', 'error');
+      setStatus(
+        'rubric-status',
+        'Check the rubric point values.',
+        'error'
+      );
+
       return;
     }
 
@@ -683,20 +1131,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
   $('#reset-rubric').addEventListener('click', () => {
     rubricContainer.replaceChildren(
-      ...DEFAULT_RUBRIC.criteria.map((item) => criterionRow(item.name, item.points))
+      ...DEFAULT_RUBRIC.criteria.map((item) =>
+        criterionRow(item.name, item.points)
+      )
     );
 
     $('#rubric-name').value = DEFAULT_RUBRIC.name;
-    $('#rubric-instructions').value = DEFAULT_RUBRIC.instructions;
+    $('#rubric-instructions').value =
+      DEFAULT_RUBRIC.instructions;
 
     updateRubricSummary();
-    setStatus('rubric-status', 'Default rubric restored. Save it to keep the changes.', 'success');
+
+    setStatus(
+      'rubric-status',
+      'Default rubric restored. Save it to keep the changes.',
+      'success'
+    );
   });
 
-  /* HISTORY */
+  /* =====================================================
+     HISTORY
+     Only summaries are saved, never pasted student answers.
+  ===================================================== */
 
   function readHistory() {
     const saved = safeRead(HISTORY_KEY, []);
+
     return Array.isArray(saved) ? saved : [];
   }
 
@@ -724,6 +1184,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       empty.append(icon, title, message);
       list.appendChild(empty);
+
       return;
     }
 
@@ -732,6 +1193,7 @@ document.addEventListener('DOMContentLoaded', () => {
       row.className = 'history-entry';
 
       const info = document.createElement('div');
+
       const title = document.createElement('strong');
       title.textContent = entry.title || 'Grading session';
 
@@ -746,7 +1208,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const chip = document.createElement('span');
       chip.className = 'history-chip';
-      chip.textContent = 'Prepared';
+      chip.textContent = entry.status || 'Prepared';
 
       row.append(info, chip);
       list.appendChild(row);
@@ -764,6 +1226,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     link.href = url;
     link.download = 'gradenova-history.json';
+
     document.body.appendChild(link);
     link.click();
     link.remove();
@@ -772,21 +1235,36 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   $('#clear-history').addEventListener('click', () => {
-    if (!window.confirm('Clear saved GradeNova session summaries from this browser?')) return;
+    if (!window.confirm(
+      'Clear saved GradeNova session summaries from this browser?'
+    )) {
+      return;
+    }
 
     safeWrite(HISTORY_KEY, []);
     renderHistory();
   });
 
-  /* GRADING FORM — DOES NOT INVENT SCORES */
+  /* =====================================================
+     GRADING FORM
+     Sends real grading requests to Render.
+  ===================================================== */
 
-  $('#grading-form').addEventListener('submit', (event) => {
+  $('#grading-form').addEventListener('submit', async (event) => {
     event.preventDefault();
 
     const test = $('#test-input').value.trim();
     const answers = $('#answers-input').value.trim();
+
+    const answerKey = $('#grading-answer-key')
+      ? $('#grading-answer-key').value.trim()
+      : '';
+
     const points = Number($('#total-points').value);
     const rubric = collectRubric();
+
+    const submitButton =
+      $('#grading-form').querySelector('[type="submit"]');
 
     if (!test || !answers) {
       setStatus(
@@ -794,20 +1272,51 @@ document.addEventListener('DOMContentLoaded', () => {
         'Please enter both the assignment and the student’s answers.',
         'error'
       );
+
       (!test ? $('#test-input') : $('#answers-input')).focus();
+
       return;
     }
 
-    if (!Number.isFinite(points) || points <= 0 || points > 10000) {
-      setStatus('grading-status', 'Enter a total possible score between 1 and 10,000.', 'error');
+    if (answers.length < 10) {
+      setStatus(
+        'grading-status',
+        'Please provide at least 10 characters of student answers.',
+        'error'
+      );
+
+      $('#answers-input').focus();
+
+      return;
+    }
+
+    if (
+      !Number.isFinite(points) ||
+      points < 1 ||
+      points > 10000
+    ) {
+      setStatus(
+        'grading-status',
+        'Enter a total possible score between 1 and 10,000.',
+        'error'
+      );
+
       $('#total-points').focus();
+
       return;
     }
 
-    if (rubric.criteria.some((item) =>
-      !Number.isFinite(item.points) || item.points < 0
-    )) {
-      setStatus('grading-status', 'Check the rubric point values. They must be zero or greater.', 'error');
+    if (
+      rubric.criteria.some((item) =>
+        !Number.isFinite(item.points) || item.points < 0
+      )
+    ) {
+      setStatus(
+        'grading-status',
+        'Check the rubric point values. They must be zero or greater.',
+        'error'
+      );
+
       return;
     }
 
@@ -817,54 +1326,202 @@ document.addEventListener('DOMContentLoaded', () => {
         `Your rubric totals ${rubric.total} points, which exceeds the ${points} possible points. Adjust the rubric or assignment total first.`,
         'error'
       );
+
       openTab('rubric');
+
       return;
     }
 
+    const assignmentInstructions = [
+      test,
+
+      answerKey
+        ? `ANSWER KEY / REFERENCE ANSWERS:\n${answerKey}`
+        : '',
+
+      rubric.instructions
+        ? `RUBRIC INSTRUCTIONS:\n${rubric.instructions}`
+        : ''
+    ]
+      .filter(Boolean)
+      .join('\n\n');
+
+    const rubricText = rubric.criteria.length
+      ? `${rubric.name}\n${rubric.criteria
+          .map((item) =>
+            `- ${item.name}: ${item.points} points`
+          )
+          .join('\n')}`
+      : '';
+
+    const strictness = $('#grading-strictness').value;
+
+    const payload = {
+      title: rubric.name || 'GradeNova assignment',
+      subject: '',
+      gradeLevel: '',
+      assignment: assignmentInstructions,
+      studentWork: answers,
+      rubric: rubricText,
+      tone: 'encouraging',
+      maxPoints: points,
+
+      additionalInstructions:
+        `Grading approach: ${strictness}. ` +
+        (
+          strictness === 'lenient'
+            ? 'Accept reasonable alternative answers when supported.'
+            : strictness === 'strict'
+              ? 'Follow the provided criteria closely.'
+              : 'Grade fairly and consistently.'
+        )
+    };
+
     setStatus(
       'grading-status',
-      '✓ Request validated. No score has been generated because an AI grading backend is not connected in this frontend code.',
-      'success'
+      'Connecting to GradeNova AI and grading the submitted work…'
     );
 
     const result = $('#results-content');
+
     result.replaceChildren();
 
-    const icon = document.createElement('span');
-    icon.className = 'empty-symbol';
-    icon.textContent = '⌁';
+    addReportText(
+      result,
+      'h3',
+      'Grading in progress…'
+    );
 
-    const title = document.createElement('h3');
-    title.textContent = 'Request prepared — not graded yet';
+    addReportText(
+      result,
+      'p',
+      'Your submission is being sent securely to the GradeNova backend. This may take a few seconds.'
+    );
 
-    const message = document.createElement('p');
-    message.textContent =
-      'Your inputs passed front-end validation. Connect the secure grading backend to generate an actual score and feedback report.';
-
-    const back = document.createElement('a');
-    back.className = 'btn btn-primary';
-    back.href = '#grading';
-    back.textContent = 'Return to grading';
-
-    result.append(icon, title, message, back);
-
-    if ($('#option-history').checked) {
-      const entries = readHistory();
-
-      entries.push({
-        id: String(Date.now()),
-        createdAt: new Date().toISOString(),
-        title: rubric.name,
-        points,
-        criteria: rubric.criteria.length,
-        strictness: $('#grading-strictness').value
-      });
-
-      safeWrite(HISTORY_KEY, entries.slice(-50));
-      renderHistory();
+    if (submitButton) {
+      submitButton.disabled = true;
+      submitButton.setAttribute('aria-busy', 'true');
     }
 
-    openTab('results');
+    try {
+      // Actual request to:
+      // https://teacher-grading-website-fnkr.onrender.com/api/grade
+      const response = await fetch(GRADE_URL, {
+        method: 'POST',
+
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json'
+        },
+
+        body: JSON.stringify(payload)
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(
+          data.error ||
+          `The grading server returned HTTP ${response.status}.`
+        );
+      }
+
+      if (
+        typeof data.score !== 'number' ||
+        typeof data.maxPoints !== 'number'
+      ) {
+        throw new Error(
+          'The backend responded, but its grading report was missing a valid score.'
+        );
+      }
+
+      renderGradeReport(
+        data,
+        rubric.name || 'Grading results'
+      );
+
+      setStatus(
+        'grading-status',
+        '✓ Grading completed. Review the AI-generated report and confirm the final grade.',
+        'success'
+      );
+
+      setConnectionDisplay(
+        true,
+        'Render is responding and returned a grading report.'
+      );
+
+      if ($('#option-history').checked) {
+        const entries = readHistory();
+
+        entries.push({
+          id: String(Date.now()),
+          createdAt: new Date().toISOString(),
+          title: rubric.name || 'Grading session',
+          points,
+          score: data.score,
+          percentage: data.percentage,
+          criteria: rubric.criteria.length,
+          strictness,
+          status: 'Graded'
+        });
+
+        safeWrite(HISTORY_KEY, entries.slice(-50));
+        renderHistory();
+      }
+
+      openTab('results');
+
+    } catch (error) {
+      console.error(
+        'GradeNova grading request failed:',
+        error
+      );
+
+      const message =
+        error && error.message
+          ? error.message
+          : 'An unexpected connection error occurred.';
+
+      setStatus(
+        'grading-status',
+        `Grading failed: ${message}`,
+        'error'
+      );
+
+      result.replaceChildren();
+
+      addReportText(
+        result,
+        'h3',
+        'Grade not generated'
+      );
+
+      addReportText(
+        result,
+        'p',
+        message
+      );
+
+      addReportText(
+        result,
+        'p',
+        'If this is a network or CORS error, check the Render service and its FRONTEND_ORIGINS setting. Do not put your Gemini API key in this JavaScript file.'
+      );
+
+      setConnectionDisplay(
+        false,
+        'The grading request failed. Check the message in the grading workspace.'
+      );
+
+      openTab('grading');
+
+    } finally {
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.removeAttribute('aria-busy');
+      }
+    }
   });
 
   $('#clear-grading').addEventListener('click', () => {
@@ -879,7 +1536,9 @@ document.addEventListener('DOMContentLoaded', () => {
     updateRubricSummary();
   });
 
-  /* SETTINGS */
+  /* =====================================================
+     SETTINGS
+  ===================================================== */
 
   $('#save-settings').addEventListener('click', () => {
     const prefs = {
@@ -893,6 +1552,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setCustomMode('preset');
     applyAccent(prefs.accent, false);
     applyMotion(prefs.motion, false);
+
     $('#grading-strictness').value = prefs.strictness;
 
     const saved = safeWrite(PREFS_KEY, prefs);
@@ -922,22 +1582,80 @@ document.addEventListener('DOMContentLoaded', () => {
       strictness: 'balanced'
     });
 
-    setStatus('settings-status', 'Default appearance restored.', 'success');
+    setStatus(
+      'settings-status',
+      'Default appearance restored.',
+      'success'
+    );
   });
 
-  /* SERENITY SOUND STUDIO */
+  /* =====================================================
+     SERENITY SOUND STUDIO
+     Ten synthesized instrumental melodies.
+     Music is OFF by default and stays off after reload.
+  ===================================================== */
 
   const TRACKS = [
-    { name: 'Moonlit Reflections', style: 'Soft piano melody', instrument: 'piano', notes: [60,64,67,72,69,67,64,62,65,69,72,76,74,69,65,64] },
-    { name: 'Gentle Horizons', style: 'Soft piano melody', instrument: 'piano', notes: [57,60,64,69,67,64,60,59,62,65,69,74,72,69,65,62] },
-    { name: 'Forest Whispers', style: 'Warm string-like tones', instrument: 'violin', notes: [55,59,62,67,69,67,62,59,57,60,64,69,67,64,60,57] },
-    { name: 'Ocean Dreams', style: 'Piano-style melody', instrument: 'piano', notes: [62,65,69,74,72,69,65,62,60,64,67,72,71,67,64,60] },
-    { name: 'Quiet Path', style: 'Soft piano melody', instrument: 'piano', notes: [60,63,67,70,72,70,67,63,58,62,65,70,68,65,62,58] },
-    { name: 'Winter Light', style: 'Gentle string-like tones', instrument: 'violin', notes: [53,57,60,65,64,60,57,55,57,60,64,69,67,64,60,57] },
-    { name: 'Golden Morning', style: 'Soft piano melody', instrument: 'piano', notes: [65,69,72,77,76,72,69,67,64,67,71,76,74,71,67,64] },
-    { name: 'Starlit Skies', style: 'Piano-style melody', instrument: 'piano', notes: [58,62,65,70,69,65,62,60,57,60,64,69,67,64,60,57] },
-    { name: 'Calm Waters', style: 'Warm string-like tones', instrument: 'violin', notes: [60,64,67,71,72,71,67,64,55,59,62,67,65,62,59,55] },
-    { name: 'New Beginnings', style: 'Soft piano melody', instrument: 'piano', notes: [62,65,69,74,76,74,69,65,60,64,67,72,74,72,67,64] }
+    {
+      name: 'Moonlit Reflections',
+      style: 'Soft piano melody',
+      instrument: 'piano',
+      notes: [60,64,67,72,69,67,64,62,65,69,72,76,74,69,65,64]
+    },
+    {
+      name: 'Gentle Horizons',
+      style: 'Soft piano melody',
+      instrument: 'piano',
+      notes: [57,60,64,69,67,64,60,59,62,65,69,74,72,69,65,62]
+    },
+    {
+      name: 'Forest Whispers',
+      style: 'Warm string-like tones',
+      instrument: 'violin',
+      notes: [55,59,62,67,69,67,62,59,57,60,64,69,67,64,60,57]
+    },
+    {
+      name: 'Ocean Dreams',
+      style: 'Piano-style melody',
+      instrument: 'piano',
+      notes: [62,65,69,74,72,69,65,62,60,64,67,72,71,67,64,60]
+    },
+    {
+      name: 'Quiet Path',
+      style: 'Soft piano melody',
+      instrument: 'piano',
+      notes: [60,63,67,70,72,70,67,63,58,62,65,70,68,65,62,58]
+    },
+    {
+      name: 'Winter Light',
+      style: 'Gentle string-like tones',
+      instrument: 'violin',
+      notes: [53,57,60,65,64,60,57,55,57,60,64,69,67,64,60,57]
+    },
+    {
+      name: 'Golden Morning',
+      style: 'Soft piano melody',
+      instrument: 'piano',
+      notes: [65,69,72,77,76,72,69,67,64,67,71,76,74,71,67,64]
+    },
+    {
+      name: 'Starlit Skies',
+      style: 'Piano-style melody',
+      instrument: 'piano',
+      notes: [58,62,65,70,69,65,62,60,57,60,64,69,67,64,60,57]
+    },
+    {
+      name: 'Calm Waters',
+      style: 'Warm string-like tones',
+      instrument: 'violin',
+      notes: [60,64,67,71,72,71,67,64,55,59,62,67,65,62,59,55]
+    },
+    {
+      name: 'New Beginnings',
+      style: 'Soft piano melody',
+      instrument: 'piano',
+      notes: [62,65,69,74,76,74,69,65,60,64,67,72,74,72,67,64]
+    }
   ];
 
   let currentTrack = 0;
@@ -945,7 +1663,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let masterGain = null;
   let noteTimer = null;
   let progressTimer = null;
-  const activeOscillators = new Set();
+  let activeOscillators = new Set();
   let playing = false;
   let shuffleOn = false;
   let repeatOn = false;
@@ -954,6 +1672,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let startedAt = 0;
 
   const TRACK_LENGTH_MS = 120000;
+
   const musicEnabled = $('#music-enabled');
   const musicPlayButton = $('#music-play');
   const musicStatus = $('#music-status');
@@ -963,11 +1682,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function formatMusicTime(ms) {
     const seconds = Math.floor(Math.max(0, ms) / 1000);
+
     return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
   }
 
   function getElapsedMs() {
-    return elapsedMs + (playing ? Date.now() - startedAt : 0);
+    return elapsedMs + (
+      playing ? Date.now() - startedAt : 0
+    );
   }
 
   function renderTrackList() {
@@ -975,11 +1697,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     TRACKS.forEach((track, index) => {
       const button = document.createElement('button');
+
       button.type = 'button';
       button.className = 'music-track';
-      button.classList.toggle('active', index === currentTrack);
+
+      button.classList.toggle(
+        'active',
+        index === currentTrack
+      );
 
       const number = document.createElement('span');
+
       number.className = 'track-number';
       number.textContent = String(index + 1).padStart(2, '0');
 
@@ -995,11 +1723,16 @@ document.addEventListener('DOMContentLoaded', () => {
       details.append(name, style);
 
       const duration = document.createElement('span');
+
       duration.className = 'track-duration';
       duration.textContent = '2:00';
 
       button.append(number, details, duration);
-      button.setAttribute('aria-label', `Play ${track.name}, track ${index + 1}`);
+
+      button.setAttribute(
+        'aria-label',
+        `Play ${track.name}, track ${index + 1}`
+      );
 
       button.addEventListener('click', () => {
         playTrack(index);
@@ -1010,23 +1743,34 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function updateTrackDisplay() {
-    $('#music-track-title').textContent = TRACKS[currentTrack].name;
-    $('#music-track-style').textContent = TRACKS[currentTrack].style;
+    $('#music-track-title').textContent =
+      TRACKS[currentTrack].name;
+
+    $('#music-track-style').textContent =
+      TRACKS[currentTrack].style;
+
     renderTrackList();
   }
 
   function ensureAudioContext() {
     if (audioContext) return;
 
-    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    const AudioContextClass =
+      window.AudioContext || window.webkitAudioContext;
 
     if (!AudioContextClass) {
-      throw new Error('This browser does not support Web Audio.');
+      throw new Error(
+        'This browser does not support Web Audio.'
+      );
     }
 
     audioContext = new AudioContextClass();
+
     masterGain = audioContext.createGain();
-    masterGain.gain.value = Number(volumeControl.value) / 100;
+
+    masterGain.gain.value =
+      Number(volumeControl.value) / 100;
+
     masterGain.connect(audioContext.destination);
   }
 
@@ -1048,33 +1792,71 @@ document.addEventListener('DOMContentLoaded', () => {
     activeOscillators.clear();
   }
 
-  function createMusicNote(midiNote, instrument, lengthSeconds, loudness = 0.7) {
+  function createMusicNote(
+    midiNote,
+    instrument,
+    lengthSeconds,
+    loudness = 0.7
+  ) {
     if (!audioContext || !masterGain) return;
 
     const now = audioContext.currentTime;
-    const frequency = 440 * Math.pow(2, (midiNote - 69) / 12);
+
+    const frequency =
+      440 * Math.pow(2, (midiNote - 69) / 12);
+
     const isViolin = instrument === 'violin';
+
     const filter = audioContext.createBiquadFilter();
     const envelope = audioContext.createGain();
     const oscillators = [];
 
     const peak = 0.12 * loudness;
     const attack = isViolin ? 0.20 : 0.012;
-    const endTime = now + Math.max(0.15, lengthSeconds);
+
+    const endTime =
+      now + Math.max(0.15, lengthSeconds);
 
     filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(isViolin ? 1450 : 2100, now);
+
+    filter.frequency.setValueAtTime(
+      isViolin ? 1450 : 2100,
+      now
+    );
+
     filter.Q.setValueAtTime(0.45, now);
 
     envelope.gain.setValueAtTime(0.0001, now);
-    envelope.gain.linearRampToValueAtTime(peak, now + attack);
+
+    envelope.gain.linearRampToValueAtTime(
+      peak,
+      now + attack
+    );
 
     if (isViolin) {
-      envelope.gain.setTargetAtTime(peak * 0.72, now + attack, 0.24);
-      envelope.gain.setTargetAtTime(0.0001, endTime - 0.28, 0.18);
+      envelope.gain.setTargetAtTime(
+        peak * 0.72,
+        now + attack,
+        0.24
+      );
+
+      envelope.gain.setTargetAtTime(
+        0.0001,
+        endTime - 0.28,
+        0.18
+      );
     } else {
-      envelope.gain.setTargetAtTime(peak * 0.35, now + attack, 0.28);
-      envelope.gain.setTargetAtTime(0.0001, endTime - 0.22, 0.12);
+      envelope.gain.setTargetAtTime(
+        peak * 0.35,
+        now + attack,
+        0.28
+      );
+
+      envelope.gain.setTargetAtTime(
+        0.0001,
+        endTime - 0.22,
+        0.12
+      );
     }
 
     filter.connect(envelope);
@@ -1085,10 +1867,17 @@ document.addEventListener('DOMContentLoaded', () => {
       const tone = audioContext.createGain();
 
       oscillator.type = type;
-      oscillator.frequency.setValueAtTime(toneFrequency, now);
+
+      oscillator.frequency.setValueAtTime(
+        toneFrequency,
+        now
+      );
+
       tone.gain.setValueAtTime(toneGain, now);
+
       oscillator.connect(tone);
       tone.connect(filter);
+
       activeOscillators.add(oscillator);
       oscillators.push(oscillator);
 
@@ -1108,11 +1897,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const vibrato = audioContext.createOscillator();
       const vibratoDepth = audioContext.createGain();
+
       vibrato.type = 'sine';
       vibrato.frequency.setValueAtTime(4.2, now);
+
       vibratoDepth.gain.setValueAtTime(2.2, now);
+
       vibrato.connect(vibratoDepth);
       vibratoDepth.connect(oscillators[0].frequency);
+
       activeOscillators.add(vibrato);
 
       vibrato.addEventListener('ended', () => {
@@ -1123,36 +1916,85 @@ document.addEventListener('DOMContentLoaded', () => {
 
       vibrato.start(now + 0.18);
       vibrato.stop(endTime + 0.03);
+
     } else {
       addTone('triangle', frequency, 0.72);
       addTone('sine', frequency * 2, 0.08);
     }
 
-    let remaining = oscillators.length + (isViolin ? 1 : 0);
+    let remaining =
+      oscillators.length + (isViolin ? 1 : 0);
+
     const cleanup = () => {
       remaining -= 1;
+
       if (remaining <= 0) {
-        try { filter.disconnect(); } catch (_) {}
-        try { envelope.disconnect(); } catch (_) {}
+        try {
+          filter.disconnect();
+        } catch (_) {}
+
+        try {
+          envelope.disconnect();
+        } catch (_) {}
       }
     };
 
     oscillators.forEach((oscillator) => {
-      oscillator.addEventListener('ended', cleanup, { once: true });
+      oscillator.addEventListener(
+        'ended',
+        cleanup,
+        { once: true }
+      );
     });
+
+    if (isViolin) {
+      const vibrato = activeOscillators.size
+        ? Array.from(activeOscillators).find(
+            (item) =>
+              item !== oscillators[0] &&
+              item !== oscillators[1]
+          )
+        : null;
+
+      if (vibrato) {
+        vibrato.addEventListener(
+          'ended',
+          cleanup,
+          { once: true }
+        );
+      }
+    }
   }
 
   function scheduleMusicStep() {
     if (!playing || !audioContext) return;
 
     const track = TRACKS[currentTrack];
-    const midi = track.notes[noteStep % track.notes.length];
 
-    createMusicNote(midi, track.instrument, 1.0, 1);
+    const midi =
+      track.notes[noteStep % track.notes.length];
+
+    createMusicNote(
+      midi,
+      track.instrument,
+      1.0,
+      1
+    );
 
     if (noteStep % 4 === 0) {
-      createMusicNote(midi - 12, 'piano', 1.35, 0.45);
-      createMusicNote(midi + 7, track.instrument, 1.0, 0.25);
+      createMusicNote(
+        midi - 12,
+        'piano',
+        1.35,
+        0.45
+      );
+
+      createMusicNote(
+        midi + 7,
+        track.instrument,
+        1.0,
+        0.25
+      );
     }
 
     noteStep += 1;
@@ -1162,6 +2004,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (TRACKS.length < 2) return excludeIndex;
 
     let next = excludeIndex;
+
     while (next === excludeIndex) {
       next = Math.floor(Math.random() * TRACKS.length);
     }
@@ -1171,10 +2014,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function updateMusicProgress() {
     const elapsed = getElapsedMs();
-    const percent = Math.min(100, (elapsed / TRACK_LENGTH_MS) * 100);
 
-    $('#music-elapsed').textContent = formatMusicTime(elapsed);
-    $('#music-progress-fill').style.width = `${percent}%`;
+    const percent = Math.min(
+      100,
+      (elapsed / TRACK_LENGTH_MS) * 100
+    );
+
+    $('#music-elapsed').textContent =
+      formatMusicTime(elapsed);
+
+    $('#music-progress-fill').style.width =
+      `${percent}%`;
 
     if (elapsed >= TRACK_LENGTH_MS) {
       const next = repeatOn
@@ -1190,6 +2040,7 @@ document.addEventListener('DOMContentLoaded', () => {
   async function beginMusic() {
     try {
       ensureAudioContext();
+
       await audioContext.resume();
 
       if (playing) return;
@@ -1197,19 +2048,37 @@ document.addEventListener('DOMContentLoaded', () => {
       playing = true;
       startedAt = Date.now();
 
-      noteTimer = setInterval(scheduleMusicStep, 760);
-      progressTimer = setInterval(updateMusicProgress, 250);
+      noteTimer = setInterval(
+        scheduleMusicStep,
+        760
+      );
+
+      progressTimer = setInterval(
+        updateMusicProgress,
+        250
+      );
 
       scheduleMusicStep();
 
       musicPlayButton.textContent = 'Ⅱ';
-      musicPlayButton.setAttribute('aria-label', 'Pause music');
+
+      musicPlayButton.setAttribute(
+        'aria-label',
+        'Pause music'
+      );
+
       musicPlayButton.title = 'Pause';
 
       wave.classList.add('is-playing');
-      musicStatus.textContent = `Playing ${TRACKS[currentTrack].name}.`;
+
+      musicStatus.textContent =
+        `Playing ${TRACKS[currentTrack].name}.`;
+
     } catch (error) {
-      console.error('GradeNova audio could not start:', error);
+      console.error(
+        'GradeNova audio could not start:',
+        error
+      );
 
       musicStatus.textContent =
         'Audio could not start. Try another browser or check your sound settings.';
@@ -1225,24 +2094,37 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     playing = false;
+
     stopScheduledNotes();
 
-    if (audioContext && audioContext.state === 'running') {
+    if (
+      audioContext &&
+      audioContext.state === 'running'
+    ) {
       audioContext.suspend().catch(() => {});
     }
 
     musicPlayButton.textContent = '▶';
-    musicPlayButton.setAttribute('aria-label', 'Play music');
+
+    musicPlayButton.setAttribute(
+      'aria-label',
+      'Play music'
+    );
+
     musicPlayButton.title = 'Play';
 
     wave.classList.remove('is-playing');
-    musicStatus.textContent = 'Music paused. Press Play to continue.';
+
+    musicStatus.textContent =
+      'Music paused. Press Play to continue.';
 
     updateMusicProgress();
   }
 
   function playTrack(index) {
-    currentTrack = (index + TRACKS.length) % TRACKS.length;
+    currentTrack =
+      (index + TRACKS.length) % TRACKS.length;
+
     elapsedMs = 0;
     noteStep = 0;
 
@@ -1250,6 +2132,7 @@ document.addEventListener('DOMContentLoaded', () => {
     playing = false;
 
     updateTrackDisplay();
+
     musicEnabled.checked = true;
 
     beginMusic();
@@ -1282,19 +2165,32 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   $('#music-previous').addEventListener('click', () => {
-    const previous = (currentTrack - 1 + TRACKS.length) % TRACKS.length;
+    const previous =
+      (currentTrack - 1 + TRACKS.length) % TRACKS.length;
+
     playTrack(previous);
   });
 
   $('#music-shuffle').addEventListener('click', (event) => {
     shuffleOn = !shuffleOn;
-    event.currentTarget.setAttribute('aria-pressed', String(shuffleOn));
-    musicStatus.textContent = shuffleOn ? 'Shuffle is on.' : 'Shuffle is off.';
+
+    event.currentTarget.setAttribute(
+      'aria-pressed',
+      String(shuffleOn)
+    );
+
+    musicStatus.textContent =
+      shuffleOn ? 'Shuffle is on.' : 'Shuffle is off.';
   });
 
   $('#music-repeat').addEventListener('click', (event) => {
     repeatOn = !repeatOn;
-    event.currentTarget.setAttribute('aria-pressed', String(repeatOn));
+
+    event.currentTarget.setAttribute(
+      'aria-pressed',
+      String(repeatOn)
+    );
+
     musicStatus.textContent = repeatOn
       ? 'Repeat current track is on.'
       : 'Repeat current track is off.';
@@ -1302,7 +2198,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   volumeControl.addEventListener('input', () => {
     const volume = Number(volumeControl.value);
-    $('#music-volume-value').textContent = `${volume}%`;
+
+    $('#music-volume-value').textContent =
+      `${volume}%`;
 
     if (masterGain && audioContext) {
       masterGain.gain.setTargetAtTime(
@@ -1315,28 +2213,42 @@ document.addEventListener('DOMContentLoaded', () => {
     safeWrite(AUDIO_KEY, { volume });
   });
 
-  /* RESTORE PREFERENCES AND START THE APP */
+  /* =====================================================
+     RESTORE SAVED PREFERENCES AND START THE APP
+  ===================================================== */
 
   const prefs = getPrefs();
 
   applyTheme(
-    Object.hasOwn(THEMES, prefs.theme) ? prefs.theme : 'cosmic',
+    Object.hasOwn(THEMES, prefs.theme)
+      ? prefs.theme
+      : 'cosmic',
     false
   );
 
   applyAccent(
-    typeof prefs.accent === 'string' ? prefs.accent : '#39d7ff',
+    typeof prefs.accent === 'string'
+      ? prefs.accent
+      : '#39d7ff',
     false
   );
 
   applyMotion(
-    typeof prefs.motion === 'boolean' ? prefs.motion : true,
+    typeof prefs.motion === 'boolean'
+      ? prefs.motion
+      : true,
     false
   );
 
-  if (['lenient', 'balanced', 'strict'].includes(prefs.strictness)) {
-    $('#settings-default-strictness').value = prefs.strictness;
-    $('#grading-strictness').value = prefs.strictness;
+  if (
+    ['lenient', 'balanced', 'strict']
+      .includes(prefs.strictness)
+  ) {
+    $('#settings-default-strictness').value =
+      prefs.strictness;
+
+    $('#grading-strictness').value =
+      prefs.strictness;
   }
 
   const savedRubric = safeRead(RUBRIC_KEY, null);
@@ -1346,8 +2258,11 @@ document.addEventListener('DOMContentLoaded', () => {
     Array.isArray(savedRubric.criteria) &&
     savedRubric.criteria.length
   ) {
-    $('#rubric-name').value = savedRubric.name || DEFAULT_RUBRIC.name;
-    $('#rubric-instructions').value = savedRubric.instructions || '';
+    $('#rubric-name').value =
+      savedRubric.name || DEFAULT_RUBRIC.name;
+
+    $('#rubric-instructions').value =
+      savedRubric.instructions || '';
 
     rubricContainer.replaceChildren(
       ...savedRubric.criteria.map((item) =>
@@ -1365,17 +2280,26 @@ document.addEventListener('DOMContentLoaded', () => {
     );
   }
 
-  $('#music-volume-value').textContent = `${volumeControl.value}%`;
+  $('#music-volume-value').textContent =
+    `${volumeControl.value}%`;
 
+  // Intentionally do not autoplay music on page load.
   musicEnabled.checked = false;
+
   updateTrackDisplay();
 
   createAnimations();
   updateRubricSummary();
   renderHistory();
 
+  // Verify the Render backend when the site loads.
+  checkBackendConnection();
+
   restoreCustomization().catch((error) => {
-    console.warn('GradeNova could not restore customization:', error);
+    console.warn(
+      'GradeNova could not restore customization:',
+      error
+    );
   });
 
   openTab(
@@ -1390,7 +2314,10 @@ document.addEventListener('DOMContentLoaded', () => {
   );
 });
 
-/* Binary rain contained inside each Matrix cap */
+/* =====================================================
+   MATRIX CAP BINARY RAIN
+===================================================== */
+
 (() => {
   document.querySelectorAll('.cap-effect-matrix').forEach((cap) => {
     if (cap.dataset.binaryReady === 'true') return;
@@ -1398,20 +2325,30 @@ document.addEventListener('DOMContentLoaded', () => {
     cap.dataset.binaryReady = 'true';
     cap.replaceChildren();
 
-    for (let column = 0; column < 7; column += 1) {
+    for (let column = 0; column < 7; column++) {
       const stream = document.createElement('span');
+
       stream.className = 'binary-stream';
 
       let digits = '';
-      for (let row = 0; row < 12; row += 1) {
+
+      for (let row = 0; row < 12; row++) {
         digits += Math.random() > 0.5 ? '1' : '0';
         digits += '\n';
       }
 
       stream.textContent = digits;
       stream.style.left = `${column * 14}%`;
-      stream.style.setProperty('--fall-time', `${1.4 + Math.random() * 1.8}s`);
-      stream.style.setProperty('--fall-delay', `${-Math.random() * 3}s`);
+
+      stream.style.setProperty(
+        '--fall-time',
+        `${1.4 + Math.random() * 1.8}s`
+      );
+
+      stream.style.setProperty(
+        '--fall-delay',
+        `${-Math.random() * 3}s`
+      );
 
       cap.appendChild(stream);
     }
