@@ -38,7 +38,7 @@ logger = logging.getLogger("gradenova")
 app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = 1 * 1024 * 1024  # 1 MB request limit
 
-MODEL_NAME = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
+MODEL_NAME = os.environ.get("GEMINI_MODEL", "gemini-3.8-flash")
 MAX_WORK_LENGTH = 50_000
 MAX_TEXT_FIELD_LENGTH = 12_000
 REQUEST_WINDOW_SECONDS = 60
