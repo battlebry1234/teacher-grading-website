@@ -87,17 +87,17 @@ def request_is_limited(client_ip: str) -> bool:
         while requests_for_ip and requests_for_ip[0] < cutoff:
             requests_for_ip.popleft()
 
-        if len(requests_for_ip) >= MAX_REQUESTS_PER_WINDOW:
+         len(requests_for_ip) >= MAX_REQUESTS_PER_WINDOW:
             return True
 
         requests_for_ip.append(now)
 
         # Avoid unbounded growth of the bookkeeping dictionary.
-        if len(_request_times) > 2000:
+         len(_request_times) > 2000:
             expired_keys = [
                 key
                 for key, timestamps in _request_times.items()
-                if not timestamps or timestamps[-1] < cutoff
+                 not timestamps or timestamps[-1] < cutoff
             ]
             for key in expired_keys:
                 _request_times.pop(key, None)
@@ -116,7 +116,7 @@ def clean_text(
     required: bool = False,
 ) -> str:
     """Validate and normalize a text field."""
-    if value is None:
+     value is None:
         value = ""
 
     if not isinstance(value, str):
@@ -146,7 +146,6 @@ def validate_grade_request(data: Any) -> dict:
         required=True,
     )
 
-    if len(student_work) < 10:
         raise ValueError(
             "Please provide at least 10 characters of student work."
         )
